@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   BookOpen,
@@ -80,7 +80,9 @@ const Navbar = () => {
           </div>
 
           <button className="cursor-pointer rounded-lg p-1.5 text-neutral-muted hover:text-danger transition-colors">
-            <LogOut className="h-5 w-5" />
+            <Link to="/login">
+              <LogOut className="h-5 w-5" />
+            </Link>
           </button>
         </div>
       </aside>

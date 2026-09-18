@@ -21,12 +21,12 @@ const Dashboard = () => {
     {
       name: "Operasi Bilangan",
       progress: 20,
-      color: "bg-primary-dark",
+      color: "bg-purple-500",
     },
     {
       name: "Geometri Dasar",
       progress: 65,
-      color: "bg-success",
+      color: "bg-green-500",
     },
   ];
 
@@ -46,7 +46,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-neutral-bg font-sans text-neutral-text">
+    <div className="flex min-h-screen bg-neutral-bg">
       {/* Navbar / Sidebar */}
       <Navbar />
 
