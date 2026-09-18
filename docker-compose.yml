@@ -1,0 +1,37 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: project_assessment_backend
+
+    ports:
+      - "5000:5000"
+
+    env_file:
+      - ./backend/.env
+
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:8
+
+    container_name: project_assessment_mongodb
+
+    ports:
+      - "27017:27017"
+
+    volumes:
+      - mongodb_data:/data/db
+
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  backend_node_modules:
