@@ -1,7 +1,7 @@
-import Dashboard from "./pages/Dashboard";
+import PersonalizationProfile from "./pages/PersonalizationProfile";
 
 function App() {
-  return <Dashboard />;
+  return <PersonalizationProfile />;
 }
 
 export default App;
