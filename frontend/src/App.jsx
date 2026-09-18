@@ -1,7 +1,7 @@
-import QuestionPage from './pages/QuestionPage'
+import PersonalizationProfile from "./pages/PersonalizationProfile";
 
 function App() {
-  return <QuestionPage />
+  return <PersonalizationProfile />;
 }
 
-export default App
+export default App;
