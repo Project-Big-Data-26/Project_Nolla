@@ -215,35 +215,35 @@ const QuestionPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-neutral-bg">
+    <div className="flex min-h-screen bg-neutral-bg font-sans">
       {/* Sidebar / Navbar di Sisi Kiri */}
       <Navbar />
 
       {/* Area Konten Utama Soal */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-6 md:p-8">
         <div className="mx-auto w-full max-w-[860px]">
           {/* TOP INFORMATION */}
-          <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600">
+              <span className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
                 🎓 SD
               </span>
-              <span className="rounded-full bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-600">
+              <span className="rounded-full bg-secondary/10 px-3 py-1.5 text-xs font-semibold text-secondary-hover">
                 🔥 1 day streak 🔥
               </span>
             </div>
 
             {/* DAILY GOAL */}
             <div className="w-36">
-              <div className="mb-1 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="mb-1 flex items-center justify-between text-xs text-neutral-muted">
                 <span className="flex items-center gap-1.5">
                   <TargetIcon />
                   Daily goal
                 </span>
-                <span>3/10</span>
+                <span className="font-medium text-neutral-text">3/10</span>
               </div>
-              <div className="h-1.5 rounded-full bg-blue-100">
-                <div className="h-full w-[30%] rounded-full bg-blue-500" />
+              <div className="h-1.5 rounded-full bg-neutral-border overflow-hidden">
+                <div className="h-full w-[30%] rounded-full bg-primary" />
               </div>
             </div>
           </div>
@@ -252,7 +252,7 @@ const QuestionPage = () => {
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <button
               type="button"
-              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              className="text-sm font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
             >
               ← Exit
             </button>
@@ -262,10 +262,10 @@ const QuestionPage = () => {
               <button
                 type="button"
                 onClick={() => setIsTimed(!isTimed)}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-colors cursor-pointer ${
                   isTimed
-                    ? "bg-blue-600 text-white"
-                    : "border border-blue-200 bg-white text-blue-600"
+                    ? "bg-primary text-white shadow-sm"
+                    : "border border-neutral-border bg-neutral-card text-primary hover:bg-neutral-bg"
                 }`}
               >
                 <StopwatchIcon />
@@ -273,7 +273,7 @@ const QuestionPage = () => {
               </button>
 
               {/* TIMER */}
-              <span className="flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-600">
+              <span className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">
                 <ClockIcon />
                 {isTimed ? "2:35" : "4:07"}
               </span>
@@ -281,48 +281,48 @@ const QuestionPage = () => {
           </div>
 
           {/* PROGRESS */}
-          <div className="mb-4">
-            <div className="mb-1.5 flex justify-between text-[11px] text-slate-500">
+          <div className="mb-6">
+            <div className="mb-1.5 flex justify-between text-xs text-neutral-muted">
               <span>
                 Question {currentQuestion + 1} of {questions.length}
               </span>
               <span>{Math.round(progress)}% complete</span>
             </div>
-            <div className="h-1.5 rounded-full bg-blue-100">
+            <div className="h-1.5 rounded-full bg-neutral-border overflow-hidden">
               <div
-                className="h-full rounded-full bg-blue-500 transition-all duration-300"
+                className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
           {/* QUESTION CARD */}
-          <section className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-2xl border border-neutral-border bg-neutral-card p-6 shadow-sm">
             {/* QUESTION HEADER */}
             <div className="flex items-center justify-between gap-3">
-              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-600">
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 {question.level}
               </span>
-              <span className="text-right text-[11px] text-slate-500">
+              <span className="text-right text-xs text-neutral-muted font-medium">
                 {question.topic}
               </span>
             </div>
 
             {/* QUESTION */}
-            <h2 className="mt-5 text-lg font-medium text-[#17326b]">
+            <h2 className="mt-5 font-heading text-lg font-semibold text-neutral-text">
               {question.question}
             </h2>
 
             {/* HINT */}
             {showHint && (
-              <div className="mt-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+              <div className="mt-4 flex items-center gap-2 rounded-xl border border-secondary/30 bg-secondary/10 px-4 py-3 text-xs font-medium text-secondary-hover">
                 <LightbulbIcon />
                 {question.hint}
               </div>
             )}
 
             {/* ANSWER OPTIONS */}
-            <div className="mt-4 space-y-2.5">
+            <div className="mt-5 space-y-3">
               {question.options.map((option) => {
                 const isSelected = selectedAnswer === option.label;
                 const isCorrectAnswer =
@@ -331,16 +331,19 @@ const QuestionPage = () => {
                   checked && isSelected && option.label !== question.answer;
 
                 let optionStyle =
-                  "border-blue-100 bg-white hover:border-blue-300";
+                  "border-neutral-border bg-neutral-card hover:border-primary/40 text-neutral-text";
 
                 if (isSelected && !checked) {
-                  optionStyle = "border-blue-500 bg-blue-50";
+                  optionStyle =
+                    "border-primary bg-primary/5 text-primary font-medium";
                 }
                 if (isCorrectAnswer) {
-                  optionStyle = "border-emerald-400 bg-emerald-50";
+                  optionStyle =
+                    "border-success bg-success/10 text-success font-medium";
                 }
                 if (isWrongAnswer) {
-                  optionStyle = "border-red-400 bg-red-50";
+                  optionStyle =
+                    "border-danger bg-danger/10 text-danger font-medium";
                 }
 
                 return (
@@ -348,32 +351,32 @@ const QuestionPage = () => {
                     key={option.label}
                     type="button"
                     onClick={() => handleSelectAnswer(option.label)}
-                    className={`flex w-full items-center gap-4 rounded-xl border-2 px-4 py-3 text-left transition ${optionStyle}`}
+                    className={`flex w-full items-center gap-4 rounded-xl border-2 px-4 py-3 text-left transition-all cursor-pointer ${optionStyle}`}
                   >
                     <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium ${
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
                         isCorrectAnswer
-                          ? "border-emerald-400 text-emerald-600"
+                          ? "border-success text-success"
                           : isWrongAnswer
-                            ? "border-red-400 text-red-600"
-                            : "border-blue-200 text-blue-600"
+                            ? "border-danger text-danger"
+                            : isSelected && !checked
+                              ? "border-primary text-primary"
+                              : "border-neutral-border text-neutral-muted"
                       }`}
                     >
                       {option.label}
                     </span>
 
-                    <span className="text-sm text-slate-700">
-                      {option.value}
-                    </span>
+                    <span className="text-sm font-medium">{option.value}</span>
 
                     {isCorrectAnswer && (
-                      <span className="ml-auto text-emerald-500">
+                      <span className="ml-auto text-success">
                         <CheckIcon />
                       </span>
                     )}
 
                     {isWrongAnswer && (
-                      <span className="ml-auto text-red-500">
+                      <span className="ml-auto text-danger">
                         <XIcon />
                       </span>
                     )}
@@ -385,10 +388,10 @@ const QuestionPage = () => {
             {/* RESULT FEEDBACK */}
             {checked && (
               <div
-                className={`mt-4 flex items-center gap-2 rounded-xl px-4 py-3 text-xs ${
+                className={`mt-4 flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-medium ${
                   isCorrect
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-red-50 text-red-700"
+                    ? "bg-success/10 text-success"
+                    : "bg-danger/10 text-danger"
                 }`}
               >
                 {isCorrect ? (
@@ -414,28 +417,28 @@ const QuestionPage = () => {
 
             {/* STEP-BY-STEP SOLUTION */}
             {checked && (
-              <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-4">
-                <p className="text-[11px] font-semibold text-blue-600">
+              <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                <p className="text-xs font-bold text-primary">
                   Step-by-step solution
                 </p>
-                <p className="mt-2 text-xs leading-relaxed text-slate-700">
+                <p className="mt-1 text-xs leading-relaxed text-neutral-text">
                   {question.solution}
                 </p>
               </div>
             )}
 
             {/* ACTIONS */}
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-5">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
                 {/* HINT BUTTON */}
                 <button
                   type="button"
                   onClick={handleShowHint}
                   disabled={showHint}
-                  className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-xs transition ${
+                  className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-all ${
                     showHint
-                      ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      ? "cursor-not-allowed border-neutral-border bg-neutral-bg text-neutral-muted"
+                      : "border-neutral-border bg-neutral-card text-neutral-text hover:bg-neutral-bg cursor-pointer"
                   }`}
                 >
                   <LightbulbIcon />
@@ -447,7 +450,7 @@ const QuestionPage = () => {
                   type="button"
                   onClick={handleSkip}
                   disabled={currentQuestion === questions.length - 1}
-                  className="text-xs font-medium text-slate-700 hover:text-blue-600 disabled:cursor-not-allowed disabled:text-slate-300"
+                  className="text-xs font-semibold text-neutral-muted hover:text-primary transition-colors cursor-pointer disabled:cursor-not-allowed disabled:text-neutral-border"
                 >
                   ▷ Skip
                 </button>
@@ -459,7 +462,7 @@ const QuestionPage = () => {
                   type="button"
                   onClick={handleCheckAnswer}
                   disabled={!selectedAnswer}
-                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-200"
+                  className="rounded-xl bg-primary px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-primary-hover cursor-pointer disabled:cursor-not-allowed disabled:bg-neutral-border disabled:text-neutral-muted"
                 >
                   Check answer
                 </button>
@@ -467,24 +470,16 @@ const QuestionPage = () => {
                 <button
                   type="button"
                   onClick={handleNextQuestion}
-                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-700"
+                  className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-primary-hover cursor-pointer"
                 >
                   {currentQuestion === questions.length - 1
                     ? "Finish"
                     : "Next question"}
-                  <span className="text-base leading-none">›</span>
+                  <span className="text-sm leading-none">›</span>
                 </button>
               )}
             </div>
           </section>
-
-          {/* SCRATCHPAD */}
-          <button
-            type="button"
-            className="mt-5 flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600"
-          >
-            ✎ Scratchpad + show
-          </button>
         </div>
       </main>
     </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   BookOpen,
@@ -6,14 +7,15 @@ import {
   User,
   LogOut,
   GraduationCap,
+  HelpCircle,
 } from "lucide-react";
 
 const Navbar = () => {
   const menuItems = [
-    { label: "Dashboard", icon: LayoutDashboard, active: true },
-    { label: "Topik", icon: BookOpen, active: false },
-    { label: "Profil", icon: User, active: false },
-    { label: "Setting", icon: Settings, active: false },
+    { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { label: "Topik", icon: BookOpen, path: "/topics" },
+    { label: "Profil", icon: User, path: "/profile" },
+    { label: "Setting", icon: Settings, path: "/settings" },
   ];
 
   return (
@@ -37,23 +39,26 @@ const Navbar = () => {
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             return (
-              <button
+              <NavLink
                 key={index}
-                className={`flex items-center transition-all cursor-pointer 
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center transition-all cursor-pointer 
                   /* Mobile Style: Bertumpuk Vertikal */
                   flex-col justify-center 
                   /* Desktop Style: Lurus Horizontal Rata Kiri */
                   md:flex-row md:justify-start md:gap-3 md:rounded-xl md:px-4 md:py-3 ${
-                    item.active
+                    isActive
                       ? "text-primary font-semibold md:bg-primary md:text-white md:shadow-sm"
                       : "text-neutral-muted hover:text-neutral-text md:hover:bg-neutral-bg"
-                  }`}
+                  }`
+                }
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 <span className="text-[10px] mt-0.5 md:mt-0 md:text-sm font-medium">
                   {item.label}
                 </span>
-              </button>
+              </NavLink>
             );
           })}
         </nav>
