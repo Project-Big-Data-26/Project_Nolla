@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
 import QuestionPage from "../pages/QuestionPage";
 import PersonalizationProfile from "../pages/PersonalizationProfile";
+import Topics from "../pages/Topics";
 import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
 
@@ -18,6 +19,7 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/quiz" element={<QuestionPage />} />
       <Route path="/profile" element={<PersonalizationProfile />} />
+      <Route path="/topik" element={<Topics />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 

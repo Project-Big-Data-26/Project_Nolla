@@ -10,10 +10,10 @@ import {
   HelpCircle,
 } from "lucide-react";
 
-const Navbar = () => {
+const Navbar = ({ activePage = "Dashboard" }) => {
   const menuItems = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { label: "Topik", icon: BookOpen, path: "/topics" },
+    { label: "Topik", icon: BookOpen, path: "/topik" },
     { label: "Profil", icon: User, path: "/profile" },
     { label: "Setting", icon: Settings, path: "/settings" },
   ];
@@ -38,6 +38,8 @@ const Navbar = () => {
         <nav className="flex w-full flex-1 flex-row justify-around md:flex-col md:justify-start md:space-y-1.5 md:overflow-y-auto md:p-4">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
+            const isActive =
+              activePage === item.label || activePage === item.id;
             return (
               <NavLink
                 key={index}
