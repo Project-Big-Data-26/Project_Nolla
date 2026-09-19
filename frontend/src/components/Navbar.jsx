@@ -8,12 +8,12 @@ import {
   GraduationCap,
 } from "lucide-react";
 
-const Navbar = () => {
+const Navbar = ({ activePage = "Dashboard" }) => {
   const menuItems = [
-    { label: "Dashboard", icon: LayoutDashboard, active: true },
-    { label: "Topik", icon: BookOpen, active: false },
-    { label: "Profil", icon: User, active: false },
-    { label: "Setting", icon: Settings, active: false },
+    { label: "Dashboard", icon: LayoutDashboard, id: "Dashboard" },
+    { label: "Topik", icon: BookOpen, id: "Topik" },
+    { label: "Profil", icon: User, id: "Profil" },
+    { label: "Setting", icon: Settings, id: "Setting" },
   ];
 
   return (
@@ -36,6 +36,7 @@ const Navbar = () => {
         <nav className="flex w-full flex-1 flex-row justify-around md:flex-col md:justify-start md:space-y-1.5 md:overflow-y-auto md:p-4">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
+            const isActive = activePage === item.label || activePage === item.id;
             return (
               <button
                 key={index}
@@ -44,7 +45,7 @@ const Navbar = () => {
                   flex-col justify-center 
                   /* Desktop Style: Lurus Horizontal Rata Kiri */
                   md:flex-row md:justify-start md:gap-3 md:rounded-xl md:px-4 md:py-3 ${
-                    item.active
+                    isActive
                       ? "text-primary font-semibold md:bg-primary md:text-white md:shadow-sm"
                       : "text-neutral-muted hover:text-neutral-text md:hover:bg-neutral-bg"
                   }`}

@@ -1,7 +1,7 @@
-import PersonalizationProfile from "./pages/PersonalizationProfile";
+import Topics from "./pages/Topics";
 
 function App() {
-  return <PersonalizationProfile />;
+  return <Topics />;
 }
 
 export default App;
