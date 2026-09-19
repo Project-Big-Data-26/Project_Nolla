@@ -8,6 +8,8 @@ import PersonalizationProfile from "../pages/PersonalizationProfile";
 import Topics from "../pages/Topics";
 import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
+import Settings from "../pages/Settings";
+import PersonalizationWizard from "../pages/PersonalizationWizard";
 
 const AppRoutes = () => {
   return (
@@ -22,6 +24,8 @@ const AppRoutes = () => {
       <Route path="/topik" element={<Topics />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/perzonalization" element={<PersonalizationWizard />} />
 
       {/* Fallback 404 / Route Tidak Ditemukan */}
       <Route
