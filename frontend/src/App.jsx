@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PersonalizationWizard from "./pages/PersonalizationWizard";
-import PersonalizationProfile from "./pages/PersonalizationProfile";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   const [onboardingDone, setOnboardingDone] = useState(false);
@@ -9,7 +9,7 @@ function App() {
     return <PersonalizationWizard onFinish={() => setOnboardingDone(true)} />;
   }
 
-  return <PersonalizationProfile />;
+  return <Dashboard />;
 }
 
 export default App;
