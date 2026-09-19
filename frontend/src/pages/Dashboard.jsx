@@ -54,12 +54,8 @@ const Dashboard = () => {
       <main className="flex-1 px-6 py-8 md:px-8 md:py-10 pb-28 md:pb-12 max-w-6xl mx-auto">
         {/* HEADER */}
         <header className="mb-7">
-          <p className="text-xs font-normal text-neutral-muted">
-            Jumat, 18 September 2026
-          </p>
-
           <h1 className="font-bold text-xl md:text-xl font-bold text-neutral-text">
-            Selamat Datang, Rifqi! 👋
+            Selamat Datang, User! 👋
           </h1>
 
           <p className="text-sm text-neutral-muted">
@@ -70,8 +66,8 @@ const Dashboard = () => {
         {/* STATISTIK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Streak */}
-          <div className="bg-neutral-card rounded-2xl p-5 border border-neutral-border shadow-xs">
-            <div className="flex items-center justify-between">
+          <div className="relative overflow-hidden bg-neutral-card rounded-2xl p-5 border border-neutral-border shadow-xs">
+            <div className="flex items-center justify-between relative z-10">
               <div>
                 <p className="text-xs font-medium text-neutral-muted">
                   Streak Belajar
@@ -82,15 +78,16 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center">
-                <Flame className="text-secondary" size={22} />
+              {/* Ikon Terisi (Solid), Besar, dan Miring */}
+              <div className="absolute -right-11 opacity-90 transition-transform hover:scale-105 mt-6">
+                <Flame className="text-primary -rotate-8" size={100} />
               </div>
             </div>
           </div>
 
           {/* Poin */}
-          <div className="bg-neutral-card rounded-2xl p-5 border border-neutral-border shadow-xs">
-            <div className="flex items-center justify-between">
+          <div className="relative overflow-hidden bg-neutral-card rounded-2xl p-5 border border-neutral-border shadow-xs">
+            <div className="flex items-center justify-between relative z-10">
               <div>
                 <p className="text-xs font-medium text-neutral-muted">
                   Total Poin
@@ -101,8 +98,8 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center">
-                <Trophy className="text-secondary-hover" size={22} />
+              <div className="absolute -right-9 opacity-90 transition-transform hover:scale-105 mt-6">
+                <Trophy className="text-primary -rotate-8" size={90} />
               </div>
             </div>
           </div>
