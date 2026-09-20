@@ -36,7 +36,7 @@ const badges = [
 export default function PersonalizationProfile() {
     return (
         <div className="flex min-h-screen bg-neutral-bg">
-            <Navbar />
+            <Navbar activePage="Profil" />
 
             <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                 <div className="mx-auto w-full max-w-[860px]">
