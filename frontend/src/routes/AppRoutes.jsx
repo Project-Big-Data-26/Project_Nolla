@@ -10,6 +10,7 @@ import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
 import Settings from "../pages/Settings";
 import PersonalizationWizard from "../pages/PersonalizationWizard";
+import EvaluationPage from "../pages/EvaluationPage";
 
 const AppRoutes = () => {
   return (
@@ -26,6 +27,7 @@ const AppRoutes = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/perzonalization" element={<PersonalizationWizard />} />
+      <Route path="/evaluasi" element={<EvaluationPage />} />
 
       {/* Fallback 404 / Route Tidak Ditemukan */}
       <Route
