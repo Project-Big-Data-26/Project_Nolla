@@ -12,13 +12,11 @@ const user = {
 };
 
 const jenjangOptions = ["SD", "SMP", "SMA"];
-const skillLevels = ["Pemula", "Menengah", "Lanjutan"];
 
 export default function Settings() {
     const [dailyProblemsGoal, setDailyProblemsGoal] = useState(10);
     const [dailyMinutesGoal, setDailyMinutesGoal] = useState(15);
     const [jenjang, setJenjang] = useState(user.track);
-    const [skillLevel, setSkillLevel] = useState("Pemula");
     const [saved, setSaved] = useState(false);
 
     const handleSave = () => {
@@ -37,7 +35,7 @@ export default function Settings() {
                     Pengaturan
                 </h1>
                 <p className="text-xs text-neutral-muted mt-0.5">
-                    Atur target harian dan tingkat kemampuanmu.
+                    Atur target harian dan jenjang belajarmu.
                 </p>
 
                 {/* FORM SECTION */}
@@ -74,30 +72,11 @@ export default function Settings() {
                                 type="button"
                                 onClick={() => setJenjang(option)}
                                 className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer ${jenjang === option
-                                        ? "border-primary text-primary bg-primary/5"
-                                        : "border-neutral-border text-neutral-muted hover:border-primary/40"
+                                    ? "border-primary text-primary bg-primary/5"
+                                    : "border-neutral-border text-neutral-muted hover:border-primary/40"
                                     }`}
                             >
                                 {option}
-                            </button>
-                        ))}
-                    </div>
-
-                    <label className="mt-5 block text-sm font-semibold text-neutral-text">
-                        Tingkat kemampuan
-                    </label>
-                    <div className="mt-2 grid grid-cols-3 gap-2">
-                        {skillLevels.map((level) => (
-                            <button
-                                key={level}
-                                type="button"
-                                onClick={() => setSkillLevel(level)}
-                                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer ${skillLevel === level
-                                        ? "border-primary text-primary bg-primary/5"
-                                        : "border-neutral-border text-neutral-muted hover:border-primary/40"
-                                    }`}
-                            >
-                                {level}
                             </button>
                         ))}
                     </div>
