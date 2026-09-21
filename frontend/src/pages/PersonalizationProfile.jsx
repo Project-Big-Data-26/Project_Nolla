@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import TopHeader from "../components/TopHeader";
+import SectionCard from "../components/SectionCard";
 import {
     Target,
     TrendingUp,
@@ -68,7 +69,12 @@ export default function PersonalizationProfile() {
             <Navbar />
 
             <main className="flex-1 overflow-y-auto px-6 py-8 md:px-8 md:py-10 pb-28 md:pb-12 max-w-6xl mx-auto w-full">
-                <TopHeader />
+                <TopHeader
+                    track={user.track}
+                    streak={user.streak}
+                    dailyProgress={user.dailyProgress}
+                    dailyGoal={user.dailyGoal}
+                />
 
                 {/* USER PROFILE HEADER */}
                 <div className="mb-8 flex items-center gap-4">
@@ -89,10 +95,7 @@ export default function PersonalizationProfile() {
                 {/* STATS GRID */}
                 <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
                     {stats.map(({ label, value, icon: Icon, tint }) => (
-                        <div
-                            key={label}
-                            className="flex items-center gap-3.5 rounded-2xl border border-neutral-border bg-neutral-card p-5 shadow-xs"
-                        >
+                        <SectionCard key={label} className="flex items-center gap-3.5 p-5">
                             <div
                                 className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tint}`}
                             >
@@ -106,12 +109,12 @@ export default function PersonalizationProfile() {
                                     {label}
                                 </p>
                             </div>
-                        </div>
+                        </SectionCard>
                     ))}
                 </div>
 
                 {/* RECOMMENDATIONS SECTION */}
-                <section className="mb-8 rounded-2xl border border-neutral-border bg-neutral-card p-6 shadow-xs">
+                <SectionCard as="section" className="mb-8">
                     <div className="mb-5 flex items-center gap-2">
                         <BookOpen className="h-4 w-4 text-primary" />
                         <h3 className="font-heading text-base font-bold text-neutral-text">
@@ -165,10 +168,10 @@ export default function PersonalizationProfile() {
                             </button>
                         ))}
                     </div>
-                </section>
+                </SectionCard>
 
                 {/* BADGES SECTION */}
-                <section className="rounded-2xl border border-neutral-border bg-neutral-card p-6 shadow-xs">
+                <SectionCard as="section">
                     <div className="mb-5 flex items-center gap-2">
                         <Award className="h-4 w-4 text-primary" />
                         <h3 className="font-heading text-base font-bold text-neutral-text">
@@ -192,7 +195,7 @@ export default function PersonalizationProfile() {
                             </div>
                         ))}
                     </div>
-                </section>
+                </SectionCard>
             </main>
         </div>
     );

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import TopHeader from "../components/TopHeader";
+import SectionCard from "../components/SectionCard";
+import OptionButton from "../components/OptionButton";
 import { Save, LogOut } from "lucide-react";
 
 const user = {
@@ -29,7 +31,12 @@ export default function Settings() {
             <Navbar />
 
             <main className="flex-1 overflow-y-auto px-6 py-8 md:px-8 md:py-10 pb-28 md:pb-12 max-w-6xl mx-auto w-full">
-                <TopHeader />
+                <TopHeader
+                    track={jenjang}
+                    streak={user.streak}
+                    dailyProgress={user.dailyProgress}
+                    dailyGoal={user.dailyGoal}
+                />
 
                 <h1 className="font-heading text-xl md:text-2xl font-bold text-neutral-text">
                     Pengaturan
@@ -39,11 +46,15 @@ export default function Settings() {
                 </p>
 
                 {/* FORM SECTION */}
-                <section className="mt-6 rounded-2xl border border-neutral-border bg-neutral-card p-6 shadow-xs">
-                    <label className="block text-sm font-semibold text-neutral-text">
+                <SectionCard as="section" className="mt-6">
+                    <label
+                        htmlFor="dailyProblemsGoal"
+                        className="block text-sm font-semibold text-neutral-text"
+                    >
                         Target soal harian
                     </label>
                     <input
+                        id="dailyProblemsGoal"
                         type="number"
                         min="1"
                         value={dailyProblemsGoal}
@@ -51,10 +62,14 @@ export default function Settings() {
                         className="mt-2 w-full rounded-xl border border-neutral-border bg-neutral-card px-4 py-2.5 text-sm text-neutral-text focus:border-primary focus:outline-none"
                     />
 
-                    <label className="mt-5 block text-sm font-semibold text-neutral-text">
+                    <label
+                        htmlFor="dailyMinutesGoal"
+                        className="mt-5 block text-sm font-semibold text-neutral-text"
+                    >
                         Target menit harian
                     </label>
                     <input
+                        id="dailyMinutesGoal"
                         type="number"
                         min="1"
                         value={dailyMinutesGoal}
@@ -62,24 +77,15 @@ export default function Settings() {
                         className="mt-2 w-full rounded-xl border border-neutral-border bg-neutral-card px-4 py-2.5 text-sm text-neutral-text focus:border-primary focus:outline-none"
                     />
 
-                    <label className="mt-5 block text-sm font-semibold text-neutral-text">
+                    <span className="mt-5 block text-sm font-semibold text-neutral-text">
                         Jenjang belajar
-                    </label>
-                    <div className="mt-2 grid grid-cols-3 gap-2">
-                        {jenjangOptions.map((option) => (
-                            <button
-                                key={option}
-                                type="button"
-                                onClick={() => setJenjang(option)}
-                                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer ${jenjang === option
-                                    ? "border-primary text-primary bg-primary/5"
-                                    : "border-neutral-border text-neutral-muted hover:border-primary/40"
-                                    }`}
-                            >
-                                {option}
-                            </button>
-                        ))}
-                    </div>
+                    </span>
+                    <OptionButton
+                        options={jenjangOptions}
+                        selected={jenjang}
+                        onSelect={setJenjang}
+                        gridClassName="grid-cols-3"
+                    />
 
                     <button
                         type="button"
@@ -89,10 +95,10 @@ export default function Settings() {
                         <Save className="h-4 w-4" />
                         {saved ? "Tersimpan!" : "Simpan perubahan"}
                     </button>
-                </section>
+                </SectionCard>
 
                 {/* ACCOUNT SECTION */}
-                <section className="mt-5 rounded-2xl border border-neutral-border bg-neutral-card p-6 shadow-xs">
+                <SectionCard as="section" className="mt-5">
                     <h3 className="font-heading text-base font-bold text-neutral-text">
                         Akun
                     </h3>
@@ -105,7 +111,7 @@ export default function Settings() {
                         <LogOut className="h-4 w-4" />
                         Keluar
                     </button>
-                </section>
+                </SectionCard>
             </main>
         </div>
     );

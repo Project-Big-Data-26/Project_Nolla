@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
+import API from "../../api/axios";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -53,11 +54,10 @@ const ForgotPassword = () => {
 
             {statusMessage.text && (
               <div
-                className={`mt-4 rounded-xl p-3 text-center text-xs border ${
-                  statusMessage.type === "success"
-                    ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                    : "bg-red-50 text-red-600 border-red-100"
-                }`}
+                className={`mt-4 rounded-xl p-3 text-center text-xs border ${statusMessage.type === "success"
+                  ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                  : "bg-red-50 text-red-600 border-red-100"
+                  }`}
               >
                 {statusMessage.text}
               </div>

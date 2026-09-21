@@ -1,5 +1,13 @@
 import React, { useState } from "react";
 import Navbar from "../components/Navbar";
+import {
+  TargetIcon,
+  StopwatchIcon,
+  ClockIcon,
+  CheckIcon,
+  XIcon,
+  LightbulbIcon,
+} from "../components/QuizIcons";
 
 const questions = [
   {
@@ -47,121 +55,6 @@ const questions = [
       "25% = 25/100 = 0.25. Then 0.25 × 80 = 20. Therefore, the answer is 20.",
   },
 ];
-
-/* =========================
-   ICONS
-========================= */
-
-function TargetIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <circle cx="12" cy="12" r="5" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  );
-}
-
-function StopwatchIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="13" r="8" />
-      <path d="M12 9v4l2 2" />
-      <path d="M9 2h6" />
-      <path d="M12 2v3" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m5 12 4 4L19 6" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m6 6 12 12" />
-      <path d="m18 6-12 12" />
-    </svg>
-  );
-}
-
-function LightbulbIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9 18h6" />
-      <path d="M10 22h4" />
-      <path d="M8.5 14.5a6 6 0 1 1 7 0c-.9.7-1.5 1.6-1.5 2.5h-4c0-.9-.6-1.8-1.5-2.5Z" />
-    </svg>
-  );
-}
 
 /* =========================
    QUESTION PAGE COMPONENT
@@ -262,11 +155,10 @@ const QuestionPage = () => {
               <button
                 type="button"
                 onClick={() => setIsTimed(!isTimed)}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-colors cursor-pointer ${
-                  isTimed
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-colors cursor-pointer ${isTimed
                     ? "bg-primary text-white shadow-sm"
                     : "border border-neutral-border bg-neutral-card text-primary hover:bg-neutral-bg"
-                }`}
+                  }`}
               >
                 <StopwatchIcon />
                 {isTimed ? "Timed" : "Untimed"}
@@ -296,7 +188,7 @@ const QuestionPage = () => {
             </div>
           </div>
 
-          {/* QUESTION CARD */}
+          {/* QUESTION CARD (bukan SectionCard: shadow-sm & p-6 beda dari default shadow-xs-nya SectionCard) */}
           <section className="rounded-2xl border border-neutral-border bg-neutral-card p-6 shadow-sm">
             {/* QUESTION HEADER */}
             <div className="flex items-center justify-between gap-3">
@@ -354,15 +246,14 @@ const QuestionPage = () => {
                     className={`flex w-full items-center gap-4 rounded-xl border-2 px-4 py-3 text-left transition-all cursor-pointer ${optionStyle}`}
                   >
                     <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
-                        isCorrectAnswer
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${isCorrectAnswer
                           ? "border-success text-success"
                           : isWrongAnswer
                             ? "border-danger text-danger"
                             : isSelected && !checked
                               ? "border-primary text-primary"
                               : "border-neutral-border text-neutral-muted"
-                      }`}
+                        }`}
                     >
                       {option.label}
                     </span>
@@ -388,11 +279,10 @@ const QuestionPage = () => {
             {/* RESULT FEEDBACK */}
             {checked && (
               <div
-                className={`mt-4 flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-medium ${
-                  isCorrect
+                className={`mt-4 flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-medium ${isCorrect
                     ? "bg-success/10 text-success"
                     : "bg-danger/10 text-danger"
-                }`}
+                  }`}
               >
                 {isCorrect ? (
                   <>
@@ -435,11 +325,10 @@ const QuestionPage = () => {
                   type="button"
                   onClick={handleShowHint}
                   disabled={showHint}
-                  className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-all ${
-                    showHint
+                  className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition-all ${showHint
                       ? "cursor-not-allowed border-neutral-border bg-neutral-bg text-neutral-muted"
                       : "border-neutral-border bg-neutral-card text-neutral-text hover:bg-neutral-bg cursor-pointer"
-                  }`}
+                    }`}
                 >
                   <LightbulbIcon />
                   Hint
