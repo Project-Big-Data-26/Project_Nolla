@@ -11,6 +11,8 @@ const {
   resetPassword,
   getMe,
   refreshAccessToken,
+  googleLogin,
+  googleCallback,
 } = require("../controllers/authController");
 
 const router = express.Router();
@@ -296,6 +298,10 @@ router.post("/reset-password", resetPassword);
  *         description: Server error
  */
 router.post("/refresh", refreshAccessToken);
+
+router.get("/google", googleLogin);
+
+router.get("/google/callback", googleCallback);
 
 // test login backend doang
 router.get("/me", authMiddleware, getMe);

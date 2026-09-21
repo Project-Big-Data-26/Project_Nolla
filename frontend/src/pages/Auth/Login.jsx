@@ -18,9 +18,13 @@ const Login = () => {
     }));
   };
 
-const handleSubmit = async (e) => {
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/api/auth/google";
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // RADAR 1: Cek apakah tombol benar-benar mengeksekusi fungsi ini
     console.log("TOMBOL MASUK DIKLIK! Data form:", formData);
 
@@ -37,7 +41,7 @@ const handleSubmit = async (e) => {
       });
 
       const result = await response.json();
-      
+
       // RADAR 2: Cek apa balasan dari Backend Myrza
       console.log("RESPON DARI BACKEND:", result);
 
@@ -48,7 +52,7 @@ const handleSubmit = async (e) => {
 
         const isProfileComplete = result.data.user.isProfileComplete;
         if (!isProfileComplete) {
-          window.location.href = "/profile"; 
+          window.location.href = "/profile";
         } else {
           window.location.href = "/dashboard";
         }
@@ -81,6 +85,7 @@ const handleSubmit = async (e) => {
             {/* GOOGLE OAUTH BUTTON */}
             <button
               type="button"
+              onClick={handleGoogleLogin}
               className="mt-5 sm:mt-6 flex w-full items-center justify-center gap-2.5 rounded-xl border border-neutral-border bg-neutral-card py-2.5 px-4 text-xs font-semibold text-neutral-text transition-colors hover:bg-neutral-bg cursor-pointer"
             >
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">

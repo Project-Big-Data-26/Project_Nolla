@@ -1,10 +1,14 @@
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+
 const ms = require("ms");
 
 const User = require("../models/User");
 const OTP = require("../models/OTP");
 const RefreshToken = require("../models/RefreshToken");
 const RevokedToken = require("../models/RevokedToken");
+
+const googleOAuth2Client = require("../config/google");
 
 const jwt = require("jsonwebtoken");
 
@@ -106,8 +110,8 @@ const register = async (req, res) => {
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
 
-// Kirim OTP melalui email
-await sendOTPEmail(normalizedEmail, otpCode);
+    // Kirim OTP melalui email
+    await sendOTPEmail(normalizedEmail, otpCode);
 
     return res.status(200).json({
       statusCode: 200,
@@ -746,6 +750,238 @@ const refreshAccessToken = async (req, res) => {
   }
 };
 
+const googleLogin = async (req, res) => {
+  try {
+    // Generate PKCE verifier + challenge
+    const { codeVerifier, codeChallenge } =
+      await googleOAuth2Client.generateCodeVerifierAsync();
+
+    // Generate state untuk mencegah CSRF
+    const state = crypto.randomBytes(32).toString("hex");
+
+    // Simpan verifier dan state sementara di cookie.
+    // Nanti callback akan mengambil keduanya.
+    res.cookie("google_oauth_state", state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 10 * 60 * 1000,
+    });
+
+    res.cookie("google_code_verifier", codeVerifier, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 10 * 60 * 1000,
+    });
+
+    const authorizationUrl = googleOAuth2Client.generateAuthUrl({
+      access_type: "offline",
+      scope: ["openid", "email", "profile"],
+      response_type: "code",
+      state,
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+      prompt: "select_account",
+    });
+
+    return res.redirect(authorizationUrl);
+  } catch (error) {
+    console.error("Google OAuth initialization error:", error);
+
+    return res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Failed to initialize Google login",
+    });
+  }
+};
+
+const googleCallback = async (req, res) => {
+  try {
+    const { code, state, error } = req.query;
+
+    // ========================================
+    // HANDLE GOOGLE ERROR
+    // ========================================
+
+    if (error) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
+          "Google login dibatalkan",
+        )}`,
+      );
+    }
+
+    // ========================================
+    // VALIDASI PARAMETER
+    // ========================================
+
+    if (!code || !state) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
+          "Parameter OAuth tidak lengkap",
+        )}`,
+      );
+    }
+
+    // ========================================
+    // AMBIL DATA OAUTH DARI COOKIE
+    // ========================================
+
+    const storedState = req.cookies.google_oauth_state;
+    const codeVerifier = req.cookies.google_code_verifier;
+
+    if (!storedState || !codeVerifier) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
+          "Sesi Google OAuth tidak ditemukan atau sudah kedaluwarsa",
+        )}`,
+      );
+    }
+
+    // ========================================
+    // VALIDASI STATE
+    // ========================================
+
+    if (state !== storedState) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
+          "OAuth state tidak valid",
+        )}`,
+      );
+    }
+
+    // ========================================
+    // TUKAR AUTHORIZATION CODE
+    // ========================================
+
+    const { tokens } = await googleOAuth2Client.getToken({
+      code,
+      codeVerifier,
+    });
+
+    if (!tokens.id_token) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
+          "ID token Google tidak ditemukan",
+        )}`,
+      );
+    }
+
+    // ========================================
+    // VERIFIKASI GOOGLE ID TOKEN
+    // ========================================
+
+    const ticket = await googleOAuth2Client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
+          "Identitas Google tidak valid",
+        )}`,
+      );
+    }
+
+    const {
+      sub: googleId,
+      email,
+      email_verified: emailVerified,
+      name,
+    } = payload;
+
+    // ========================================
+    // VALIDASI IDENTITAS GOOGLE
+    // ========================================
+
+    if (!googleId || !email || !emailVerified) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
+          "Akun Google tidak dapat diverifikasi",
+        )}`,
+      );
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // ========================================
+    // CARI USER
+    // ========================================
+
+    let user = await User.findOne({
+      email: normalizedEmail,
+    });
+
+    // ========================================
+    // USER BELUM ADA → REGISTER OTOMATIS
+    // ========================================
+
+    if (!user) {
+      user = await User.create({
+        name: name?.trim() || "Google User",
+        email: normalizedEmail,
+        isVerified: true,
+        isProfileComplete: false,
+      });
+    } else {
+      // Email Google sudah terverifikasi
+      if (!user.isVerified) {
+        user.isVerified = true;
+        await user.save();
+      }
+    }
+
+    // ========================================
+    // GENERATE APPLICATION ACCESS TOKEN
+    // ========================================
+
+    const accessToken = generateAccessToken(user);
+
+    // ========================================
+    // GENERATE APPLICATION REFRESH TOKEN
+    // ========================================
+
+    const refreshToken = await createRefreshToken(user);
+
+    // ========================================
+    // HAPUS COOKIE OAUTH SEMENTARA
+    // ========================================
+
+    res.clearCookie("google_oauth_state", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/api/auth",
+    });
+
+    res.clearCookie("google_code_verifier", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/api/auth",
+    });
+
+    // ========================================
+    // REDIRECT KE FRONTEND
+    // ========================================
+
+    return res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+  } catch (error) {
+    console.error("Google callback error:", error);
+
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
+        "Terjadi kesalahan pada Google login",
+      )}`,
+    );
+  }
+};
+
 // ========================================
 // EXPORT
 // ========================================
@@ -759,4 +995,6 @@ module.exports = {
   resetPassword,
   getMe,
   refreshAccessToken,
+  googleLogin,
+  googleCallback,
 };
