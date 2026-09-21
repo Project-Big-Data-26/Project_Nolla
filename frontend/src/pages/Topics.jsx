@@ -28,6 +28,14 @@ import {
   gradeFiltersByLevel,
 } from "../data/topicsData";
 
+// Data dummy statistik belajar user (sama pola dengan Settings.jsx / PersonalizationProfile.jsx)
+// supaya TopHeader menampilkan data yang konsisten di semua halaman.
+const user = {
+  streak: 0,
+  dailyGoal: 10,
+  dailyProgress: 0,
+};
+
 // Fungsi Custom Smooth Scroll yang tenang dan teratur (duration ~900ms easeInOutCubic)
 const smoothScrollToElement = (element, offsetMargin = 12, duration = 900) => {
   if (!element) return;
@@ -400,9 +408,14 @@ const Topics = () => {
       <Navbar activePage="Topik" />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-7 max-w-6xl mx-auto w-full pb-24 md:pb-8">
+      <main className="flex-1 px-6 py-8 md:px-8 md:py-10 pb-28 md:pb-12 max-w-6xl mx-auto w-full">
         {/* Top Header Sticky with ID for smooth scrolling anchor */}
-        <TopHeader />
+        <TopHeader
+          track={educationLevels[currentLevel]?.label || currentLevel}
+          streak={user.streak}
+          dailyProgress={user.dailyProgress}
+          dailyGoal={user.dailyGoal}
+        />
 
         {/* 1. HEADER SECTION */}
         <header className="mb-6">
@@ -468,8 +481,8 @@ const Topics = () => {
                   key={grade}
                   onClick={() => setSelectedGrade(grade)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-full cursor-pointer transition-all shrink-0 ${isActive
-                      ? "bg-primary text-white border border-primary shadow-xs"
-                      : "bg-neutral-card text-neutral-muted border border-neutral-border hover:bg-neutral-50 hover:text-neutral-text"
+                    ? "bg-primary text-white border border-primary shadow-xs"
+                    : "bg-neutral-card text-neutral-muted border border-neutral-border hover:bg-neutral-50 hover:text-neutral-text"
                     }`}
                 >
                   {grade}
@@ -532,8 +545,8 @@ const Topics = () => {
                   id={`chapter-card-${chapter.id}`}
                   key={chapter.id}
                   className={`bg-neutral-card border rounded-2xl overflow-hidden transition-all duration-300 shadow-xs scroll-mt-24 ${isExpanded
-                      ? "border-primary/40 ring-1 ring-primary/15 shadow-sm"
-                      : "border-neutral-border hover:border-primary/30"
+                    ? "border-primary/40 ring-1 ring-primary/15 shadow-sm"
+                    : "border-neutral-border hover:border-primary/30"
                     }`}
                 >
                   {/* CARD HEADER (BAB SUMMARY) */}
@@ -596,8 +609,8 @@ const Topics = () => {
                         <button
                           onClick={() => toggleChapter(chapter)}
                           className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${isExpanded
-                              ? "bg-primary/10 text-primary border border-primary/25 hover:bg-primary/15"
-                              : "bg-neutral-card text-neutral-text hover:bg-neutral-100 border border-neutral-border"
+                            ? "bg-primary/10 text-primary border border-primary/25 hover:bg-primary/15"
+                            : "bg-neutral-card text-neutral-text hover:bg-neutral-100 border border-neutral-border"
                             }`}
                           aria-expanded={isExpanded}
                         >
@@ -628,13 +641,13 @@ const Topics = () => {
                           </span>
                         </div>
                         <div className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${chapter.diagnosticStatus === "completed"
-                            ? "bg-emerald-50/40 border-emerald-200"
-                            : "bg-amber-50/40 border-amber-200/90 shadow-2xs"
+                          ? "bg-emerald-50/40 border-emerald-200"
+                          : "bg-amber-50/40 border-amber-200/90 shadow-2xs"
                           }`}>
                           <div className="flex items-start gap-3 flex-1 min-w-0">
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${chapter.diagnosticStatus === "completed"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-amber-100 text-amber-800"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-amber-100 text-amber-800"
                               }`}>
                               <FileQuestion className="w-4.5 h-4.5" />
                             </div>
@@ -741,8 +754,8 @@ const Topics = () => {
                                       <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                                         <div
                                           className={`h-full rounded-full transition-all duration-300 ${subtopic.status === "completed"
-                                              ? "bg-emerald-500"
-                                              : "bg-primary"
+                                            ? "bg-emerald-500"
+                                            : "bg-primary"
                                             }`}
                                           style={{ width: `${subtopic.progress}%` }}
                                         />
@@ -778,17 +791,17 @@ const Topics = () => {
                           </span>
                         </div>
                         <div className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${chapter.postTestStatus === "completed"
-                            ? "bg-purple-50/40 border-purple-200"
-                            : chapter.postTestStatus === "available"
-                              ? "bg-blue-50/40 border-blue-200 shadow-2xs"
-                              : "bg-neutral-100/50 border-neutral-200"
+                          ? "bg-purple-50/40 border-purple-200"
+                          : chapter.postTestStatus === "available"
+                            ? "bg-blue-50/40 border-blue-200 shadow-2xs"
+                            : "bg-neutral-100/50 border-neutral-200"
                           }`}>
                           <div className="flex items-start gap-3 flex-1 min-w-0">
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${chapter.postTestStatus === "completed"
-                                ? "bg-purple-100 text-purple-700"
-                                : chapter.postTestStatus === "available"
-                                  ? "bg-blue-100 text-primary"
-                                  : "bg-neutral-200 text-neutral-500"
+                              ? "bg-purple-100 text-purple-700"
+                              : chapter.postTestStatus === "available"
+                                ? "bg-blue-100 text-primary"
+                                : "bg-neutral-200 text-neutral-500"
                               }`}>
                               <Trophy className="w-4.5 h-4.5" />
                             </div>
@@ -886,8 +899,8 @@ const Topics = () => {
                     key={key}
                     onClick={() => handleSelectLevel(key)}
                     className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${isSelected
-                        ? "bg-blue-50/80 border-primary text-primary ring-1 ring-primary/20 shadow-2xs"
-                        : "bg-neutral-card border-neutral-border hover:border-primary/40 text-neutral-text"
+                      ? "bg-blue-50/80 border-primary text-primary ring-1 ring-primary/20 shadow-2xs"
+                      : "bg-neutral-card border-neutral-border hover:border-primary/40 text-neutral-text"
                       }`}
                   >
                     <div>
