@@ -106,8 +106,8 @@ const Dashboard = () => {
           </SectionCard>
 
           {/* Akurasi */}
-          <SectionCard padding="p-5">
-            <div className="flex items-center justify-between">
+          <SectionCard padding="p-5" className="relative overflow-hidden">
+            <div className="flex items-center justify-between relative z-10">
               <div>
                 <p className="text-xs font-medium text-neutral-muted">
                   Akurasi
@@ -116,15 +116,15 @@ const Dashboard = () => {
                 <p className="text-xl font-bold text-neutral-text mt-1">86%</p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-success/10 flex items-center justify-center">
-                <Target className="text-success" size={22} />
+              <div className="absolute -right-11 opacity-90 transition-transform hover:scale-105 mt-6">
+                <Target className="text-primary -rotate-8" size={100} />
               </div>
             </div>
           </SectionCard>
 
           {/* Waktu Belajar */}
-          <SectionCard padding="p-5">
-            <div className="flex items-center justify-between">
+          <SectionCard padding="p-5" className="relative overflow-hidden">
+            <div className="flex items-center justify-between relative z-10">
               <div>
                 <p className="text-xs font-medium text-neutral-muted">
                   Waktu Belajar
@@ -135,8 +135,8 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Clock className="text-primary" size={22} />
+              <div className="absolute -right-11 opacity-90 transition-transform hover:scale-105 mt-6">
+                <Clock className="text-primary -rotate-8" size={100} />
               </div>
             </div>
           </SectionCard>
@@ -171,7 +171,6 @@ const Dashboard = () => {
             </div>
 
             <button className="bg-white text-primary px-5 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-neutral-bg transition-colors cursor-pointer shadow-sm">
-              <Play size={18} className="fill-primary" />
               Lanjutkan
             </button>
           </div>
@@ -192,8 +191,8 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Target size={22} className="text-primary" />
+              <div>
+                <Target size={22} className="text-neutral-muted" />
               </div>
             </div>
 
