@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 const sendOTPEmail = async (email, otp) => {
   try {
     const mailOptions = {
-      from: `"E-Learning App" <${process.env.SMTP_USER}>`, // Nama pengirim
+      from: `"E-Assessment App" <${process.env.SMTP_USER}>`, // Nama pengirim
       to: email, // Email tujuan
       subject: "Kode Verifikasi (OTP) Anda",
       html: `
@@ -46,7 +46,7 @@ const sendOTPEmail = async (email, otp) => {
 
 const sendPasswordResetOTPEmail = async (to, otp) => {
   const mailOptions = {
-    from: `"E-Learning Project" <${process.env.SMTP_USER}>`,
+    from: `"E-Assessment App" <${process.env.SMTP_USER}>`,
     to,
     subject: "Kode Reset Password",
     text: `Kode OTP untuk reset password Anda adalah: ${otp}. Kode ini berlaku selama 15 menit.`,

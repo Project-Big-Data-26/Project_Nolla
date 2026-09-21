@@ -99,15 +99,15 @@ const register = async (req, res) => {
     const otpCode = generateOTP();
 
     // Simpan OTP
-    // await OTP.create({
-    //   email: normalizedEmail,
-    //   otp: otpCode,
-    //   type: "EMAIL_VERIFICATION",
-    //   expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    // });
+    await OTP.create({
+      email: normalizedEmail,
+      otp: otpCode,
+      type: "EMAIL_VERIFICATION",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    });
 
 // Kirim OTP melalui email
-//await sendOTPEmail(normalizedEmail, otpCode);
+await sendOTPEmail(normalizedEmail, otpCode);
 
     return res.status(200).json({
       statusCode: 200,
