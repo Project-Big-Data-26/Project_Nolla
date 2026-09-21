@@ -70,23 +70,30 @@ describe("SectionCard", () => {
         expect(container.firstChild).toHaveAttribute("id", "card-1");
     });
 
-    it("BUG: prop `padding` TIDAK mengubah padding aktual — class selalu p-6 walau `padding` diisi beda", () => {
-        // Developer bermaksud prop `padding` bisa override padding default (lihat
-        // pemakaian di Dashboard.jsx: <SectionCard padding="p-5" ...>), tapi
-        // implementasi saat ini hardcode "p-6" di className dan tidak pernah
-        // membaca prop `padding` sama sekali. Akibatnya kartu manapun yang
-        // mengirim prop `padding` (mis. "p-5") tetap dapat padding p-6, dan
-        // prop tsb malah ikut ke-spread jadi atribut HTML asing lewat {...props}.
-        // Test ini didokumentasikan sebagai bug, bukan perilaku yang diharapkan.
+    it("default padding adalah p-6 kalau prop `padding` tidak diisi", () => {
+        const { container } = render(
+            <SectionCard>
+                <span>konten</span>
+            </SectionCard>
+        );
+        expect(container.firstChild).toHaveClass("p-6");
+    });
+
+    it("prop `padding` meng-override padding default (mis. jadi p-5)", () => {
+        // Fix untuk bug yang sempat ditemukan (2026-09-21): sebelumnya prop
+        // `padding` tidak pernah dibaca oleh komponen, jadi kartu manapun yang
+        // mengirim padding custom (lihat pemakaian di Dashboard.jsx:
+        // <SectionCard padding="p-5" ...>) tetap dapat p-6. Sekarang prop
+        // `padding` benar-benar menentukan class padding yang diterapkan.
         const { container } = render(
             <SectionCard padding="p-5">
                 <span>konten</span>
             </SectionCard>
         );
 
-        expect(container.firstChild).toHaveClass("p-6");
-        expect(container.firstChild).not.toHaveClass("p-5");
-        // prop `padding` malah nyasar jadi atribut HTML di elemen, bukan class
-        expect(container.firstChild).toHaveAttribute("padding", "p-5");
+        expect(container.firstChild).toHaveClass("p-5");
+        expect(container.firstChild).not.toHaveClass("p-6");
+        // prop `padding` tidak lagi nyasar jadi atribut HTML asing
+        expect(container.firstChild).not.toHaveAttribute("padding");
     });
 });
