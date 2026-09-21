@@ -21,14 +21,46 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Kata sandi dan konfirmasi kata sandi tidak cocok!");
-      return;
-    }
-    console.log("Register Data:", formData);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (formData.password !== formData.confirmPassword) {
+    alert("Kata sandi dan konfirmasi kata sandi tidak cocok!");
+    return;
+  }
+
+  // 1. KITA BUNGKUS DATANYA DENGAN NAMA YANG DIMINTA MYRZA
+  const payloadData = {
+    name: formData.fullName, // Pastikan huruf 'N' nya besar!
+    email: formData.email,
+    password: formData.password
   };
+
+  // 2. RADAR UNTUK CEK APAKAH DATANYA KOSONG ATAU ADA ISINYA
+  console.log("DATA YANG MAU DIKIRIM KE BACKEND:", payloadData);
+
+  try {
+    const response = await fetch('http://localhost:5000/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payloadData),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Pendaftaran Berhasil! Silakan cek email.");
+      window.location.href = '/login'; 
+    } else {
+      alert(data.message || "Pendaftaran gagal, coba lagi.");
+    }
+  } catch (error) {
+    console.error("Error saat integrasi:", error);
+    alert("Terjadi kesalahan pada server. Pastikan backend sudah menyala.");
+  }
+};
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-bg p-4 sm:p-6 font-sans text-neutral-text">

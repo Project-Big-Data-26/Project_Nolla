@@ -18,9 +18,47 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", formData);
+    
+    // RADAR 1: Cek apakah tombol benar-benar mengeksekusi fungsi ini
+    console.log("TOMBOL MASUK DIKLIK! Data form:", formData);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const result = await response.json();
+      
+      // RADAR 2: Cek apa balasan dari Backend Myrza
+      console.log("RESPON DARI BACKEND:", result);
+
+      if (response.ok && result.status === "success") {
+        alert("Login Berhasil! Selamat datang kembali.");
+        localStorage.setItem("accessToken", result.data.accessToken);
+        localStorage.setItem("refreshToken", result.data.refreshToken);
+
+        const isProfileComplete = result.data.user.isProfileComplete;
+        if (!isProfileComplete) {
+          window.location.href = "/profile"; 
+        } else {
+          window.location.href = "/dashboard";
+        }
+      } else {
+        alert(result.message || "Email atau password salah.");
+      }
+    } catch (error) {
+      console.error("Error saat login:", error);
+      alert("Terjadi kesalahan pada server. Pastikan backend menyala.");
+    }
   };
 
   return (

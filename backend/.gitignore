@@ -1,0 +1,15 @@
+# Menyembunyikan folder berat bawaan instalasi npm
+node_modules/
+
+# Menyembunyikan file rahasia yang berisi password/kredensial
+.env
+.env.local
+.env.development
+
+# Menyembunyikan log error
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# (Opsional) Menyembunyikan file settingan VS Code lokalmu
+.vscode/

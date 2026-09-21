@@ -15,7 +15,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Redirect Halaman Utama ke Dashboard */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Main App Routes */}
       <Route path="/dashboard" element={<Dashboard />} />
