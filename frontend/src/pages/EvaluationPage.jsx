@@ -7,6 +7,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import SectionCard from "../components/SectionCard";
 
 const EvaluationPage = () => {
   // Data dummy hasil pretest
@@ -39,7 +40,7 @@ const EvaluationPage = () => {
           </p>
         </header>
 
-        {/* Nilai Utama */}
+        {/* Nilai Utama (bukan SectionCard: bg solid + teks putih, pola CTA sama seperti banner di Dashboard) */}
         <section className="bg-primary rounded-3xl p-6 md:p-8 text-white mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
@@ -65,7 +66,7 @@ const EvaluationPage = () => {
         {/* Statistik Jawaban */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {/* Jawaban Benar */}
-          <div className="bg-neutral-card rounded-2xl p-6 border border-neutral-border">
+          <SectionCard>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
                 <CheckCircle2
@@ -84,10 +85,10 @@ const EvaluationPage = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Jawaban Salah */}
-          <div className="bg-neutral-card rounded-2xl p-6 border border-neutral-border">
+          <SectionCard>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
                 <XCircle
@@ -106,12 +107,12 @@ const EvaluationPage = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </SectionCard>
         </div>
 
         {/* Rekomendasi Materi Prasyarat */}
         {isLowScore && (
-          <section className="bg-neutral-card rounded-2xl p-6 border border-neutral-border">
+          <SectionCard as="section">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
                 <BookOpen
@@ -149,7 +150,7 @@ const EvaluationPage = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </SectionCard>
         )}
       </main>
     </div>

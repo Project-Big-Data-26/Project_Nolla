@@ -13,7 +13,6 @@ import {
   X,
   ArrowRight,
   Layers,
-  Sparkles,
   Info,
   GraduationCap,
   Lock,
@@ -21,6 +20,8 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import TopHeader from "../components/TopHeader";
+import Modal from "../components/Modal";
+import TestResultModal from "../components/TestResultModal";
 import {
   educationLevels,
   chaptersByLevel,
@@ -466,11 +467,10 @@ const Topics = () => {
                 <button
                   key={grade}
                   onClick={() => setSelectedGrade(grade)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-full cursor-pointer transition-all shrink-0 ${
-                    isActive
+                  className={`px-3 py-1.5 text-xs font-medium rounded-full cursor-pointer transition-all shrink-0 ${isActive
                       ? "bg-primary text-white border border-primary shadow-xs"
                       : "bg-neutral-card text-neutral-muted border border-neutral-border hover:bg-neutral-50 hover:text-neutral-text"
-                  }`}
+                    }`}
                 >
                   {grade}
                 </button>
@@ -522,20 +522,19 @@ const Topics = () => {
               const chapterProgressPercent =
                 totalSubtopics > 0
                   ? Math.round(
-                      chapter.subtopics.reduce((sum, s) => sum + s.progress, 0) /
-                        totalSubtopics
-                    )
+                    chapter.subtopics.reduce((sum, s) => sum + s.progress, 0) /
+                    totalSubtopics
+                  )
                   : 0;
 
               return (
                 <article
                   id={`chapter-card-${chapter.id}`}
                   key={chapter.id}
-                  className={`bg-neutral-card border rounded-2xl overflow-hidden transition-all duration-300 shadow-xs scroll-mt-24 ${
-                    isExpanded
+                  className={`bg-neutral-card border rounded-2xl overflow-hidden transition-all duration-300 shadow-xs scroll-mt-24 ${isExpanded
                       ? "border-primary/40 ring-1 ring-primary/15 shadow-sm"
                       : "border-neutral-border hover:border-primary/30"
-                  }`}
+                    }`}
                 >
                   {/* CARD HEADER (BAB SUMMARY) */}
                   <div className="p-4 sm:p-5">
@@ -596,11 +595,10 @@ const Topics = () => {
                       <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center pt-2 md:pt-0 border-t md:border-t-0 border-neutral-border/60 w-full md:w-auto justify-end">
                         <button
                           onClick={() => toggleChapter(chapter)}
-                          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
-                            isExpanded
+                          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${isExpanded
                               ? "bg-primary/10 text-primary border border-primary/25 hover:bg-primary/15"
                               : "bg-neutral-card text-neutral-text hover:bg-neutral-100 border border-neutral-border"
-                          }`}
+                            }`}
                           aria-expanded={isExpanded}
                         >
                           <span>{isExpanded ? "Tutup Subbab" : "Lihat Subbab"}</span>
@@ -621,7 +619,7 @@ const Topics = () => {
                   */}
                   {isExpanded && (
                     <div className="border-t border-neutral-border bg-neutral-bg/40 p-4 sm:p-5 space-y-4 animate-in fade-in duration-300">
-                      
+
                       {/* === 1. PRETEST ITEM (PALING ATAS) === */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
@@ -629,17 +627,15 @@ const Topics = () => {
                             Langkah 1: Tes Awal (Diagnostic)
                           </span>
                         </div>
-                        <div className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                          chapter.diagnosticStatus === "completed"
+                        <div className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${chapter.diagnosticStatus === "completed"
                             ? "bg-emerald-50/40 border-emerald-200"
                             : "bg-amber-50/40 border-amber-200/90 shadow-2xs"
-                        }`}>
+                          }`}>
                           <div className="flex items-start gap-3 flex-1 min-w-0">
-                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                              chapter.diagnosticStatus === "completed"
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${chapter.diagnosticStatus === "completed"
                                 ? "bg-emerald-100 text-emerald-700"
                                 : "bg-amber-100 text-amber-800"
-                            }`}>
+                              }`}>
                               <FileQuestion className="w-4.5 h-4.5" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -744,11 +740,10 @@ const Topics = () => {
                                     <div className="mt-2 flex items-center gap-3 max-w-xs">
                                       <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                                         <div
-                                          className={`h-full rounded-full transition-all duration-300 ${
-                                            subtopic.status === "completed"
+                                          className={`h-full rounded-full transition-all duration-300 ${subtopic.status === "completed"
                                               ? "bg-emerald-500"
                                               : "bg-primary"
-                                          }`}
+                                            }`}
                                           style={{ width: `${subtopic.progress}%` }}
                                         />
                                       </div>
@@ -782,21 +777,19 @@ const Topics = () => {
                             Langkah 3: Evaluasi Akhir (Post Test)
                           </span>
                         </div>
-                        <div className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                          chapter.postTestStatus === "completed"
+                        <div className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${chapter.postTestStatus === "completed"
                             ? "bg-purple-50/40 border-purple-200"
                             : chapter.postTestStatus === "available"
                               ? "bg-blue-50/40 border-blue-200 shadow-2xs"
                               : "bg-neutral-100/50 border-neutral-200"
-                        }`}>
+                          }`}>
                           <div className="flex items-start gap-3 flex-1 min-w-0">
-                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                              chapter.postTestStatus === "completed"
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${chapter.postTestStatus === "completed"
                                 ? "bg-purple-100 text-purple-700"
                                 : chapter.postTestStatus === "available"
                                   ? "bg-blue-100 text-primary"
                                   : "bg-neutral-200 text-neutral-500"
-                            }`}>
+                              }`}>
                               <Trophy className="w-4.5 h-4.5" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -870,83 +863,66 @@ const Topics = () => {
 
         {/* MODAL 0: PILIH TINGKATAN JENJANG BELAJAR (SD / SMP / SMA) - POP UP DI TENGAH */}
         {showLevelModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-neutral-card border border-neutral-border rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-              <button
-                onClick={() => setShowLevelModal(false)}
-                className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-3 mb-3.5">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary border border-blue-200 flex items-center justify-center shrink-0">
-                  <GraduationCap className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-neutral-text leading-tight">
-                    Pilih Jenjang Pembelajaran
-                  </h3>
-                  <p className="text-xs text-neutral-muted">
-                    Sesuaikan kurikulum dengan jenjang sekolahmu
-                  </p>
-                </div>
+          <Modal onClose={() => setShowLevelModal(false)}>
+            <div className="flex items-center gap-3 mb-3.5">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary border border-blue-200 flex items-center justify-center shrink-0">
+                <GraduationCap className="w-5 h-5" />
               </div>
-
-              <div className="space-y-2.5 my-4">
-                {Object.entries(educationLevels).map(([key, info]) => {
-                  const isSelected = currentLevel === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => handleSelectLevel(key)}
-                      className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-blue-50/80 border-primary text-primary ring-1 ring-primary/20 shadow-2xs"
-                          : "bg-neutral-card border-neutral-border hover:border-primary/40 text-neutral-text"
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-neutral-text">{info.name}</span>
-                          <span className="text-[11px] font-semibold px-2 py-0.2 rounded-md bg-neutral-100 text-neutral-600 border border-neutral-200">
-                            {info.grades.filter(g => g !== "Semua Kelas")[0]}–{info.grades[info.grades.length - 1]}
-                          </span>
-                        </div>
-                        <p className="text-xs text-neutral-muted mt-1">
-                          {key === "SD" && "Operasi Bilangan Cacah, Pecahan, Geometri Dasar, Pengolahan Data"}
-                          {key === "SMP" && "Bilangan Bulat & Akar, Aljabar, Teorema Pythagoras, Peluang"}
-                          {key === "SMA" && "Nilai Mutlak & SPLTV, Trigonometri, Kalkulus, Dimensi Tiga"}
-                        </p>
-                      </div>
-                      {isSelected && (
-                        <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0 ml-2">
-                          <Check className="w-3.5 h-3.5" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+              <div>
+                <h3 className="text-base font-bold text-neutral-text leading-tight">
+                  Pilih Jenjang Pembelajaran
+                </h3>
+                <p className="text-xs text-neutral-muted">
+                  Sesuaikan kurikulum dengan jenjang sekolahmu
+                </p>
               </div>
-
-              <p className="text-[11px] text-neutral-muted text-center">
-                Filter kelas dan daftar BAB akan otomatis disesuaikan dengan jenjang terpilih.
-              </p>
             </div>
-          </div>
+
+            <div className="space-y-2.5 my-4">
+              {Object.entries(educationLevels).map(([key, info]) => {
+                const isSelected = currentLevel === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handleSelectLevel(key)}
+                    className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${isSelected
+                        ? "bg-blue-50/80 border-primary text-primary ring-1 ring-primary/20 shadow-2xs"
+                        : "bg-neutral-card border-neutral-border hover:border-primary/40 text-neutral-text"
+                      }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-neutral-text">{info.name}</span>
+                        <span className="text-[11px] font-semibold px-2 py-0.2 rounded-md bg-neutral-100 text-neutral-600 border border-neutral-200">
+                          {info.grades.filter(g => g !== "Semua Kelas")[0]}–{info.grades[info.grades.length - 1]}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-muted mt-1">
+                        {key === "SD" && "Operasi Bilangan Cacah, Pecahan, Geometri Dasar, Pengolahan Data"}
+                        {key === "SMP" && "Bilangan Bulat & Akar, Aljabar, Teorema Pythagoras, Peluang"}
+                        {key === "SMA" && "Nilai Mutlak & SPLTV, Trigonometri, Kalkulus, Dimensi Tiga"}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0 ml-2">
+                        <Check className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="text-[11px] text-neutral-muted text-center">
+              Filter kelas dan daftar BAB akan otomatis disesuaikan dengan jenjang terpilih.
+            </p>
+          </Modal>
         )}
 
         {/* MODAL 1: PRETEST WAJIB SEBELUM MENGERJAKAN SUBBAB (POP UP DI TENGAH) */}
         {mandatoryPretestModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-neutral-card border border-neutral-border rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center">
-              <button
-                onClick={() => setMandatoryPretestModal(null)}
-                className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
+          <Modal onClose={() => setMandatoryPretestModal(null)}>
+            <div className="text-center">
               <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto mb-3.5">
                 <Lock className="w-6 h-6" />
               </div>
@@ -988,20 +964,13 @@ const Topics = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </Modal>
         )}
 
         {/* MODAL 2: KONFIRMASI MULAI PRETEST (POP UP DI TENGAH) */}
         {pretestConfirmChapter && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-neutral-card border border-neutral-border rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center">
-              <button
-                onClick={() => setPretestConfirmChapter(null)}
-                className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
+          <Modal onClose={() => setPretestConfirmChapter(null)}>
+            <div className="text-center">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 text-primary border border-blue-200 flex items-center justify-center mx-auto mb-3.5">
                 <FileQuestion className="w-6 h-6" />
               </div>
@@ -1037,20 +1006,13 @@ const Topics = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </Modal>
         )}
 
         {/* MODAL 3: KONFIRMASI MULAI POST TEST (POP UP DI TENGAH) */}
         {postTestConfirmChapter && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-neutral-card border border-neutral-border rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center">
-              <button
-                onClick={() => setPostTestConfirmChapter(null)}
-                className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
+          <Modal onClose={() => setPostTestConfirmChapter(null)}>
+            <div className="text-center">
               <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center mx-auto mb-3.5">
                 <Trophy className="w-6 h-6" />
               </div>
@@ -1086,20 +1048,13 @@ const Topics = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </Modal>
         )}
 
         {/* MODAL 4: POST TEST TERKUNCI (POP UP DI TENGAH) */}
         {postTestLockedModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-neutral-card border border-neutral-border rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center">
-              <button
-                onClick={() => setPostTestLockedModal(null)}
-                className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
+          <Modal onClose={() => setPostTestLockedModal(null)}>
+            <div className="text-center">
               <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-600 border border-neutral-200 flex items-center justify-center mx-auto mb-3.5">
                 <Lock className="w-6 h-6" />
               </div>
@@ -1134,290 +1089,93 @@ const Topics = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </Modal>
         )}
 
         {/* MODAL 5: PERINGATAN MATERI PRASYARAT (POP UP DI TENGAH) */}
         {prerequisiteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-neutral-card border border-neutral-border rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-              <button
-                onClick={() => setPrerequisiteModal(null)}
-                className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-3 mb-3.5">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-neutral-text leading-tight">
-                    Materi Prasyarat Belum Dikuasai
-                  </h3>
-                  <p className="text-xs text-neutral-muted">
-                    Rekomendasi Pembelajaran Adaptif
-                  </p>
-                </div>
+          <Modal onClose={() => setPrerequisiteModal(null)}>
+            <div className="flex items-center gap-3 mb-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
               </div>
-
-              <div className="p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl mb-4 text-xs text-neutral-text leading-relaxed">
-                Kamu belum mempelajari atau menyelesaikan materi prasyarat{" "}
-                <span className="font-bold text-amber-900">
-                  "{prerequisiteModal.prerequisiteName}"
-                </span>
-                . Kami sangat menyarankan mempelajari materi prasyarat terlebih dahulu agar kamu tidak kesulitan memahami konsep baru pada materi ini.
-              </div>
-
-              <p className="text-xs text-neutral-muted leading-relaxed mb-6">
-                Namun, kamu tetap memiliki kebebasan untuk melanjutkan belajar{" "}
-                <span className="font-semibold text-neutral-text">
-                  "{prerequisiteModal.type === "chapter" ? prerequisiteModal.chapter.name : prerequisiteModal.subtopic.name}"
-                </span>{" "}
-                sekarang jika kamu merasa sudah cukup siap.
-              </p>
-
-              {/* Action Buttons: Pelajari Prasyarat vs Tetap Lanjutkan Belajar */}
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <button
-                  onClick={() => {
-                    const targetName = prerequisiteModal.prerequisiteName;
-                    setPrerequisiteModal(null);
-                    setSearchQuery(targetName);
-                  }}
-                  className="flex-1 py-2.5 px-3 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
-                >
-                  <span>Pelajari Prasyarat Dahulu</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (prerequisiteModal.type === "chapter") {
-                      const chapId = prerequisiteModal.chapter.id;
-                      setBypassedChapterPrerequisites((prev) => new Set(prev).add(chapId));
-                      setExpandedChapters((prev) => new Set(prev).add(chapId));
-                    } else {
-                      console.log(`User memilih tetap belajar subbab: ${prerequisiteModal.subtopic.name}`);
-                    }
-                    setPrerequisiteModal(null);
-                  }}
-                  className="py-2.5 px-4 bg-neutral-card text-neutral-text border border-neutral-border text-xs font-semibold rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
-                >
-                  Tetap Lanjutkan Belajar
-                </button>
+              <div>
+                <h3 className="text-base font-bold text-neutral-text leading-tight">
+                  Materi Prasyarat Belum Dikuasai
+                </h3>
+                <p className="text-xs text-neutral-muted">
+                  Rekomendasi Pembelajaran Adaptif
+                </p>
               </div>
             </div>
-          </div>
+
+            <div className="p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl mb-4 text-xs text-neutral-text leading-relaxed">
+              Kamu belum mempelajari atau menyelesaikan materi prasyarat{" "}
+              <span className="font-bold text-amber-900">
+                "{prerequisiteModal.prerequisiteName}"
+              </span>
+              . Kami sangat menyarankan mempelajari materi prasyarat terlebih dahulu agar kamu tidak kesulitan memahami konsep baru pada materi ini.
+            </div>
+
+            <p className="text-xs text-neutral-muted leading-relaxed mb-6">
+              Namun, kamu tetap memiliki kebebasan untuk melanjutkan belajar{" "}
+              <span className="font-semibold text-neutral-text">
+                "{prerequisiteModal.type === "chapter" ? prerequisiteModal.chapter.name : prerequisiteModal.subtopic.name}"
+              </span>{" "}
+              sekarang jika kamu merasa sudah cukup siap.
+            </p>
+
+            {/* Action Buttons: Pelajari Prasyarat vs Tetap Lanjutkan Belajar */}
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <button
+                onClick={() => {
+                  const targetName = prerequisiteModal.prerequisiteName;
+                  setPrerequisiteModal(null);
+                  setSearchQuery(targetName);
+                }}
+                className="flex-1 py-2.5 px-3 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <span>Pelajari Prasyarat Dahulu</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => {
+                  if (prerequisiteModal.type === "chapter") {
+                    const chapId = prerequisiteModal.chapter.id;
+                    setBypassedChapterPrerequisites((prev) => new Set(prev).add(chapId));
+                    setExpandedChapters((prev) => new Set(prev).add(chapId));
+                  } else {
+                    console.log(`User memilih tetap belajar subbab: ${prerequisiteModal.subtopic.name}`);
+                  }
+                  setPrerequisiteModal(null);
+                }}
+                className="py-2.5 px-4 bg-neutral-card text-neutral-text border border-neutral-border text-xs font-semibold rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
+              >
+                Tetap Lanjutkan Belajar
+              </button>
+            </div>
+          </Modal>
         )}
 
         {/* MODAL 6: HASIL PRETEST (POP UP DI TENGAH) */}
         {activePretestResult && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-neutral-card border border-neutral-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-              <button
-                onClick={() => setActivePretestResult(null)}
-                className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
-                  <Award className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-neutral-text">
-                    Hasil Diagnostic Pretest
-                  </h3>
-                  <p className="text-xs text-neutral-muted">
-                    BAB: {activePretestResult.chapterName}
-                  </p>
-                </div>
-              </div>
-
-              {/* Skor & Ringkasan */}
-              <div className="grid grid-cols-3 gap-2.5 mb-5 bg-neutral-bg p-3.5 rounded-xl border border-neutral-border text-center">
-                <div>
-                  <p className="text-[11px] text-neutral-muted">Skor Pretest</p>
-                  <p className="text-xl font-bold text-primary mt-0.5">
-                    {activePretestResult.result.score}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-neutral-muted">Benar / Salah</p>
-                  <p className="text-sm font-semibold text-neutral-text mt-1">
-                    <span className="text-emerald-600">
-                      {activePretestResult.result.correctCount}
-                    </span>{" "}
-                    /{" "}
-                    <span className="text-danger">
-                      {activePretestResult.result.wrongCount}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-neutral-muted">Durasi</p>
-                  <p className="text-xs font-semibold text-neutral-text mt-1.5">
-                    {activePretestResult.result.duration}
-                  </p>
-                </div>
-              </div>
-
-              {/* Breakdown per Subbab */}
-              <div className="mb-5">
-                <h4 className="text-xs font-bold text-neutral-text uppercase tracking-wider mb-2.5">
-                  Breakdown Pemahaman per Subbab
-                </h4>
-                <div className="space-y-2">
-                  {activePretestResult.result.breakdown.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2.5 bg-neutral-bg/60 rounded-lg border border-neutral-border text-xs"
-                    >
-                      <span className="font-medium text-neutral-text">
-                        {item.subtopic}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-neutral-muted text-[11px]">
-                          {item.score}
-                        </span>
-                        <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
-                            item.status === "Kuasai"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Rekomendasi */}
-              <div className="p-3.5 bg-blue-50/60 border border-blue-100 rounded-xl mb-5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-primary mb-1">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Rekomendasi Pembelajaran
-                </div>
-                <p className="text-xs text-neutral-muted leading-relaxed">
-                  {activePretestResult.result.recommendation}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setActivePretestResult(null)}
-                className="w-full py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors cursor-pointer"
-              >
-                Tutup Ringkasan
-              </button>
-            </div>
-          </div>
+          <TestResultModal
+            variant="pretest"
+            chapterName={activePretestResult.chapterName}
+            result={activePretestResult.result}
+            onClose={() => setActivePretestResult(null)}
+          />
         )}
 
         {/* MODAL 7: HASIL POST TEST (POP UP DI TENGAH) */}
         {activePostTestResult && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-            <div className="bg-neutral-card border border-neutral-border rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-              <button
-                onClick={() => setActivePostTestResult(null)}
-                className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center">
-                  <Trophy className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-neutral-text">
-                    Hasil Evaluasi Post Test
-                  </h3>
-                  <p className="text-xs text-neutral-muted">
-                    BAB: {activePostTestResult.chapterName}
-                  </p>
-                </div>
-              </div>
-
-              {/* Skor & Ringkasan */}
-              <div className="grid grid-cols-3 gap-2.5 mb-5 bg-neutral-bg p-3.5 rounded-xl border border-neutral-border text-center">
-                <div>
-                  <p className="text-[11px] text-neutral-muted">Skor Akhir</p>
-                  <p className="text-xl font-bold text-purple-700 mt-0.5">
-                    {activePostTestResult.result.score}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-neutral-muted">Benar / Salah</p>
-                  <p className="text-sm font-semibold text-neutral-text mt-1">
-                    <span className="text-emerald-600">
-                      {activePostTestResult.result.correctCount}
-                    </span>{" "}
-                    /{" "}
-                    <span className="text-danger">
-                      {activePostTestResult.result.wrongCount}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-neutral-muted">Durasi</p>
-                  <p className="text-xs font-semibold text-neutral-text mt-1.5">
-                    {activePostTestResult.result.duration}
-                  </p>
-                </div>
-              </div>
-
-              {/* Breakdown per Subbab */}
-              <div className="mb-5">
-                <h4 className="text-xs font-bold text-neutral-text uppercase tracking-wider mb-2.5">
-                  Breakdown Ketuntasan Subbab
-                </h4>
-                <div className="space-y-2">
-                  {activePostTestResult.result.breakdown.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2.5 bg-neutral-bg/60 rounded-lg border border-neutral-border text-xs"
-                    >
-                      <span className="font-medium text-neutral-text">
-                        {item.subtopic}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-neutral-muted text-[11px]">
-                          {item.score}
-                        </span>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200">
-                          {item.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Rekomendasi */}
-              <div className="p-3.5 bg-purple-50/60 border border-purple-100 rounded-xl mb-5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-purple-700 mb-1">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Ulasan Evaluasi Akhir
-                </div>
-                <p className="text-xs text-neutral-muted leading-relaxed">
-                  {activePostTestResult.result.recommendation}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setActivePostTestResult(null)}
-                className="w-full py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors cursor-pointer"
-              >
-                Tutup Ringkasan
-              </button>
-            </div>
-          </div>
+          <TestResultModal
+            variant="posttest"
+            chapterName={activePostTestResult.chapterName}
+            result={activePostTestResult.result}
+            onClose={() => setActivePostTestResult(null)}
+          />
         )}
       </main>
     </div>
