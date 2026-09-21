@@ -12,6 +12,9 @@ import Settings from "../pages/Settings";
 import PersonalizationWizard from "../pages/PersonalizationWizard";
 import EvaluationPage from "../pages/EvaluationPage";
 import ResultPage from "../pages/ResultPage";
+import VerifyEmail from "../pages/Auth/VerifyEmail";
+import ForgotPassword from "../pages/Auth/ForgotPassword";
+import ResetPassword from "../pages/Auth/ResetPassword";
 
 const AppRoutes = () => {
   return (
@@ -30,6 +33,9 @@ const AppRoutes = () => {
       <Route path="/perzonalization" element={<PersonalizationWizard />} />
       <Route path="/evaluasi" element={<EvaluationPage />} />
       <Route path="/result" element={<ResultPage />} />
+      <Route path="/verify" element={<VerifyEmail />} />
+      <Route path="/forgot" element={<ForgotPassword />} />
+      <Route path="/reset" element={<ResetPassword />} />
 
       {/* Fallback 404 / Route Tidak Ditemukan */}
       <Route
