@@ -1,9 +1,12 @@
 import React from "react";
-import { GraduationCap, Flame, Target } from "lucide-react";
+import { GraduationCap, Flame } from "lucide-react";
 
 const TopHeader = () => {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-6 border-b border-neutral-border/80">
+    <header
+      id="top-header-section"
+      className="sticky top-0 z-20 bg-neutral-bg/95 backdrop-blur-sm flex flex-wrap items-center justify-between gap-3 pb-4 mb-6 pt-2 border-b border-neutral-border/80 transition-all"
+    >
       {/* Left badges: Status & Streak */}
       <div className="flex items-center gap-2.5 flex-wrap">
         {/* General Learner Badge */}

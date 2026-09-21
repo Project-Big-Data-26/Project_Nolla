@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import {
     School,
-    GraduationCap,
-    BookOpen,
     TrendingUp,
     Lightbulb,
     Target,
@@ -11,19 +9,17 @@ import {
 } from 'lucide-react'
 
 const educationOptions = [
-    { id: 'sd', label: 'SD', desc: 'Elementary School', icon: School },
-    { id: 'smp', label: 'SMP', desc: 'Junior High School', icon: School },
-    { id: 'sma', label: 'SMA / SMK', desc: 'Senior High School', icon: School },
-    { id: 'kuliah', label: 'Perguruan Tinggi', desc: 'University', icon: GraduationCap },
-    { id: 'umum', label: 'General Learner', desc: 'Belajar untuk semua kalangan', icon: BookOpen },
+    { id: 'sd', label: 'SD', desc: 'Sekolah Dasar', icon: School },
+    { id: 'smp', label: 'SMP', desc: 'Sekolah Menengah Pertama', icon: School },
+    { id: 'sma', label: 'SMA', desc: 'Sekolah Menengah Atas', icon: School },
 ]
 
 const learningGoalOptions = [
-    { id: 'grades', label: 'Improve my grades', icon: TrendingUp },
-    { id: 'skills', label: 'Learn new skills', icon: Lightbulb },
-    { id: 'exams', label: 'Prepare for exams', icon: Target },
-    { id: 'understand', label: 'Understand difficult topics', icon: Brain },
-    { id: 'career', label: 'Prepare for career', icon: Briefcase },
+    { id: 'grades', label: 'Meningkatkan nilai', icon: TrendingUp },
+    { id: 'skills', label: 'Belajar hal baru', icon: Lightbulb },
+    { id: 'exams', label: 'Persiapan ujian', icon: Target },
+    { id: 'understand', label: 'Memahami materi sulit', icon: Brain },
+    { id: 'career', label: 'Persiapan karier', icon: Briefcase },
 ]
 
 export default function PersonalizationWizard({ onFinish }) {
@@ -43,12 +39,12 @@ export default function PersonalizationWizard({ onFinish }) {
                 </div>
 
                 <div className="flex items-center gap-4 text-sm text-neutral-muted">
-                    <span className={step === 1 ? 'font-medium text-primary' : ''}>1 Education Level</span>
-                    <span className={step === 2 ? 'font-medium text-primary' : ''}>2 Learning Goal</span>
+                    <span className={step === 1 ? 'font-medium text-primary' : ''}>1 Jenjang Pendidikan</span>
+                    <span className={step === 2 ? 'font-medium text-primary' : ''}>2 Tujuan Belajar</span>
                 </div>
 
                 <button className="text-sm text-neutral-muted hover:text-neutral-text">
-                    Skip
+                    Lewati
                 </button>
             </header>
 
@@ -58,13 +54,13 @@ export default function PersonalizationWizard({ onFinish }) {
                     {step === 1 && (
                         <>
                             <h1 className="font-heading text-xl font-bold text-neutral-text">
-                                Hi Learner, tell us about yourself!
+                                Hai, kenalan dulu yuk!
                             </h1>
                             <p className="mt-1 text-sm text-neutral-muted">
                                 Pilih jenjang pendidikanmu supaya kami bisa menyesuaikan materi belajar.
                             </p>
 
-                            <div className="mt-6 grid grid-cols-2 gap-3">
+                            <div className="mt-6 grid grid-cols-3 gap-3">
                                 {educationOptions.map(({ id, label, desc, icon: Icon }) => {
                                     const isSelected = educationLevel === id
                                     return (
@@ -92,7 +88,7 @@ export default function PersonalizationWizard({ onFinish }) {
                                 onClick={() => setStep(2)}
                                 className="mt-6 w-full rounded-xl bg-primary py-3 font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                Continue →
+                                Lanjut →
                             </button>
                         </>
                     )}
@@ -100,7 +96,7 @@ export default function PersonalizationWizard({ onFinish }) {
                     {step === 2 && (
                         <>
                             <h1 className="font-heading text-xl font-bold text-neutral-text">
-                                What do you want to learn?
+                                Apa tujuan belajarmu?
                             </h1>
                             <p className="mt-1 text-sm text-neutral-muted">
                                 Pilih tujuan belajarmu supaya rekomendasi kami lebih tepat sasaran.
@@ -133,7 +129,7 @@ export default function PersonalizationWizard({ onFinish }) {
                                     onClick={() => setStep(1)}
                                     className="rounded-xl border border-neutral-border px-5 py-3 font-medium text-neutral-text transition hover:bg-neutral-bg"
                                 >
-                                    ← Back
+                                    ← Kembali
                                 </button>
                                 <button
                                     type="button"
@@ -141,7 +137,7 @@ export default function PersonalizationWizard({ onFinish }) {
                                     onClick={() => onFinish({ educationLevel, learningGoal })}
                                     className="flex-1 rounded-xl bg-primary py-3 font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
                                 >
-                                    Continue →
+                                    Lanjut →
                                 </button>
                             </div>
                         </>

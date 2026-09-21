@@ -177,7 +177,7 @@ const Login = () => {
                   </span>
                 </label>
                 <a
-                  href="#"
+                  href="/forgot"
                   className="font-semibold text-primary hover:text-primary-hover transition-colors text-[11px] sm:text-xs"
                 >
                   Lupa Kata Sandi?
