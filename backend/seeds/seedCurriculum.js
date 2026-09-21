@@ -5,6 +5,7 @@ const seedKelas = require("./seedKelas");
 const seedBab = require("./seedBab");
 const seedSubbab = require("./seedSubbab");
 const seedBabPrasyarat = require("./seedBabPrasyarat");
+const seedPertanyaan = require("./seedPertanyaan");
 
 async function seedCurriculum() {
   console.log("=== SEED CURRICULUM DIMULAI ===");
@@ -15,6 +16,7 @@ async function seedCurriculum() {
 
   await seedSubbab(babMap);
   await seedBabPrasyarat(babMap);
+  await seedPertanyaan(kelasMap, babMap);
 
   console.log("=== SEED CURRICULUM SELESAI ===");
   console.log({
