@@ -1,37 +1,117 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email || "";
+
+  // State untuk form Password
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     newPassword: "",
     confirmPassword: "",
   });
 
-  const handleChange = (e) => {
+  // State & Ref untuk 6 Kotak OTP (Kloning dari VerifyEmail)
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const inputRefs = useRef([]);
+
+  const handlePasswordChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  // --- LOGIKA 6 KOTAK OTP ---
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
     e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim().slice(0, 6);
+    if (!/^\d+$/.test(pastedData)) return;
+    const newOtp = [...otp];
+    pastedData.split("").forEach((char, index) => {
+      if (index < 6) newOtp[index] = char;
+    });
+    setOtp(newOtp);
+    const nextIndex = Math.min(pastedData.length, 5);
+    inputRefs.current[nextIndex]?.focus();
+  };
+
+  // --- INTEGRASI API RESET ---
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const fullOtp = otp.join("");
+
+    if (fullOtp.length < 6) {
+      alert("Mohon masukkan 6 digit kode OTP secara lengkap.");
+      return;
+    }
 
     if (formData.newPassword !== formData.confirmPassword) {
       alert("Konfirmasi kata sandi baru tidak cocok!");
       return;
     }
 
-    console.log("Static Reset Password Data:", formData);
-    alert(
-      "Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru.",
-    );
-    navigate("/login");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          otp: fullOtp,
+          newPassword: formData.newPassword,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.status === "success") {
+        alert("Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru.");
+        navigate("/login");
+      } else {
+        alert(result.message || "Gagal mereset kata sandi. Pastikan OTP benar.");
+      }
+    } catch (error) {
+      console.error("Error reset password:", error);
+      alert("Terjadi kesalahan pada server. Pastikan backend menyala.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Jika diakses tanpa lewat halaman /forgot
+  if (!email) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-neutral-bg p-4 text-center">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-neutral-border max-w-md">
+          <h2 className="text-lg font-bold text-red-600 mb-2">Akses Ditolak</h2>
+          <p className="text-sm text-neutral-muted mb-6">Minta kode OTP dari halaman Lupa Kata Sandi terlebih dahulu.</p>
+          <button onClick={() => navigate('/forgot')} className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-semibold">Ke Halaman Lupa Kata Sandi</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthCard>
@@ -43,14 +123,30 @@ const ResetPassword = () => {
               Atur Ulang Kata Sandi
             </h1>
             <p className="mt-1 sm:mt-1.5 text-xs text-neutral-muted text-center">
-              Buat kata sandi baru untuk mengamankan akun Anda:
+              Masukkan OTP yang dikirim ke <span className="font-semibold">{email}</span>
             </p>
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="mt-6 space-y-3.5 sm:space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4 sm:space-y-5">
+            
+            {/* 6 KOTAK OTP (Diadopsi dari VerifyEmail) */}
+            <div className="flex items-center justify-center gap-2 sm:gap-2.5 mb-2">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                  onPaste={handleOtpPaste}
+                  className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl border border-neutral-border bg-neutral-bg text-center font-heading text-lg font-bold text-neutral-text shadow-xs transition-colors focus:border-primary focus:bg-neutral-card focus:outline-none"
+                />
+              ))}
+            </div>
+
             {/* KATA SANDI BARU */}
             <div>
               <div className="relative flex items-center">
@@ -59,7 +155,7 @@ const ResetPassword = () => {
                   type={showNewPassword ? "text" : "password"}
                   name="newPassword"
                   value={formData.newPassword}
-                  onChange={handleChange}
+                  onChange={handlePasswordChange}
                   placeholder="Kata Sandi Baru"
                   required
                   className="w-full rounded-xl border border-neutral-border bg-neutral-bg py-2.5 pl-10 pr-10 text-xs text-neutral-text placeholder-neutral-muted transition-colors focus:border-primary focus:bg-neutral-card focus:outline-none"
@@ -69,11 +165,7 @@ const ResetPassword = () => {
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   className="absolute right-3.5 text-neutral-muted hover:text-neutral-text cursor-pointer"
                 >
-                  {showNewPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
@@ -86,7 +178,7 @@ const ResetPassword = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   value={formData.confirmPassword}
-                  onChange={handleChange}
+                  onChange={handlePasswordChange}
                   placeholder="Konfirmasi Kata Sandi Baru"
                   required
                   className="w-full rounded-xl border border-neutral-border bg-neutral-bg py-2.5 pl-10 pr-10 text-xs text-neutral-text placeholder-neutral-muted transition-colors focus:border-primary focus:bg-neutral-card focus:outline-none"
@@ -96,11 +188,7 @@ const ResetPassword = () => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3.5 text-neutral-muted hover:text-neutral-text cursor-pointer"
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
@@ -108,9 +196,10 @@ const ResetPassword = () => {
             {/* SUBMIT BUTTON */}
             <button
               type="submit"
-              className="mt-2 w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-hover cursor-pointer"
+              disabled={loading}
+              className="mt-4 w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-hover cursor-pointer disabled:opacity-50"
             >
-              Simpan Kata Sandi Baru
+              {loading ? "Menyimpan..." : "Simpan Kata Sandi Baru"}
             </button>
           </form>
         </div>
@@ -127,7 +216,6 @@ const ResetPassword = () => {
         </div>
       </div>
 
-      {/* RIGHT COLUMN: BRAND BANNER */}
       <AuthBrandPanel
         title="Kata Sandi Baru"
         description="Setelah diperbarui, gunakan kata sandi baru Anda untuk masuk ke platform."

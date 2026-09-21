@@ -8,13 +8,14 @@ const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
 const authRoutes = require("./routes/authRoutes");
+const personalizationRoutes = require("./routes/personalizationRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
-
+app.use("/api/personalization", personalizationRoutes);
 // --- AUTH ROUTES ---
 app.use("/api/auth", authRoutes);
 

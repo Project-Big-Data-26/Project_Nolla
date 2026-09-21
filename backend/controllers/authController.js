@@ -797,188 +797,70 @@ const googleLogin = async (req, res) => {
   }
 };
 
-const googleCallback = async (req, res) => {
+const handleGoogleCallback = async (req, res, next) => {
   try {
-    const { code, state, error } = req.query;
-
-    // ========================================
-    // HANDLE GOOGLE ERROR
-    // ========================================
-
-    if (error) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
-          "Google login dibatalkan",
-        )}`,
-      );
-    }
-
-    // ========================================
-    // VALIDASI PARAMETER
-    // ========================================
-
-    if (!code || !state) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
-          "Parameter OAuth tidak lengkap",
-        )}`,
-      );
-    }
-
-    // ========================================
-    // AMBIL DATA OAUTH DARI COOKIE
-    // ========================================
-
-    const storedState = req.cookies.google_oauth_state;
+    const { code, state } = req.query;
+    const savedState = req.cookies.google_oauth_state;
     const codeVerifier = req.cookies.google_code_verifier;
 
-    if (!storedState || !codeVerifier) {
+    if (!code || !state || state !== savedState) {
       return res.redirect(
-        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
-          "Sesi Google OAuth tidak ditemukan atau sudah kedaluwarsa",
-        )}`,
+        "http://localhost:5173/login?error=google_auth_failed"
       );
     }
 
-    // ========================================
-    // VALIDASI STATE
-    // ========================================
-
-    if (state !== storedState) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
-          "OAuth state tidak valid",
-        )}`,
-      );
-    }
-
-    // ========================================
-    // TUKAR AUTHORIZATION CODE
-    // ========================================
-
+    // Tukar code -> token
     const { tokens } = await googleOAuth2Client.getToken({
       code,
       codeVerifier,
     });
 
-    if (!tokens.id_token) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
-          "ID token Google tidak ditemukan",
-        )}`,
-      );
-    }
-
-    // ========================================
-    // VERIFIKASI GOOGLE ID TOKEN
-    // ========================================
-
+    // Verifikasi ID token & ambil data user dari Google
     const ticket = await googleOAuth2Client.verifyIdToken({
       idToken: tokens.id_token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-
     const payload = ticket.getPayload();
 
-    if (!payload) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
-          "Identitas Google tidak valid",
-        )}`,
-      );
-    }
+    const normalizedEmail = payload.email.toLowerCase().trim();
 
-    const {
-      sub: googleId,
-      email,
-      email_verified: emailVerified,
-      name,
-    } = payload;
-
-    // ========================================
-    // VALIDASI IDENTITAS GOOGLE
-    // ========================================
-
-    if (!googleId || !email || !emailVerified) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
-          "Akun Google tidak dapat diverifikasi",
-        )}`,
-      );
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // ========================================
-    // CARI USER
-    // ========================================
-
-    let user = await User.findOne({
-      email: normalizedEmail,
-    });
-
-    // ========================================
-    // USER BELUM ADA → REGISTER OTOMATIS
-    // ========================================
+    // Cari user, atau buat baru kalau belum ada
+    let user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       user = await User.create({
-        name: name?.trim() || "Google User",
+        name: payload.name,
         email: normalizedEmail,
         isVerified: true,
         isProfileComplete: false,
       });
-    } else {
-      // Email Google sudah terverifikasi
-      if (!user.isVerified) {
-        user.isVerified = true;
-        await user.save();
-      }
     }
 
-    // ========================================
-    // GENERATE APPLICATION ACCESS TOKEN
-    // ========================================
-
-    const accessToken = generateAccessToken(user);
-
-    // ========================================
-    // GENERATE APPLICATION REFRESH TOKEN
-    // ========================================
-
-    const refreshToken = await createRefreshToken(user);
-
-    // ========================================
-    // HAPUS COOKIE OAUTH SEMENTARA
-    // ========================================
-
-    res.clearCookie("google_oauth_state", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/api/auth",
-    });
-
-    res.clearCookie("google_code_verifier", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/api/auth",
-    });
-
-    // ========================================
-    // REDIRECT KE FRONTEND
-    // ========================================
-
-    return res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+    req.user = user;
+    next();
   } catch (error) {
-    console.error("Google callback error:", error);
-
+    console.error("Google callback exchange error:", error);
     return res.redirect(
-      `${process.env.FRONTEND_URL}/login?status=error&message=${encodeURIComponent(
-        "Terjadi kesalahan pada Google login",
-      )}`,
+      "http://localhost:5173/login?error=google_auth_failed"
     );
+  }
+};
+
+const googleCallback = async (req, res) => {
+  try {
+    // Buat token JWT untuk user yang berhasil login via Google
+    const accessToken = generateAccessToken(req.user); // sesuaikan dengan helper token di controller kalian
+    const refreshToken = generateRefreshToken(req.user);
+
+    // Cek kelengkapan profil pengguna baru
+    if (!req.user.isProfileComplete) {
+      return res.redirect(`http://localhost:5173/personalization?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+    } else {
+      return res.redirect(`http://localhost:5173/dashboard?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+    }
+  } catch (error) {
+    console.error("Error Google Callback Controller:", error);
+    return res.redirect('http://localhost:5173/login?error=google_auth_failed');
   }
 };
 
@@ -997,4 +879,5 @@ module.exports = {
   refreshAccessToken,
   googleLogin,
   googleCallback,
+  handleGoogleCallback,
 };

@@ -35,6 +35,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+        jenjangId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Jenjang",
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
@@ -8,6 +8,7 @@ import GoogleAuthButton from "../../components/GoogleAuthButton";
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -53,9 +54,11 @@ const handleSubmit = async (e) => {
 
     const data = await response.json();
 
-    if (response.ok) {
-      alert("Pendaftaran Berhasil! Silakan cek email.");
-      window.location.href = '/login'; 
+if (response.ok) {
+      alert("Pendaftaran Berhasil! Silakan cek email Anda untuk kode verifikasi OTP.");
+      
+      // Pindah ke halaman verifikasi sambil membawa data email yang baru didaftarkan
+      navigate("/verify", { state: { email: formData.email } }); 
     } else {
       alert(data.message || "Pendaftaran gagal, coba lagi.");
     }
@@ -81,7 +84,13 @@ const handleSubmit = async (e) => {
           </div>
 
           {/* GOOGLE OAUTH BUTTON */}
-          <GoogleAuthButton label="Daftar dengan Google" />
+          {/* Ubah baris pemanggilan tombol Google di Login.jsx menjadi seperti ini: */}
+<GoogleAuthButton 
+  label="Masuk dengan Google" 
+  onClick={() => {
+    window.location.href = "http://localhost:5000/api/auth/google";
+  }} 
+/>
 
           {/* DIVIDER */}
           <div className="relative my-5 sm:my-6 flex items-center justify-center">

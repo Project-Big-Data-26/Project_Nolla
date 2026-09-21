@@ -7,6 +7,7 @@ import AuthBrandPanel from "../../components/AuthBrandPanel";
 const VerifyEmail = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  // Mengambil email yang dikirim dari halaman Register
   const email = location.state?.email || "user@example.com";
 
   // State untuk 6 digit OTP
@@ -15,20 +16,18 @@ const VerifyEmail = () => {
 
   // Tangani perubahan isi kotak OTP
   const handleChange = (index, value) => {
-    // Hanya menerima karakter angka
     if (!/^\d*$/.test(value)) return;
 
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1); // Ambil 1 karakter terakhir
+    newOtp[index] = value.slice(-1);
     setOtp(newOtp);
 
-    // Otomatis pindah fokus ke kotak berikutnya jika diisi
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  // Tangani tombol Backspace untuk kembali ke kotak sebelumnya
+  // Tangani tombol Backspace
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
@@ -47,22 +46,57 @@ const VerifyEmail = () => {
     });
     setOtp(newOtp);
 
-    // Fokus ke kotak terakhir setelah paste
     const nextIndex = Math.min(pastedData.length, 5);
     inputRefs.current[nextIndex]?.focus();
   };
 
-  const handleVerify = (e) => {
+  // --- INTEGRASI API VERIFIKASI OTP ---
+  const handleVerify = async (e) => {
     e.preventDefault();
     const fullOtp = otp.join("");
+    
     if (fullOtp.length < 6) {
       alert("Harap masukkan 6 digit kode OTP secara lengkap!");
       return;
     }
 
-    console.log("Static OTP Verification:", { email, otp: fullOtp });
-    // Simulasi verifikasi sukses -> alihkan ke Dashboard
-    navigate("/dashboard");
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/verify-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          otp: fullOtp,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.status === "success") {
+        alert("Verifikasi berhasil! Akun Anda sudah aktif.");
+        
+        // Simpan token untuk fitur Auto-Login
+        localStorage.setItem("accessToken", result.data.accessToken);
+        localStorage.setItem("refreshToken", result.data.refreshToken);
+
+        // Cek kelengkapan profil untuk arahkan user ke tujuan yang tepat
+                  // Di Login.jsx atau VerifyEmail.jsx pada saat respons sukses (response.ok):
+          const isProfileComplete = result.data.user.isProfileComplete;
+
+          if (!isProfileComplete) {
+            navigate("/personalization"); // Lempar ke halaman wizard jika belum lengkap
+          } else {
+            navigate("/dashboard"); // Langsung ke dashboard jika sudah lengkap
+          }
+      } else {
+        alert(result.message || "Kode OTP salah atau sudah kedaluwarsa.");
+      }
+    } catch (error) {
+      console.error("Error verifikasi OTP:", error);
+      alert("Terjadi kesalahan pada server. Pastikan backend menyala.");
+    }
   };
 
   return (
@@ -82,7 +116,6 @@ const VerifyEmail = () => {
 
           {/* FORM VERIFIKASI OTP */}
           <form onSubmit={handleVerify} className="mt-8 space-y-6">
-            {/* 6 KOTAK INPUT OTP */}
             <div className="flex items-center justify-center gap-2 sm:gap-2.5">
               {otp.map((digit, index) => (
                 <input
@@ -100,7 +133,6 @@ const VerifyEmail = () => {
               ))}
             </div>
 
-            {/* TOMBOL VERIFIKASI */}
             <button
               type="submit"
               className="w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-hover cursor-pointer"
@@ -110,7 +142,6 @@ const VerifyEmail = () => {
           </form>
         </div>
 
-        {/* FOOTER LINK */}
         <div className="mt-6 sm:mt-8 text-center">
           <Link
             to="/login"
@@ -122,7 +153,6 @@ const VerifyEmail = () => {
         </div>
       </div>
 
-      {/* RIGHT COLUMN: BRAND BANNER */}
       <AuthBrandPanel
         title="Verifikasi Keamanan"
         description="Memastikan akun Anda terhubung secara aman dengan alamat email resmi."

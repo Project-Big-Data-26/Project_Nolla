@@ -1,5 +1,4 @@
 const express = require("express");
-
 const authMiddleware = require("../middleware/authMiddleware");
 
 const {
@@ -13,6 +12,7 @@ const {
   refreshAccessToken,
   googleLogin,
   googleCallback,
+  handleGoogleCallback,
 } = require("../controllers/authController");
 
 const router = express.Router();
@@ -118,20 +118,6 @@ router.post("/verify-email", verifyEmail);
  *     responses:
  *       200:
  *         description: Login berhasil
- *         content:
- *           application/json:
- *             example:
- *               statusCode: 200
- *               status: success
- *               message: Login berhasil
- *               data:
- *                 accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 refreshToken: 8f3a9d...
- *                 user:
- *                   id: 65f123456789abcdef123456
- *                   name: Budi Santoso
- *                   email: siswa@example.com
- *                   isProfileComplete: false
  *       400:
  *         description: Email dan password wajib diisi
  *       401:
@@ -146,11 +132,6 @@ router.post("/login", login);
  * /api/auth/logout:
  *   post:
  *     summary: Logout user dan mencabut token aktif
- *     description: >
- *       Logout membutuhkan access token pada Authorization header dan
- *       refresh token pada request body. Access token akan dimasukkan ke
- *       revoked token sehingga tidak dapat digunakan lagi, sedangkan
- *       refresh token akan dicabut dari database.
  *     tags:
  *       - Auth
  *     security:
@@ -166,21 +147,12 @@ router.post("/login", login);
  *             properties:
  *               refreshToken:
  *                 type: string
- *                 description: Refresh token yang sedang digunakan oleh user
  *                 example: 8f3a9d7c2e1b4a5f6d...
  *     responses:
  *       200:
  *         description: Logout berhasil dan token telah dicabut
- *         content:
- *           application/json:
- *             example:
- *               statusCode: 200
- *               status: success
- *               message: Logout berhasil
- *       400:
- *         description: Refresh token wajib diisi
  *       401:
- *         description: Access token tidak ditemukan, tidak valid, atau tidak sesuai dengan user
+ *         description: Token tidak valid
  *       500:
  *         description: Server error
  */
@@ -208,9 +180,7 @@ router.post("/logout", authMiddleware, logout);
  *                 example: siswa@example.com
  *     responses:
  *       200:
- *         description: Jika email terdaftar, OTP reset password telah dikirim
- *       400:
- *         description: Email wajib diisi
+ *         description: OTP reset password telah dikirim
  *       500:
  *         description: Server error
  */
@@ -249,7 +219,7 @@ router.post("/forgot-password", forgotPassword);
  *       200:
  *         description: Password berhasil diubah
  *       400:
- *         description: OTP salah atau sudah kedaluwarsa
+ *         description: OTP salah atau kedaluwarsa
  *       500:
  *         description: Server error
  */
@@ -260,11 +230,6 @@ router.post("/reset-password", resetPassword);
  * /api/auth/refresh:
  *   post:
  *     summary: Memperbarui access token menggunakan refresh token
- *     description: >
- *       Digunakan ketika access token sudah kedaluwarsa. Refresh token akan
- *       divalidasi di database. Jika valid, refresh token lama akan dicabut
- *       dan sistem akan menerbitkan access token dan refresh token baru
- *       (refresh token rotation).
  *     tags:
  *       - Auth
  *     requestBody:
@@ -278,32 +243,21 @@ router.post("/reset-password", resetPassword);
  *             properties:
  *               refreshToken:
  *                 type: string
- *                 description: Refresh token aktif milik user
  *                 example: 8f3a9d7c2e1b4a5f6d...
  *     responses:
  *       200:
  *         description: Token berhasil diperbarui
- *         content:
- *           application/json:
- *             example:
- *               statusCode: 200
- *               status: success
- *               message: Token berhasil diperbarui
- *               data:
- *                 accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 refreshToken: 9a4b7c...
  *       401:
- *         description: Refresh token tidak valid, sudah dicabut, atau sudah kedaluwarsa
+ *         description: Refresh token tidak valid
  *       500:
  *         description: Server error
  */
 router.post("/refresh", refreshAccessToken);
 
+// Rute Google OAuth
 router.get("/google", googleLogin);
-
-router.get("/google/callback", googleCallback);
-
-// test login backend doang
+router.get("/google/callback", handleGoogleCallback, googleCallback);
+// Cek user aktif
 router.get("/me", authMiddleware, getMe);
 
 module.exports = router;

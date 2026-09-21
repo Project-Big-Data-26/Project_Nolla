@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // <-- Pastikan useNavigate diimpor di sini
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
 
 const Login = () => {
+  const navigate = useNavigate(); // <-- Deklarasi navigate di dalam komponen
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -30,7 +31,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // RADAR 1: Cek apakah tombol benar-benar mengeksekusi fungsi ini
     console.log("TOMBOL MASUK DIKLIK! Data form:", formData);
 
     try {
@@ -47,7 +47,6 @@ const Login = () => {
 
       const result = await response.json();
 
-      // RADAR 2: Cek apa balasan dari Backend Myrza
       console.log("RESPON DARI BACKEND:", result);
 
       if (response.ok && result.status === "success") {
@@ -56,10 +55,12 @@ const Login = () => {
         localStorage.setItem("refreshToken", result.data.refreshToken);
 
         const isProfileComplete = result.data.user.isProfileComplete;
+
+        // Pengecekan status kelengkapan profil (Wizard Personalisasi)
         if (!isProfileComplete) {
-          window.location.href = "/profile";
+          navigate("/personalization"); // Lempar ke halaman wizard jika belum lengkap
         } else {
-          window.location.href = "/dashboard";
+          navigate("/dashboard"); // Langsung ke dashboard jika sudah lengkap
         }
       } else {
         alert(result.message || "Email atau password salah.");
@@ -85,7 +86,7 @@ const Login = () => {
             </p>
           </div>
 
-          {/* GOOGLE OAUTH BUTTON */}
+          {/* GOOGLE OAUTH BUTTON (Diikat ke fungsi handleGoogleLogin) */}
           <GoogleAuthButton 
             label="Masuk dengan Google" 
             onClick={handleGoogleLogin} 

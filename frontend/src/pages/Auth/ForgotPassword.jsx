@@ -9,12 +9,13 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ type: "", text: "" });
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setStatusMessage({ type: "", text: "" });
 
     try {
+      // Pastikan API axios-mu mengarah ke localhost:5000 jika menggunakan konfigurasi default
       const response = await API.post("/auth/forgot-password", {
         email: email.trim(),
       });
@@ -24,8 +25,9 @@ const ForgotPassword = () => {
         text: response.data.message || "Kode OTP telah dikirim ke email Anda.",
       });
 
+      // UBAH BAGIAN INI: Arahkan ke /reset, bukan /reset-password
       setTimeout(() => {
-        navigate("/reset-password", { state: { email } });
+        navigate("/reset", { state: { email } }); 
       }, 1500);
     } catch (err) {
       setStatusMessage({
