@@ -7,6 +7,7 @@ import {
     Brain,
     Briefcase,
 } from 'lucide-react'
+import WizardOptionCard from '../components/WizardOptionCard'
 
 const educationOptions = [
     { id: 'sd', label: 'SD', desc: 'Sekolah Dasar', icon: School },
@@ -61,25 +62,16 @@ export default function PersonalizationWizard({ onFinish }) {
                             </p>
 
                             <div className="mt-6 grid grid-cols-3 gap-3">
-                                {educationOptions.map(({ id, label, desc, icon: Icon }) => {
-                                    const isSelected = educationLevel === id
-                                    return (
-                                        <button
-                                            key={id}
-                                            type="button"
-                                            onClick={() => setEducationLevel(id)}
-                                            className={`flex flex-col items-start gap-1 rounded-xl border p-4 text-left transition ${
-                                                isSelected
-                                                    ? 'border-primary bg-blue-50'
-                                                    : 'border-neutral-border hover:border-primary'
-                                            }`}
-                                        >
-                                            <Icon className="h-5 w-5 text-primary" />
-                                            <span className="font-medium text-neutral-text">{label}</span>
-                                            <span className="text-xs text-neutral-muted">{desc}</span>
-                                        </button>
-                                    )
-                                })}
+                                {educationOptions.map(({ id, label, desc, icon }) => (
+                                    <WizardOptionCard
+                                        key={id}
+                                        icon={icon}
+                                        label={label}
+                                        desc={desc}
+                                        selected={educationLevel === id}
+                                        onClick={() => setEducationLevel(id)}
+                                    />
+                                ))}
                             </div>
 
                             <button
@@ -103,24 +95,15 @@ export default function PersonalizationWizard({ onFinish }) {
                             </p>
 
                             <div className="mt-6 grid grid-cols-2 gap-3">
-                                {learningGoalOptions.map(({ id, label, icon: Icon }) => {
-                                    const isSelected = learningGoal === id
-                                    return (
-                                        <button
-                                            key={id}
-                                            type="button"
-                                            onClick={() => setLearningGoal(id)}
-                                            className={`flex flex-col items-start gap-1 rounded-xl border p-4 text-left transition ${
-                                                isSelected
-                                                    ? 'border-primary bg-blue-50'
-                                                    : 'border-neutral-border hover:border-primary'
-                                            }`}
-                                        >
-                                            <Icon className="h-5 w-5 text-primary" />
-                                            <span className="font-medium text-neutral-text">{label}</span>
-                                        </button>
-                                    )
-                                })}
+                                {learningGoalOptions.map(({ id, label, icon }) => (
+                                    <WizardOptionCard
+                                        key={id}
+                                        icon={icon}
+                                        label={label}
+                                        selected={learningGoal === id}
+                                        onClick={() => setLearningGoal(id)}
+                                    />
+                                ))}
                             </div>
 
                             <div className="mt-6 flex gap-3">

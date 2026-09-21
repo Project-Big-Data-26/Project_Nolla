@@ -10,6 +10,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import SectionCard from "../components/SectionCard";
 
 const Dashboard = () => {
   const topics = [
@@ -66,7 +67,7 @@ const Dashboard = () => {
         {/* STATISTIK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Streak */}
-          <div className="relative overflow-hidden bg-neutral-card rounded-2xl p-5 border border-neutral-border shadow-xs">
+          <SectionCard padding="p-5" className="relative overflow-hidden">
             <div className="flex items-center justify-between relative z-10">
               <div>
                 <p className="text-xs font-medium text-neutral-muted">
@@ -83,10 +84,10 @@ const Dashboard = () => {
                 <Flame className="text-primary -rotate-8" size={100} />
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Poin */}
-          <div className="relative overflow-hidden bg-neutral-card rounded-2xl p-5 border border-neutral-border shadow-xs">
+          <SectionCard padding="p-5" className="relative overflow-hidden">
             <div className="flex items-center justify-between relative z-10">
               <div>
                 <p className="text-xs font-medium text-neutral-muted">
@@ -102,10 +103,10 @@ const Dashboard = () => {
                 <Trophy className="text-primary -rotate-8" size={90} />
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Akurasi */}
-          <div className="bg-neutral-card rounded-2xl p-5 border border-neutral-border shadow-xs">
+          <SectionCard padding="p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-neutral-muted">
@@ -119,10 +120,10 @@ const Dashboard = () => {
                 <Target className="text-success" size={22} />
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Waktu Belajar */}
-          <div className="bg-neutral-card rounded-2xl p-5 border border-neutral-border shadow-xs">
+          <SectionCard padding="p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-neutral-muted">
@@ -138,10 +139,10 @@ const Dashboard = () => {
                 <Clock className="text-primary" size={22} />
               </div>
             </div>
-          </div>
+          </SectionCard>
         </div>
 
-        {/* LANJUTKAN BELAJAR */}
+        {/* LANJUTKAN BELAJAR (bukan SectionCard: warna & shadow beda, banner CTA) */}
         <section className="bg-primary rounded-2xl p-6 text-white mb-6 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div className="flex-1">
@@ -179,7 +180,7 @@ const Dashboard = () => {
         {/* TARGET + MATERI */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* TARGET HARI INI */}
-          <section className="bg-neutral-card rounded-2xl p-6 border border-neutral-border shadow-xs">
+          <SectionCard as="section">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="font-heading text-lg font-bold text-neutral-text">
@@ -220,10 +221,10 @@ const Dashboard = () => {
             <p className="text-xs text-neutral-muted mt-3">
               Tinggal 2 aktivitas lagi untuk mencapai target hari ini.
             </p>
-          </section>
+          </SectionCard>
 
           {/* MATERI */}
-          <section className="bg-neutral-card rounded-2xl p-6 border border-neutral-border shadow-xs">
+          <SectionCard as="section">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="font-heading text-lg font-bold text-neutral-text">
@@ -262,11 +263,11 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
-          </section>
+          </SectionCard>
         </div>
 
         {/* AKTIVITAS TERBARU */}
-        <section className="bg-neutral-card rounded-2xl p-6 border border-neutral-border shadow-xs">
+        <SectionCard as="section">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="font-heading text-lg font-bold text-neutral-text">
@@ -308,7 +309,7 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-        </section>
+        </SectionCard>
       </main>
     </div>
   );

@@ -1,13 +1,8 @@
 import React from "react";
-import {
-  CheckCircle2,
-  XCircle,
-  ArrowLeft,
-  ArrowRight,
-  Target,
-  Flame,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Target, Flame } from "lucide-react";
 import Navbar from "../components/Navbar";
+import SectionCard from "../components/SectionCard";
+import ResultQuestionCard from "../components/ResultQuestionCard";
 
 const ResultPage = () => {
   const results = [
@@ -95,8 +90,7 @@ const ResultPage = () => {
       topic: "Operasi Bilangan",
       question: (
         <>
-          Berapakah hasil dari{" "}
-          <span className="font-medium">8 × 7</span>?
+          Berapakah hasil dari <span className="font-medium">8 × 7</span>?
         </>
       ),
       options: [
@@ -177,7 +171,7 @@ const ResultPage = () => {
 
   const correctCount = results.filter((result) => {
     const selected = result.options.find(
-      (option) => option.label === result.selectedAnswer
+      (option) => option.label === result.selectedAnswer,
     );
 
     return selected?.correct;
@@ -185,9 +179,7 @@ const ResultPage = () => {
 
   const totalQuestions = results.length;
 
-  const percentage = Math.round(
-    (correctCount / totalQuestions) * 100
-  );
+  const percentage = Math.round((correctCount / totalQuestions) * 100);
 
   const handleBack = () => {
     console.log("Kembali ke halaman pengerjaan");
@@ -199,27 +191,19 @@ const ResultPage = () => {
 
   return (
     <div className="flex min-h-screen bg-neutral-bg">
-
       {/* Navbar yang sudah ada di project */}
       <Navbar />
 
       {/* Konten utama */}
       <main className="flex-1 p-5 md:p-8 pb-24 md:pb-8">
-
         {/* HEADER */}
         <header className="mb-7">
-
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Target
-                size={17}
-                className="text-primary"
-              />
+              <Target size={17} className="text-primary" />
             </div>
 
-            <span className="text-sm text-neutral-muted">
-              Hasil Latihan
-            </span>
+            <span className="text-sm text-neutral-muted">Hasil Latihan</span>
           </div>
 
           <h1 className="font-heading text-2xl md:text-3xl font-bold text-neutral-text">
@@ -229,17 +213,12 @@ const ResultPage = () => {
           <p className="text-neutral-muted mt-2">
             Lihat hasil jawaban kamu pada latihan matematika ini.
           </p>
-
         </header>
 
-
         {/* RINGKASAN HASIL */}
-        <section className="bg-neutral-card rounded-2xl p-6 border border-neutral-border mb-6">
-
+        <SectionCard as="section" className="mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-
             <div>
-
               <p className="text-sm text-neutral-muted mb-1">
                 Latihan selesai
               </p>
@@ -251,51 +230,34 @@ const ResultPage = () => {
               <p className="text-sm text-neutral-muted mt-2">
                 Kamu telah menyelesaikan semua soal pada latihan ini.
               </p>
-
             </div>
 
-
             <div className="flex items-center gap-5">
-
               {/* NILAI */}
               <div className="text-center">
-
-                <p className="text-sm text-neutral-muted">
-                  Nilai
-                </p>
+                <p className="text-sm text-neutral-muted">Nilai</p>
 
                 <p className="text-3xl font-bold text-primary mt-1">
                   {percentage}
                 </p>
-
               </div>
-
 
               {/* BENAR */}
               <div className="h-12 w-px bg-neutral-border" />
 
               <div className="text-center">
-
-                <p className="text-sm text-neutral-muted">
-                  Benar
-                </p>
+                <p className="text-sm text-neutral-muted">Benar</p>
 
                 <p className="text-2xl font-bold text-green-600 mt-1">
                   {correctCount}/{totalQuestions}
                 </p>
-
               </div>
-
             </div>
-
           </div>
-
 
           {/* PROGRESS */}
           <div className="mt-6">
-
             <div className="flex justify-between text-sm mb-2">
-
               <span className="text-neutral-muted">
                 Persentase jawaban benar
               </span>
@@ -303,35 +265,24 @@ const ResultPage = () => {
               <span className="font-semibold text-primary">
                 {percentage}%
               </span>
-
             </div>
 
             <div className="h-2.5 bg-neutral-bg rounded-full overflow-hidden">
-
               <div
                 className="h-full bg-primary rounded-full transition-all"
                 style={{
                   width: `${percentage}%`,
                 }}
               />
-
             </div>
-
           </div>
-
-        </section>
-
+        </SectionCard>
 
         {/* STATUS */}
         <div className="flex items-center gap-3 mb-5">
-
-          <Flame
-            size={20}
-            className="text-orange-500"
-          />
+          <Flame size={20} className="text-orange-500" />
 
           <div>
-
             <h2 className="text-lg font-bold text-neutral-text">
               Detail Jawaban
             </h2>
@@ -339,227 +290,27 @@ const ResultPage = () => {
             <p className="text-sm text-neutral-muted">
               Periksa jawaban benar dan jawaban yang masih perlu dipelajari.
             </p>
-
           </div>
-
         </div>
-
 
         {/* HASIL PER SOAL */}
         <div className="space-y-5">
-
-          {results.map((result) => {
-
-            const selected = result.options.find(
-              (option) =>
-                option.label === result.selectedAnswer
-            );
-
-            const isCorrect = selected?.correct;
-
-            return (
-              <section
-                key={result.id}
-                className="bg-neutral-card rounded-2xl p-6 border border-neutral-border"
-              >
-
-                {/* HEADER SOAL */}
-                <div className="flex items-center justify-between gap-4 mb-5">
-
-                  <div className="flex items-center gap-3">
-
-                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                      {result.level}
-                    </span>
-
-                    <span className="text-sm text-neutral-muted">
-                      Soal {result.id}
-                    </span>
-
-                  </div>
-
-                  <span className="text-sm text-neutral-muted">
-                    {result.topic}
-                  </span>
-
-                </div>
-
-
-                {/* PERTANYAAN */}
-                <div className="text-lg md:text-xl font-medium text-neutral-text mb-5">
-                  {result.question}
-                </div>
-
-
-                {/* PILIHAN JAWABAN */}
-                <div className="space-y-3">
-
-                  {result.options.map((option) => {
-
-                    const isSelected =
-                      option.label === result.selectedAnswer;
-
-                    const isCorrectAnswer =
-                      option.correct;
-
-                    let containerClass =
-                      "border-neutral-border bg-neutral-card";
-
-                    let labelClass =
-                      "border-neutral-border text-neutral-muted";
-
-
-                    // Jawaban user BENAR
-                    if (
-                      isSelected &&
-                      isCorrectAnswer
-                    ) {
-                      containerClass =
-                        "border-green-300 bg-green-50";
-
-                      labelClass =
-                        "border-green-400 text-green-600 bg-white";
-                    }
-
-
-                    // Jawaban user SALAH
-                    if (
-                      isSelected &&
-                      !isCorrectAnswer
-                    ) {
-                      containerClass =
-                        "border-red-300 bg-red-50";
-
-                      labelClass =
-                        "border-red-400 text-red-500 bg-white";
-                    }
-
-
-                    // Jawaban sebenarnya
-                    if (
-                      !isSelected &&
-                      isCorrectAnswer
-                    ) {
-                      containerClass =
-                        "border-green-300 bg-green-50";
-
-                      labelClass =
-                        "border-green-400 text-green-600 bg-white";
-                    }
-
-
-                    return (
-                      <div
-                        key={option.label}
-                        className={`min-h-[56px] flex items-center justify-between rounded-xl border-2 px-4 ${containerClass}`}
-                      >
-
-                        <div className="flex items-center gap-4">
-
-                          <span
-                            className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm font-semibold ${labelClass}`}
-                          >
-                            {option.label}
-                          </span>
-
-                          <span className="text-sm md:text-base text-neutral-text">
-                            {option.value}
-                          </span>
-
-                        </div>
-
-
-                        <div className="flex items-center gap-2">
-
-                          {isSelected && isCorrectAnswer && (
-                            <CheckCircle2
-                              size={21}
-                              className="text-green-600"
-                            />
-                          )}
-
-                          {isSelected && !isCorrectAnswer && (
-                            <XCircle
-                              size={21}
-                              className="text-red-500"
-                            />
-                          )}
-
-                          {!isSelected && isCorrectAnswer && (
-                            <span className="text-xs font-medium text-green-600">
-                              Jawaban benar
-                            </span>
-                          )}
-
-                        </div>
-
-                      </div>
-                    );
-                  })}
-
-                </div>
-
-
-                {/* STATUS */}
-                <div
-                  className={`mt-5 rounded-xl p-4 flex items-center gap-3 ${
-                    isCorrect
-                      ? "bg-green-50 text-green-700"
-                      : "bg-red-50 text-red-600"
-                  }`}
-                >
-
-                  {isCorrect ? (
-                    <CheckCircle2 size={19} />
-                  ) : (
-                    <XCircle size={19} />
-                  )}
-
-                  <span className="text-sm font-semibold">
-                    {isCorrect
-                      ? "Jawaban benar!"
-                      : "Jawaban kamu kurang tepat."}
-                  </span>
-
-                </div>
-
-
-                {/* PEMBAHASAN */}
-                <div className="mt-4 bg-neutral-bg rounded-xl p-5">
-
-                  <p className="text-sm font-semibold text-primary mb-2">
-                    Pembahasan
-                  </p>
-
-                  <div className="text-sm leading-6 text-neutral-muted">
-                    {result.explanation}
-                  </div>
-
-                </div>
-
-              </section>
-            );
-          })}
-
+          {results.map((result) => (
+            <ResultQuestionCard key={result.id} result={result} />
+          ))}
         </div>
-
 
         {/* BUTTON BAWAH */}
         <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 mt-7">
-
           {/* KEMBALI */}
           <button
             type="button"
             onClick={handleBack}
             className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-neutral-border bg-neutral-card text-neutral-text font-semibold hover:bg-neutral-bg transition"
           >
-
             <ArrowLeft size={18} />
-
             Kembali ke Latihan
-
           </button>
-
 
           {/* LIHAT EVALUASI */}
           <button
@@ -567,17 +318,11 @@ const ResultPage = () => {
             onClick={handleEvaluation}
             className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-white font-semibold hover:opacity-90 transition"
           >
-
             Lihat Evaluasi
-
             <ArrowRight size={18} />
-
           </button>
-
         </div>
-
       </main>
-
     </div>
   );
 };
