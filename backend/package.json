@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "node seeders/index.js",
+    "seed:fresh": "node seeders/index.js fresh",
+    "seed:clear": "node seeders/index.js clear"
   },
   "keywords": [],
   "author": "",
