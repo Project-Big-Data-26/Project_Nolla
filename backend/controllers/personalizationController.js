@@ -3,12 +3,7 @@ const Jenjang = require("../models/Jenjang");
 const mongoose = require("mongoose");
 const setPersonalization = async (req, res) => {
   try {
-    const { educationLevel: jenjangId } = req.body;
-    
-    console.log("=== DEBUG PERSONALISASI ===");
-    console.log("Value diterima:", JSON.stringify(jenjangId));
-    console.log("Tipe data:", typeof jenjangId);
-    
+    const { educationLevel: jenjangId } = req.body; 
     const userId = req.user.id;
     // ... sisanya tetap sama
     if (!jenjangId) {
