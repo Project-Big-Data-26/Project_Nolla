@@ -28,6 +28,14 @@ import {
   gradeFiltersByLevel,
 } from "../data/topicsData";
 
+// Data dummy statistik belajar user (sama pola dengan Settings.jsx / PersonalizationProfile.jsx)
+// supaya TopHeader menampilkan data yang konsisten di semua halaman.
+const user = {
+  streak: 0,
+  dailyGoal: 10,
+  dailyProgress: 0,
+};
+
 // Fungsi Custom Smooth Scroll yang tenang dan teratur (duration ~900ms easeInOutCubic)
 const smoothScrollToElement = (element, offsetMargin = 12, duration = 900) => {
   if (!element) return;
@@ -409,9 +417,14 @@ const Topics = () => {
       <Navbar activePage="Topik" />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-7 max-w-6xl mx-auto w-full pb-24 md:pb-8">
+      <main className="flex-1 px-6 py-8 md:px-8 md:py-10 pb-28 md:pb-12 max-w-6xl mx-auto w-full">
         {/* Top Header Sticky with ID for smooth scrolling anchor */}
-        <TopHeader />
+        <TopHeader
+          track={educationLevels[currentLevel]?.label || currentLevel}
+          streak={user.streak}
+          dailyProgress={user.dailyProgress}
+          dailyGoal={user.dailyGoal}
+        />
 
         {/* 1. HEADER SECTION */}
         <header className="mb-6">

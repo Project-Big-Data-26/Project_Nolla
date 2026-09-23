@@ -47,10 +47,14 @@ export default function Settings() {
 
                 {/* FORM SECTION */}
                 <SectionCard as="section" className="mt-6">
-                    <label className="block text-sm font-semibold text-neutral-text">
+                    <label
+                        htmlFor="dailyProblemsGoal"
+                        className="block text-sm font-semibold text-neutral-text"
+                    >
                         Target soal harian
                     </label>
                     <input
+                        id="dailyProblemsGoal"
                         type="number"
                         min="1"
                         value={dailyProblemsGoal}
@@ -58,10 +62,14 @@ export default function Settings() {
                         className="mt-2 w-full rounded-xl border border-neutral-border bg-neutral-card px-4 py-2.5 text-sm text-neutral-text focus:border-primary focus:outline-none"
                     />
 
-                    <label className="mt-5 block text-sm font-semibold text-neutral-text">
+                    <label
+                        htmlFor="dailyMinutesGoal"
+                        className="mt-5 block text-sm font-semibold text-neutral-text"
+                    >
                         Target menit harian
                     </label>
                     <input
+                        id="dailyMinutesGoal"
                         type="number"
                         min="1"
                         value={dailyMinutesGoal}
@@ -69,9 +77,9 @@ export default function Settings() {
                         className="mt-2 w-full rounded-xl border border-neutral-border bg-neutral-card px-4 py-2.5 text-sm text-neutral-text focus:border-primary focus:outline-none"
                     />
 
-                    <label className="mt-5 block text-sm font-semibold text-neutral-text">
+                    <span className="mt-5 block text-sm font-semibold text-neutral-text">
                         Jenjang belajar
-                    </label>
+                    </span>
                     <OptionButton
                         options={jenjangOptions}
                         selected={jenjang}

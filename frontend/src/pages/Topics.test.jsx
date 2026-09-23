@@ -156,7 +156,12 @@ describe("Topics", () => {
     it("menampilkan judul halaman dan badge jenjang default (SMP, karena belum ada di localStorage)", () => {
         renderPage();
         expect(screen.getByText("Topic Library")).toBeInTheDocument();
-        expect(screen.getByText("Matematika • SMP")).toBeInTheDocument();
+        // Badge "Matematika • SMP" muncul 2x di halaman ini: di TopHeader
+        // (bagian atas, konsisten dengan Settings.jsx/PersonalizationProfile.jsx)
+        // dan di badge selector header khusus Topics. getAllByText dipakai
+        // karena kita cuma perlu pastikan teksnya muncul, tidak peduli di
+        // elemen mana persisnya.
+        expect(screen.getAllByText("Matematika • SMP").length).toBeGreaterThan(0);
     });
 
     it("bab pertama otomatis ter-expand, bab kedua collapsed di awal", () => {
@@ -249,7 +254,9 @@ describe("Topics", () => {
         expect(
             screen.queryByText("Pilih Jenjang Pembelajaran")
         ).not.toBeInTheDocument();
-        expect(screen.getByText("Matematika • SD")).toBeInTheDocument();
+        // Sama seperti test di atas: "Matematika • SD" sekarang muncul 2x
+        // (TopHeader + badge selector Topics), jadi pakai getAllByText.
+        expect(screen.getAllByText("Matematika • SD").length).toBeGreaterThan(0);
     });
 
     it('klik "Ambil Pretest" pada subbab (bab belum pretest) memunculkan modal pretest wajib', () => {
