@@ -597,7 +597,7 @@ const Topics = () => {
                           </p>
 
                           {/* Progress Indicator */}
-                          {/* <div className="mt-3 flex items-center gap-3 max-w-md">
+                          <div className="mt-3 flex items-center gap-3 max-w-md">
                             <div className="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-primary rounded-full transition-all duration-500"
@@ -613,7 +613,7 @@ const Topics = () => {
                                 ({completedSubtopics}/{totalSubtopics} selesai)
                               </span>
                             </div>
-                          </div> */}
+                          </div>
                         </div>
                       </div>
 
@@ -784,20 +784,23 @@ const Topics = () => {
                                       )}
 
                                     {/* Progress bar per subtopic */}
-                                    {/* <div className="mt-2 flex items-center gap-3 max-w-xs">
+                                    <div className="mt-2 flex items-center gap-3 max-w-xs">
                                       <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                                         <div
-                                          className={`h-full rounded-full transition-all duration-300 ${subtopic.status === "completed"
+                                          className={`h-full rounded-full transition-all duration-300 ${
+                                            subtopic.status === "completed"
                                               ? "bg-emerald-500"
                                               : "bg-primary"
-                                            }`}
-                                          style={{ width: `${subtopic.progress}%` }}
+                                          }`}
+                                          style={{
+                                            width: `${subtopic.progress}%`,
+                                          }}
                                         />
                                       </div>
                                       <span className="text-[11px] text-neutral-muted font-medium">
                                         {subtopic.progress}%
                                       </span>
-                                    </div> */}
+                                    </div>
                                   </div>
 
                                   {/* Right Action Button */}
