@@ -1,15 +1,15 @@
 import { useState } from "react";
-import PersonalizationWizard from "./pages/PersonalizationWizard";
-import Dashboard from "./pages/Dashboard";
+import TeacherStudio from "./pages/TeacherStudio";
+import StudentJourney from "./pages/StudentJourney";
+import "katex/dist/katex.min.css";
+import "./App.css";
 
-function App() {
-  const [onboardingDone, setOnboardingDone] = useState(false);
+export default function App() {
+  const [surface, setSurface] = useState("teacher");
 
-  if (!onboardingDone) {
-    return <PersonalizationWizard onFinish={() => setOnboardingDone(true)} />;
-  }
-
-  return <Dashboard />;
+  return surface === "teacher" ? (
+    <TeacherStudio onSwitchSurface={() => setSurface("student")} />
+  ) : (
+    <StudentJourney onSwitchSurface={() => setSurface("teacher")} />
+  );
 }
-
-export default App;
