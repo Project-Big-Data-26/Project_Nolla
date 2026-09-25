@@ -1,16 +1,60 @@
-# React + Vite
+# Nalar PDF Question Analyzer
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Frontend sementara untuk menguji ekstraksi dan klasifikasi soal dari satu file PDF tanpa MongoDB.
 
-Currently, two official plugins are available:
+## Alur
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```text
+PDF
+  -> POST /api/v1/ai/extract
+  -> kandidat soal dan opsi
+  -> POST /api/v1/ai/classify-question per kandidat
+  -> ringkasan Bloom, difficulty, dan dimensi pengetahuan
+```
 
-## React Compiler
+Hasil hanya disimpan di state browser. Tombol **Unduh JSON** menghasilkan file yang dapat direview atau diimpor ke sistem penyimpanan kemudian.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Menjalankan lokal
 
-## Expanding the Oxlint configuration
+Jalankan AI service:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```powershell
+cd "D:\KULIAH\Big Data\extraction_model"
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Jalankan gateway:
+
+```powershell
+cd "D:\KULIAH\Big Data\project_assessment\backend"
+npm install
+npm start
+```
+
+Jalankan frontend:
+
+```powershell
+cd "D:\KULIAH\Big Data\project_assessment\frontend"
+npm install
+npm run dev
+```
+
+Buka `http://localhost:5173`. Vite meneruskan request `/api` ke gateway pada port `5000`.
+
+## Output UI
+
+- Teks dan opsi setiap kandidat soal.
+- Viewer halaman PDF asli agar gambar, tabel, notasi, dan layout tetap identik dengan sumber.
+- Crop WebP lossless per soal yang ditampilkan sebagai gambar platform biasa, bukan viewer PDF.
+- Halaman sumber dan metode ekstraksi (`text_layer` atau OCR).
+- Level Bloom C1-C6 beserta confidence.
+- Difficulty Easy/Medium/Hard beserta confidence.
+- Dimensi pengetahuan faktual, konseptual, prosedural, atau metakognitif.
+- Ringkasan distribusi seluruh kandidat.
+- Warning dan penanda kebutuhan review.
+
+Viewer sumber asli menggunakan PDF.js di browser. Teks hasil OCR tidak digunakan untuk membangun ulang tampilan visual; OCR hanya dipakai untuk segmentasi dan klasifikasi. Tombol **Lihat sumber asli** pada setiap kartu membuka halaman PDF tempat kandidat tersebut ditemukan.
+
+Setiap kartu juga menampilkan **Tampilan soal hasil ekstraksi**. Gambar ini dibuat oleh PyMuPDF pada backend berdasarkan batas soal dan dapat langsung dirender dengan elemen `<img>`. KaTeX tetap dipakai pada representasi teks terstruktur ketika sumber mengandung delimiter `$...$`.
+
+Klasifikasi yang memakai `rules_baseline` merupakan hasil advisory. Hasil IndoBERT baru digunakan jika artefak model tersedia di `extraction_model/models/indobert-multitask-v1`.

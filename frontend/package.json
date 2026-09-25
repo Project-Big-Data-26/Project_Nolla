@@ -4,9 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prepare:pdfjs": "node scripts/copy-pdfjs-assets.mjs",
+    "predev": "npm run prepare:pdfjs",
     "dev": "vite",
+    "prebuild": "npm run prepare:pdfjs",
     "build": "vite build",
     "lint": "oxlint",
+    "prepreview": "npm run prepare:pdfjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -15,6 +19,7 @@
     "jsxgraph": "^1.11.1",
     "katex": "^0.16.28",
     "lucide-react": "^1.47.0",
+    "pdfjs-dist": "^6.3.289",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-katex": "^3.1.0",
