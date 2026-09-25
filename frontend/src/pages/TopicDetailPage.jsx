@@ -136,15 +136,7 @@ function BabCard({ bab }) {
       
       <div className="flex items-start justify-between gap-4">
 
-        <div className="flex min-w-0 items-start gap-4">
-
-          {/* Nomor Bab */}
-
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-sm font-bold text-blue-600">
-            {String(bab.display_order).padStart(2, "0")}
-          </div>
-
-          <div className="min-w-0">
+        <div className="min-w-0">
 
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
               Bab {bab.display_order}
@@ -155,8 +147,6 @@ function BabCard({ bab }) {
             </h3>
 
           </div>
-
-        </div>
 
         {/* Status */}
 
@@ -309,137 +299,9 @@ export default function TopikDetail() {
             Kembali ke Topik
           </Link>
 
-          {/* Header Topik */}
-
-          <section className="rounded-3xl bg-blue-600 p-7 text-white shadow-lg sm:p-8">
-
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-
-              <div className="max-w-2xl">
-
-                <div className="mb-4 flex flex-wrap items-center gap-2">
-
-                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-                    Matematika
-                  </span>
-
-                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-                    SD
-                  </span>
-
-                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-                    Beginner
-                  </span>
-
-                </div>
-
-                <h1 className="text-3xl font-bold sm:text-4xl">
-                  Pecahan & Persentase
-                </h1>
-
-                <p className="mt-3 max-w-xl text-sm leading-6 text-blue-100 sm:text-base">
-                  Pelajari konsep pecahan, operasi pecahan,
-                  desimal, perbandingan, dan persentase melalui
-                  beberapa bab pembelajaran.
-                </p>
-
-              </div>
-
-              {/* Progress Topik */}
-
-              <div className="w-full rounded-2xl bg-white/10 p-5 lg:w-72">
-
-                <div className="flex items-center justify-between">
-
-                  <span className="text-sm text-blue-100">
-                    Progress Topik
-                  </span>
-
-                  <span className="text-lg font-bold">
-                    {totalProgress}%
-                  </span>
-
-                </div>
-
-                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/20">
-
-                  <div
-                    className="h-full rounded-full bg-white"
-                    style={{
-                      width: `${totalProgress}%`,
-                    }}
-                  />
-
-                </div>
-
-                <p className="mt-3 text-xs text-blue-100">
-                  {babSelesai} dari {totalBab} bab selesai
-                </p>
-
-              </div>
-
-            </div>
-
-          </section>
-
-          {/* Statistik */}
-
-          <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-            <StatCard
-              icon={Trophy}
-              title="Total Poin"
-              value={totalPoin.toLocaleString("id-ID")}
-              description="Poin yang telah kamu dapatkan"
-            />
-
-            <StatCard
-              icon={CheckCircle2}
-              title="Bab Selesai"
-              value={`${babSelesai} Bab`}
-              description={`Dari total ${totalBab} bab`}
-            />
-
-            <StatCard
-              icon={Clock3}
-              title="Sedang Dipelajari"
-              value={`${babProgress} Bab`}
-              description="Bab yang sedang kamu pelajari"
-            />
-
-          </section>
-
           {/* Bab Pembelajaran */}
 
           <section className="mt-10">
-
-            <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-
-              <div>
-
-                <p className="text-sm font-medium text-blue-600">
-                  Materi Pembelajaran
-                </p>
-
-                <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                  Bab Pembelajaran
-                </h2>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  Pilih bab untuk mulai belajar matematika.
-                </p>
-
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-
-                <BookOpen className="h-4 w-4" />
-
-                {totalBab} Bab
-
-              </div>
-
-            </div>
 
             {/* List Bab */}
 
