@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
-  BookOpen,
   Search,
   ChevronDown,
   ChevronUp,
@@ -9,38 +8,31 @@ import {
   AlertTriangle,
   FileQuestion,
   Award,
-  Trophy,
   X,
   ArrowRight,
-  Layers,
-  Info,
-  GraduationCap,
-  Lock,
+  Sparkles,
+  SlidersHorizontal,
   Check,
+  Play,
+  RotateCcw,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import TopHeader from "../components/TopHeader";
 import Modal from "../components/Modal";
 import TestResultModal from "../components/TestResultModal";
 import {
-  educationLevels,
+  allChapters,
+  allGrades,
   chaptersByLevel,
   gradeFiltersByLevel,
+  educationLevels,
 } from "../data/topicsData";
 
-// Data dummy statistik belajar user (sama pola dengan Settings.jsx / PersonalizationProfile.jsx)
-// supaya TopHeader menampilkan data yang konsisten di semua halaman.
-const user = {
-  streak: 0,
-  dailyGoal: 10,
-  dailyProgress: 0,
-};
-
-// Fungsi Custom Smooth Scroll yang tenang dan teratur (duration ~900ms easeInOutCubic)
-const smoothScrollToElement = (element, offsetMargin = 12, duration = 900) => {
+// Smooth Scroll helper
+const smoothScrollToElement = (element, offsetMargin = 16, duration = 800) => {
   if (!element) return;
   const topHeaderEl = document.getElementById("top-header-section");
-  const headerHeight = topHeaderEl ? topHeaderEl.offsetHeight : 70;
+  const headerHeight = topHeaderEl ? topHeaderEl.offsetHeight : 80;
 
   const rect = element.getBoundingClientRect();
   const elementTop = rect.top + window.pageYOffset;
@@ -49,15 +41,11 @@ const smoothScrollToElement = (element, offsetMargin = 12, duration = 900) => {
   const startY = window.pageYOffset || document.documentElement.scrollTop;
   const difference = targetY - startY;
 
-  // Jika jarak sangat kecil (< 5px), tidak perlu scroll
   if (Math.abs(difference) < 5) return;
 
   const startTime = performance.now();
-
-  // Easing curve easeInOutCubic: mulai lambat, bergerak tenang, dan berhenti secara halus
-  const easeInOutCubic = (t) => {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  };
+  const easeInOutCubic = (t) =>
+    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
   const step = (currentTime) => {
     const elapsed = currentTime - startTime;
@@ -75,84 +63,92 @@ const smoothScrollToElement = (element, offsetMargin = 12, duration = 900) => {
 };
 
 const Topics = () => {
-  // Jenjang pendidikan aktif: membaca dari localStorage atau default ke "SMP"
-  const [currentLevel, setCurrentLevel] = useState(() => {
+  // Jenjang dibaca murni dari setting (localStorage). Tidak dapat diubah di filter biasa.
+  const userSettingLevel = useMemo(() => {
     const saved = localStorage.getItem("user_education_level");
-    return saved && educationLevels[saved] ? saved : "SMP";
-  });
+    return saved && educationLevels[saved]
+      ? saved
+      : saved === "Semua"
+        ? "Semua"
+        : "SMP";
+  }, []);
 
-  // Modal Switcher Jenjang (SD, SMP, SMA)
-  const [showLevelModal, setShowLevelModal] = useState(false);
-
-  // State data bab & subbab sesuai jenjang aktif
-  const [chaptersData, setChaptersData] = useState(
-    () => chaptersByLevel[currentLevel] || chaptersByLevel.SMP,
-  );
-
-  // Filter & Search states
+  // Filter & Search states (iOS theme: Hanya 1 tindakan yaitu Filter Kelas)
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("Semua Kelas");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterDropdownRef = useRef(null);
+
+  // Chapters Data sesuai jenjang yang aktif di setting
+  const activeLevelChapters = useMemo(() => {
+    if (userSettingLevel === "Semua") {
+      return allChapters;
+    }
+    return chaptersByLevel[userSettingLevel] || chaptersByLevel.SMP;
+  }, [userSettingLevel]);
+
+  // Daftar opsi filter kelas murni berdasarkan jenjang di setting
+  const availableGradeFilters = useMemo(() => {
+    if (userSettingLevel === "Semua") {
+      return allGrades;
+    }
+    return gradeFiltersByLevel[userSettingLevel] || gradeFiltersByLevel.SMP;
+  }, [userSettingLevel]);
+
+  // Chapters State
+  const [chaptersData, setChaptersData] = useState(() => activeLevelChapters);
+
+  // Update jika activeLevelChapters berubah
+  useEffect(() => {
+    setChaptersData(activeLevelChapters);
+  }, [activeLevelChapters]);
 
   // State accordion: Set of chapter IDs yang sedang expanded
   const [expandedChapters, setExpandedChapters] = useState(() => {
-    const firstChapter = (chaptersByLevel[currentLevel] ||
-      chaptersByLevel.SMP)[0];
-    return new Set([firstChapter?.id || ""]);
+    const firstChapter = activeLevelChapters[0];
+    return new Set([firstChapter?._id || firstChapter?.id || ""]);
   });
 
   // State Modal Hasil Pretest
   const [activePretestResult, setActivePretestResult] = useState(null);
 
-  // State Modal Hasil Post Test
-  const [activePostTestResult, setActivePostTestResult] = useState(null);
-
   // State Modal Konfirmasi / Mulai Pretest
   const [pretestConfirmChapter, setPretestConfirmChapter] = useState(null);
 
-  // State Modal Konfirmasi / Mulai Post Test
-  const [postTestConfirmChapter, setPostTestConfirmChapter] = useState(null);
-
-  // State Modal Post Test Terkunci (jika subbab belum selesai)
-  const [postTestLockedModal, setPostTestLockedModal] = useState(null);
-
-  // State Modal Pretest Wajib
-  // (ketika user klik subbab pada bab yang belum selesai pretest)
-  const [mandatoryPretestModal, setMandatoryPretestModal] = useState(null);
-
-  // State Modal Peringatan Prasyarat (Pop up di tengah untuk Bab atau Subbab)
+  // State Modal Peringatan Prasyarat
   const [prerequisiteModal, setPrerequisiteModal] = useState(null);
 
   // Chapters yang telah diizinkan user untuk dibuka meski belum selesai prasyarat
   const [bypassedChapterPrerequisites, setBypassedChapterPrerequisites] =
     useState(new Set());
 
-  // Daftar opsi filter kelas untuk jenjang aktif (SD: Kelas 1-6, SMP: 7-9, SMA: 10-12)
-  const availableGradeFilters =
-    gradeFiltersByLevel[currentLevel] || gradeFiltersByLevel.SMP;
+  // Tutup dropdown filter kelas ketika klik di luar
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        filterDropdownRef.current &&
+        !filterDropdownRef.current.contains(event.target)
+      ) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
-  // Mengubah Jenjang Pendidikan (SD / SMP / SMA)
-  const handleSelectLevel = (levelKey) => {
-    setCurrentLevel(levelKey);
-    localStorage.setItem("user_education_level", levelKey);
-    const newChapters = chaptersByLevel[levelKey] || chaptersByLevel.SMP;
-    setChaptersData(newChapters);
-    setSelectedGrade("Semua Kelas");
-    setSearchQuery("");
-    setShowLevelModal(false);
-    // Buka bab pertama dari jenjang yang baru dipilih
-    setExpandedChapters(new Set([newChapters[0]?.id || ""]));
-  };
-
-  // Toggle buka/tutup accordion BAB dengan efek auto-scroll tenang dan halus ke batas bawah top header
+  // Toggle buka/tutup accordion BAB
   const toggleChapter = (chapter) => {
-    const isCurrentlyExpanded = expandedChapters.has(chapter.id);
+    const chapterKey = chapter._id || chapter.id;
+    const isCurrentlyExpanded = expandedChapters.has(chapterKey);
 
     // Jika ingin membuka dan BAB memiliki prasyarat yang belum selesai dan belum di-bypass
     if (
       !isCurrentlyExpanded &&
       chapter.hasPrerequisite &&
       !chapter.prerequisiteCompleted &&
-      !bypassedChapterPrerequisites.has(chapter.id)
+      !bypassedChapterPrerequisites.has(chapterKey)
     ) {
       setPrerequisiteModal({
         type: "chapter",
@@ -164,22 +160,21 @@ const Topics = () => {
 
     setExpandedChapters((prev) => {
       const next = new Set(prev);
-      if (next.has(chapter.id)) {
-        next.delete(chapter.id);
+      if (next.has(chapterKey)) {
+        next.delete(chapterKey);
       } else {
-        next.add(chapter.id);
+        next.add(chapterKey);
       }
       return next;
     });
 
-    // Jika card dibuka, gulirkan batas atas card hingga pas di batas bawah top header secara perlahan & tenang
     if (!isCurrentlyExpanded) {
       setTimeout(() => {
         const cardElement = document.getElementById(
-          `chapter-card-${chapter.id}`,
+          `chapter-card-${chapterKey}`,
         );
         if (cardElement) {
-          smoothScrollToElement(cardElement, 14, 850);
+          smoothScrollToElement(cardElement, 16, 750);
         }
       }, 50);
     }
@@ -188,7 +183,7 @@ const Topics = () => {
   // Expand semua bab jika user sedang mencari kata kunci
   const isSearching = searchQuery.trim().length > 0;
 
-  // Filtering Chapters & Subtopics berdasarkan Search dan Filter Kelas
+  // Filtering Chapters & Subtopics berdasarkan Search dan Filter Kelas (sesuai setting)
   const filteredChapters = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
 
@@ -198,25 +193,29 @@ const Topics = () => {
           chapter.name.toLowerCase().includes(query) ||
           chapter.description.toLowerCase().includes(query);
 
-        const matchingSubtopics = chapter.subtopics.filter((sub) => {
+        const chapterSubbab = chapter.subbab || chapter.subtopics || [];
+        const matchingSubbab = chapterSubbab.filter((sub) => {
           const matchesGrade =
             selectedGrade === "Semua Kelas" ||
             sub.classReference.toLowerCase() === selectedGrade.toLowerCase();
 
           if (!matchesGrade) return false;
-
           if (!query) return true;
 
-          const subNameMatches = sub.name.toLowerCase().includes(query);
+          const subNameMatches =
+            sub.name.toLowerCase().includes(query) ||
+            (sub.description && sub.description.toLowerCase().includes(query));
           return subNameMatches || chapterNameMatches;
         });
 
-        const hasMatchingSubtopics = matchingSubtopics.length > 0;
+        const hasMatchingSubbab = matchingSubbab.length > 0;
 
         return {
           ...chapter,
-          filteredSubtopics: matchingSubtopics,
-          isMatch: hasMatchingSubtopics,
+          subbab: chapterSubbab,
+          filteredSubbab: matchingSubbab,
+          filteredSubtopics: matchingSubbab,
+          isMatch: hasMatchingSubbab,
         };
       })
       .filter((chapter) => chapter.isMatch);
@@ -232,24 +231,30 @@ const Topics = () => {
       correctCount: correct,
       wrongCount: wrong,
       duration: "14 Menit 20 Detik",
-      breakdown: chapter.subtopics.map((s, idx) => ({
+      breakdown: (chapter.subbab || chapter.subtopics || []).map((s, idx) => ({
         subtopic: s.name,
         status: idx % 2 === 0 ? "Kuasai" : "Perlu Latihan",
         score: idx % 2 === 0 ? "90%" : "65%",
       })),
-      recommendation: `Berdasarkan hasil pretest diagnostik, kamu siap mempelajari materi bab ${chapter.name}. Direkomendasikan memulai dari subbab pertama untuk memperkuat dasar konsep.`,
+      recommendation: `Berdasarkan hasil pretest diagnostik, kamu siap mempelajari materi bab ${chapter.name}. Direkomendasikan memulai dari subbab pertama untuk memperkuat fondasi konsep.`,
     };
 
+    const chapterKey = chapter._id || chapter.id;
+
+    // Update data state bab
     setChaptersData((prev) =>
       prev.map((c) =>
-        c.id === chapter.id
+        (c._id || c.id) === chapterKey
           ? { ...c, diagnosticStatus: "completed", pretestResult: newResult }
           : c,
       ),
     );
 
+    chapter.diagnosticStatus = "completed";
+    chapter.pretestResult = newResult;
+
     // Buka accordion BAB jika belum terbuka
-    setExpandedChapters((prev) => new Set(prev).add(chapter.id));
+    setExpandedChapters((prev) => new Set(prev).add(chapterKey));
 
     // Buka dialog ringkasan hasil
     setActivePretestResult({
@@ -258,50 +263,8 @@ const Topics = () => {
     });
   };
 
-  // Eksekusi penyelesaian Post Test
-  const executeCompletePostTest = (chapter) => {
-    const simulatedScore = 92;
-    const correct = Math.round((simulatedScore / 100) * 20);
-    const wrong = 20 - correct;
-    const newResult = {
-      score: simulatedScore,
-      correctCount: correct,
-      wrongCount: wrong,
-      duration: "19 Menit 45 Detik",
-      breakdown: chapter.subtopics.map((s) => ({
-        subtopic: s.name,
-        status: "Sangat Menguasai",
-        score: "95%",
-      })),
-      recommendation: `Luar biasa! Kamu telah berhasil menuntaskan seluruh materi pada bab ${chapter.name} dengan penguasaan konsep yang sangat matang. Kamu siap melanjutkan ke bab berikutnya!`,
-    };
-
-    setChaptersData((prev) =>
-      prev.map((c) =>
-        c.id === chapter.id
-          ? { ...c, postTestStatus: "completed", postTestResult: newResult }
-          : c,
-      ),
-    );
-
-    setActivePostTestResult({
-      chapterName: chapter.name,
-      result: newResult,
-    });
-  };
-
   // Handler klik aksi subbab
   const handleSubtopicAction = (subtopic, chapter) => {
-    // 1. Pretest WAJIB: Jika bab belum menyelesaikan pretest, wajibkan pretest dulu!
-    if (chapter.diagnosticStatus !== "completed") {
-      setMandatoryPretestModal({
-        chapter,
-        subtopic,
-      });
-      return;
-    }
-
-    // 2. Prasyarat: Jika subbab memiliki prasyarat yang belum dikuasai
     if (subtopic.status === "needs_prerequisite") {
       setPrerequisiteModal({
         type: "subtopic",
@@ -312,101 +275,60 @@ const Topics = () => {
       return;
     }
 
-    // 3. Subbab normal: Langsung lanjutkan belajar tanpa pop up / window.alert yang mengganggu
     console.log(
-      `Memulai pembelajaran subbab: ${subtopic.name} (${subtopic.id})`,
+      `Memulai pembelajaran subbab: ${subtopic.name} (${subtopic._id || subtopic.id})`,
     );
   };
 
-  // Handler tombol Post Test di dalam dropdown
-  const handlePostTestAction = (chapter) => {
-    if (chapter.postTestStatus === "completed" && chapter.postTestResult) {
-      setActivePostTestResult({
-        chapterName: chapter.name,
-        result: chapter.postTestResult,
-      });
-    } else if (chapter.postTestStatus === "available") {
-      setPostTestConfirmChapter(chapter);
-    } else {
-      // Post test locked: munculkan modal di tengah
-      setPostTestLockedModal(chapter);
-    }
-  };
-
-  // Menentukan badge & tombol aksi subbab berdasarkan statusnya
-  const renderSubtopicStatusAndAction = (subtopic, chapter) => {
-    const isPretestPending = chapter.diagnosticStatus !== "completed";
-
-    // Jika pretest BAB belum selesai, tampilkan indikasi bahwa pretest diperlukan
-    if (isPretestPending) {
-      return {
-        badge: (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
-            <Lock className="w-3 h-3 text-amber-600" />
-            Pretest Wajib
-          </span>
-        ),
-        buttonText: "Ambil Pretest",
-        buttonClass:
-          "bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100",
-      };
-    }
-
+  // Menentukan badge & tombol aksi subbab berdasarkan statusnya (TANPA PROGRESS BAR)
+  const renderSubtopicStatusAndAction = (subtopic) => {
     switch (subtopic.status) {
       case "completed":
         return {
           badge: (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
               Selesai
             </span>
           ),
-          buttonText: "Lihat Hasil",
+          buttonText: "Pelajari Lagi",
           buttonClass:
-            "bg-neutral-card hover:bg-neutral-50 text-neutral-text border border-neutral-border",
+            "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200",
         };
       case "in_progress":
         return {
           badge: (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-primary border border-blue-100">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-primary border border-blue-100">
               Sedang Dipelajari
             </span>
           ),
           buttonText: "Lanjutkan",
-          buttonClass: "bg-primary hover:bg-primary-hover text-white shadow-xs",
+          buttonClass:
+            "bg-primary hover:bg-primary-hover text-white shadow-xs font-semibold",
         };
       case "needs_prerequisite":
         return {
           badge: (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200/80">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
               <AlertTriangle className="w-3 h-3 text-amber-600" />
               Prasyarat Disarankan
             </span>
           ),
-          buttonText: "Mulai",
-          buttonClass: "bg-amber-500 hover:bg-amber-600 text-white shadow-xs",
-        };
-      case "diagnostic_available":
-        return {
-          badge: (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
-              Pretest Siap
-            </span>
-          ),
-          buttonText: "Ambil Pretest",
-          buttonClass: "bg-purple-600 hover:bg-purple-700 text-white shadow-xs",
+          buttonText: "Mulai Belajar",
+          buttonClass:
+            "bg-amber-500 hover:bg-amber-600 text-white shadow-xs font-semibold",
         };
       case "not_started":
       default:
         return {
           badge: (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
               Belum Dimulai
             </span>
           ),
-          buttonText: "Mulai",
+          buttonText: "Mulai Belajar",
           buttonClass:
-            "bg-neutral-card hover:bg-neutral-50 text-primary border border-primary/30 hover:border-primary",
+            "bg-white hover:bg-slate-50 text-primary border border-primary/30 hover:border-primary font-semibold",
         };
     }
   };
@@ -416,413 +338,341 @@ const Topics = () => {
       {/* Sidebar Navigation */}
       <Navbar activePage="Topik" />
 
-      {/* Main Content Area */}
-      <main className="flex-1 px-6 py-8 md:px-8 md:py-10 pb-28 md:pb-12 max-w-6xl mx-auto w-full">
-        {/* Top Header Sticky with ID for smooth scrolling anchor */}
-        <TopHeader
-          track={educationLevels[currentLevel]?.label || currentLevel}
-          streak={user.streak}
-          dailyProgress={user.dailyProgress}
-          dailyGoal={user.dailyGoal}
-        />
+      {/* Main Content Column: Header menempel ke batas atas, sidebar (kiri), dan batas kanan */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* 1. HEADER PENGGANTI TOP HEADER (Menyatu batas atas, kiri/sidebar, dan kanan) */}
+        <TopHeader />
 
-        {/* 1. HEADER SECTION */}
-        <header className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                {/* Active Level Selector Badge (Bisa diklik untuk beralih antara SD, SMP, SMA) */}
+        {/* 2. AREA KONTEN (Search Bar, Filters, dan Card Bab) */}
+        <main className="flex-1 px-4 sm:px-6 md:px-8 max-w-5xl mx-auto w-full pb-24 md:pb-8">
+          {/* SEARCH BAR & FILTERS (Gaya iOS: Persegi Tumpul Sejajar, Filter hanya 1 tindakan yaitu Filter Kelas) */}
+          <div className="flex items-center gap-3 mb-6">
+            {/* Bentuk 1: Search Bar iOS Pill */}
+            <div className="flex-1 bg-white border border-slate-200 rounded-2xl px-4 py-3 flex items-center shadow-xs transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
+              <Search className="w-4 h-4 text-slate-400 mr-2.5 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search bab atau topik pembelajaran..."
+                className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => setShowLevelModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs border border-primary/25 transition-all cursor-pointer shadow-2xs group"
-                  title="Klik untuk memilih jenjang SD, SMP, atau SMA"
+                  onClick={() => setSearchQuery("")}
+                  className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer transition-colors"
+                  title="Hapus pencarian"
                 >
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span>
-                    {educationLevels[currentLevel]?.label ||
-                      `Matematika • ${currentLevel}`}
-                  </span>
-                  <ChevronDown className="w-3 h-3 ml-0.5 opacity-70 group-hover:translate-y-0.5 transition-transform" />
+                  <X className="w-4 h-4" />
                 </button>
-                <span className="text-xs text-neutral-muted">
-                  Kurikulum Nasional
-                </span>
-                <span className="text-[11px] text-primary/80 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 font-medium">
-                  Klik badge jenjang untuk beralih SD / SMP / SMA
-                </span>
-              </div>
-              <h1 className="font-heading text-xl md:text-2xl font-bold text-neutral-text">
-                Topic Library
-              </h1>
-              <p className="text-xs md:text-sm text-neutral-muted mt-1 max-w-2xl">
-                Peta struktur pembelajaran Matematika. Jelajahi BAB dan SUBBAB
-                secara terstruktur untuk mengoptimalkan pemahaman konsepmu.
-              </p>
+              )}
             </div>
-          </div>
-        </header>
 
-        {/* 2. SEARCH BAR */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-muted" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama BAB atau SUBBAB (contoh: Persamaan, Pecahan, Geometri)..."
-            className="w-full pl-10 pr-4 py-2.5 text-xs md:text-sm bg-neutral-card border border-neutral-border rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-neutral-muted/70 text-neutral-text shadow-xs"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-muted hover:text-neutral-text rounded-md cursor-pointer"
-              title="Hapus pencarian"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+            {/* Bentuk 2: Filters Button iOS Pill (Hanya 1 tindakan: Filter Kelas sesuai setting) */}
+            <div className="relative" ref={filterDropdownRef}>
+              <button
+                onClick={() => setIsFilterOpen((prev) => !prev)}
+                className={`bg-white border rounded-2xl px-4 sm:px-5 py-3 flex items-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-xs select-none ${
+                  isFilterOpen || selectedGrade !== "Semua Kelas"
+                    ? "border-primary text-primary bg-blue-50/40 ring-1 ring-primary/20"
+                    : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                }`}
+                title="Filter materi berdasarkan kelas"
+              >
+                <span>
+                  {selectedGrade !== "Semua Kelas"
+                    ? `Filters: ${selectedGrade}`
+                    : "Filters"}
+                </span>
+                <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+                {selectedGrade !== "Semua Kelas" && (
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                )}
+              </button>
 
-        {/* 3. FILTER KELAS (Content metadata filter dinamis berdasarkan jenjang aktif) */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 no-scrollbar">
-            <span className="text-xs font-semibold text-neutral-muted mr-1 shrink-0">
-              Filter Kelas ({currentLevel}):
-            </span>
-            {availableGradeFilters.map((grade) => {
-              const isActive = selectedGrade === grade;
-              return (
-                <button
-                  key={grade}
-                  onClick={() => setSelectedGrade(grade)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-full cursor-pointer transition-all shrink-0 ${
-                    isActive
-                      ? "bg-primary text-white border border-primary shadow-xs"
-                      : "bg-neutral-card text-neutral-muted border border-neutral-border hover:bg-neutral-50 hover:text-neutral-text"
-                  }`}
-                >
-                  {grade}
-                </button>
-              );
-            })}
-          </div>
-          {selectedGrade !== "Semua Kelas" && (
-            <p className="text-[11px] text-neutral-muted mt-1.5 flex items-center gap-1">
-              <Info className="w-3 h-3 text-primary" />
-              Menyaring subbab berdasarkan referensi kurikulum {selectedGrade}.
-              Kelas bukan penentu batas kemampuan atau difficulty.
-            </p>
-          )}
-        </div>
-
-        {/* 4. CHAPTER CARDS ACCORDION LIST */}
-        {filteredChapters.length === 0 ? (
-          <div className="text-center py-12 px-4 bg-neutral-card rounded-2xl border border-neutral-border">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-3 text-neutral-400">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <h3 className="text-sm font-bold text-neutral-text mb-1">
-              Tidak ada BAB atau Subbab yang cocok
-            </h3>
-            <p className="text-xs text-neutral-muted max-w-sm mx-auto mb-4">
-              Coba sesuaikan kata kunci pencarian atau ganti filter kelas untuk
-              menemukan materi yang dicari.
-            </p>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedGrade("Semua Kelas");
-              }}
-              className="px-4 py-2 bg-primary text-white text-xs font-medium rounded-xl hover:bg-primary-hover transition-colors cursor-pointer"
-            >
-              Reset Filter & Pencarian
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredChapters.map((chapter) => {
-              const isExpanded =
-                isSearching || expandedChapters.has(chapter.id);
-              const isPretestPending = chapter.diagnosticStatus !== "completed";
-
-              // Perhitungan progress BAB: persentase rata-rata penyelesaian subbab
-              const totalSubtopics = chapter.subtopics.length;
-              const completedSubtopics = chapter.subtopics.filter(
-                (s) => s.status === "completed",
-              ).length;
-
-              const chapterProgressPercent =
-                totalSubtopics > 0
-                  ? Math.round(
-                      chapter.subtopics.reduce(
-                        (sum, s) => sum + s.progress,
-                        0,
-                      ) / totalSubtopics,
-                    )
-                  : 0;
-
-              return (
-                <article
-                  id={`chapter-card-${chapter.id}`}
-                  key={chapter.id}
-                  className={`bg-neutral-card border rounded-2xl overflow-hidden transition-all duration-300 shadow-xs scroll-mt-24 ${
-                    isExpanded
-                      ? "border-primary/40 ring-1 ring-primary/15 shadow-sm"
-                      : "border-neutral-border hover:border-primary/30"
-                  }`}
-                >
-                  {/* CARD HEADER (BAB SUMMARY) */}
-                  <div className="p-4 sm:p-5">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      {/* Left: Icon, Title, Description, Badges */}
-                      <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-primary shrink-0 mt-0.5">
-                          <Layers className="w-5 h-5" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h2 className="font-heading text-base sm:text-lg font-bold text-neutral-text leading-tight">
-                              {chapter.name}
-                            </h2>
-
-                            {/* Metadata Badges */}
-                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-600 border border-neutral-200">
-                              {chapter.classRange}
-                            </span>
-                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-blue-50 text-primary border border-blue-100">
-                              {chapter.filteredSubtopics.length} Subbab
-                              {selectedGrade !== "Semua Kelas" &&
-                                ` (${selectedGrade})`}
-                            </span>
-
-                            {/* Status Pretest Wajib Badge */}
-                            {isPretestPending && (
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-                                <Lock className="w-3 h-3 text-amber-600" />
-                                Pretest Belum Diambil
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="text-xs sm:text-sm text-neutral-muted leading-relaxed line-clamp-2">
-                            {chapter.description}
-                          </p>
-
-                          {/* Progress Indicator */}
-                          <div className="mt-3 flex items-center gap-3 max-w-md">
-                            <div className="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary rounded-full transition-all duration-500"
-                                style={{ width: `${chapterProgressPercent}%` }}
-                              />
-                            </div>
-                            <div className="text-[11px] text-neutral-muted font-medium whitespace-nowrap">
-                              Progress{" "}
-                              <span className="font-semibold text-neutral-text">
-                                {chapterProgressPercent}%
-                              </span>
-                              <span className="hidden sm:inline text-neutral-muted/70 ml-1.5">
-                                ({completedSubtopics}/{totalSubtopics} selesai)
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right: Accordion Toggle Button (Memicu Smooth Scroll) */}
-                      <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center pt-2 md:pt-0 border-t md:border-t-0 border-neutral-border/60 w-full md:w-auto justify-end">
-                        <button
-                          onClick={() => toggleChapter(chapter)}
-                          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
-                            isExpanded
-                              ? "bg-primary/10 text-primary border border-primary/25 hover:bg-primary/15"
-                              : "bg-neutral-card text-neutral-text hover:bg-neutral-100 border border-neutral-border"
-                          }`}
-                          aria-expanded={isExpanded}
-                        >
-                          <span>
-                            {isExpanded ? "Tutup Subbab" : "Lihat Subbab"}
-                          </span>
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4 text-primary" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-neutral-muted" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
+              {/* Popover Dropdown Pilihan Filter Kelas (1 Tindakan Saja Sesuai Setting) */}
+              {isFilterOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 sm:w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-2.5 z-30 animate-in fade-in zoom-in-95 max-h-[80vh] overflow-y-auto">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5 mb-1">
+                    Filter Berdasarkan Kelas
                   </div>
 
-                  {/* EXPANDED SECTION (DROPDOWN LIST):
-                      1. PRETEST (Paling Atas)
-                      2. DAFTAR SUBBAB (Di Tengah)
-                      3. POST TEST (Paling Bawah)
-                  */}
-                  {isExpanded && (
-                    <div className="border-t border-neutral-border bg-neutral-bg/40 p-4 sm:p-5 space-y-4 animate-in fade-in duration-300">
-                      {/* === 1. PRETEST ITEM (PALING ATAS) === */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-muted">
-                            Langkah 1: Tes Awal (Diagnostic)
-                          </span>
-                        </div>
-                        <div
-                          className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                            chapter.diagnosticStatus === "completed"
-                              ? "bg-emerald-50/40 border-emerald-200"
-                              : "bg-amber-50/40 border-amber-200/90 shadow-2xs"
+                  <div className="space-y-1">
+                    {availableGradeFilters.map((grade) => {
+                      const isSelected = selectedGrade === grade;
+                      return (
+                        <button
+                          key={grade}
+                          onClick={() => {
+                            setSelectedGrade(grade);
+                            setIsFilterOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                            isSelected
+                              ? "bg-primary text-white font-semibold shadow-2xs"
+                              : "text-slate-700 hover:bg-slate-100"
                           }`}
                         >
-                          <div className="flex items-start gap-3 flex-1 min-w-0">
-                            <div
-                              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                                chapter.diagnosticStatus === "completed"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-amber-100 text-amber-800"
-                              }`}
+                          <span>
+                            {grade === "Semua Kelas"
+                              ? `${grade} (Default)`
+                              : grade}
+                          </span>
+                          {isSelected && <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {selectedGrade !== "Semua Kelas" && (
+                    <div className="pt-2 mt-2 border-t border-slate-100 px-1">
+                      <button
+                        onClick={() => {
+                          setSelectedGrade("Semua Kelas");
+                          setIsFilterOpen(false);
+                        }}
+                        className="w-full text-center py-1.5 text-[11px] font-medium text-slate-500 hover:text-primary flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Kembalikan ke Default</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 3. DAFTAR CARD BAB (Tanpa Icon, Mengikuti Format Human-Centered Design Basics) */}
+          {filteredChapters.length === 0 ? (
+            <div className="text-center py-12 px-4 bg-white rounded-3xl border border-slate-200">
+              <h3 className="text-sm font-bold text-slate-800 mb-1">
+                Tidak ada BAB yang cocok
+              </h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
+                Coba sesuaikan kata kunci pencarian atau ganti filter kelas
+                untuk menemukan materi pelajaran.
+              </p>
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedGrade("Semua Kelas");
+                }}
+                className="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors cursor-pointer"
+              >
+                Reset Filter & Pencarian
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {filteredChapters.map((chapter) => {
+                const chapterKey = chapter._id || chapter.id;
+                const isExpanded =
+                  isSearching || expandedChapters.has(chapterKey);
+                const isPretestCompleted =
+                  chapter.diagnosticStatus === "completed";
+
+                // Perhitungan progress BAB: Jika belum pretest, maka progress di bab belum ada (0% / 0 of X)
+                const chapterSubbabList =
+                  chapter.subbab || chapter.subtopics || [];
+                const totalLessons = chapterSubbabList.length;
+                const completedLessons = isPretestCompleted
+                  ? chapterSubbabList.filter((s) => s.status === "completed")
+                      .length
+                  : 0;
+                const progressPercentage =
+                  isPretestCompleted && totalLessons > 0
+                    ? Math.round((completedLessons / totalLessons) * 100)
+                    : 0;
+
+                return (
+                  <article
+                    id={`chapter-card-${chapterKey}`}
+                    key={chapterKey}
+                    className={`bg-white border rounded-3xl transition-all duration-300 shadow-xs overflow-hidden ${
+                      isExpanded
+                        ? "border-primary/40 ring-1 ring-primary/10 shadow-sm"
+                        : "border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                    }`}
+                  >
+                    {/* CARD BAB HEADER (Tanpa icon sama sekali sesuai instruksi) */}
+                    <div className="p-5 sm:p-6">
+                      {/* Baris Kategori / Tag BAB */}
+                      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        BAB {chapter.display_order || 1} •{" "}
+                        {chapter.educationLevel || "MATEMATIKA"}
+                      </div>
+
+                      {/* Judul BAB */}
+                      <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug mb-1">
+                        {chapter.name}
+                      </h2>
+
+                      {/* Deskripsi Singkat BAB dari DB */}
+                      <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-4">
+                        {chapter.description}
+                      </p>
+
+                      {/* Progress Section (Format: X of Y lessons completed dengan Progress Bar Oranye) */}
+                      <div className="mb-5">
+                        <div className="text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                          <span>
+                            {completedLessons} of {totalLessons} lessons
+                            completed
+                          </span>
+                          <span className="text-[11px] font-medium text-slate-400">
+                            {progressPercentage}%
+                          </span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[#f97316] rounded-full transition-all duration-500"
+                            style={{ width: `${progressPercentage}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Bottom Row: Metadata & Tombol Kondisional */}
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-100 flex-wrap gap-3">
+                        <div className="text-[11px] font-medium text-slate-400">
+                          {chapter.classRange || "Kurikulum Nasional"}
+                        </div>
+
+                        {/* BUTTON KONDISIONAL BERDASARKAN STATUS PRETEST */}
+                        <div>
+                          {!isPretestCompleted ? (
+                            <button
+                              onClick={() => setPretestConfirmChapter(chapter)}
+                              className="bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-bold px-5 py-2.5 rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-sm"
                             >
-                              <FileQuestion className="w-4.5 h-4.5" />
+                              <Play className="w-3.5 h-3.5 fill-white" />
+                              <span>Mulai Pretest</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => toggleChapter(chapter)}
+                              className={`px-4 sm:px-5 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer shadow-2xs ${
+                                isExpanded
+                                  ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15"
+                                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+                              }`}
+                              aria-expanded={isExpanded}
+                            >
+                              <span>
+                                {isExpanded ? "Tutup Sub Bab" : "Lihat Sub Bab"}
+                              </span>
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* DROPDOWN ISI BAB (Hanya Card Pretest dan Daftar Sub Bab, Tanpa Langkah 1/2, Tanpa Post Test) */}
+                    {isExpanded && isPretestCompleted && (
+                      <div className="border-t border-slate-200 bg-slate-50/60 p-4 sm:p-6 space-y-4 animate-in fade-in duration-300">
+                        {/* 1. CARD PRETEST (PALING ATAS, BISA DILIHAT KEMBALI KAPAN SAJA) */}
+                        <div className="bg-white border border-emerald-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <h4 className="text-sm font-bold text-slate-900">
+                                Diagnostic Pretest: {chapter.name}
+                              </h4>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                Selesai • Skor:{" "}
+                                {chapter.pretestResult?.score || 85}
+                              </span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                                <h4 className="text-sm font-bold text-neutral-text">
-                                  Diagnostic Pretest: {chapter.name}
-                                </h4>
-                                {chapter.diagnosticStatus === "completed" ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                    Selesai (Skor:{" "}
-                                    {chapter.pretestResult?.score || 85})
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-100 text-amber-900 border border-amber-300">
-                                    <Lock className="w-3 h-3 text-amber-700" />
-                                    Wajib Dikerjakan Dahulu
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-neutral-muted leading-relaxed">
-                                {chapter.diagnosticStatus === "completed"
-                                  ? "Kamu sudah menyelesaikan pretest diagnostik untuk memetakan pemahaman awalan materi bab ini."
-                                  : "Uji diagnostik adaptif untuk memetakan kemampuan awal sebelum membuka seluruh latihan subbab."}
-                              </p>
-                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Hasil pretest tersimpan. Kamu dapat meninjau
+                              analisis penguasaan materi dan rekomendasi belajar
+                              kapan saja.
+                            </p>
                           </div>
 
                           <div className="shrink-0 self-end sm:self-center">
-                            {chapter.diagnosticStatus === "completed" ? (
-                              <button
-                                onClick={() =>
-                                  setActivePretestResult({
-                                    chapterName: chapter.name,
-                                    result: chapter.pretestResult,
-                                  })
-                                }
-                                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-neutral-card hover:bg-neutral-50 text-emerald-700 border border-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              >
-                                <Award className="w-3.5 h-3.5" />
-                                <span>Lihat Hasil</span>
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() =>
-                                  setPretestConfirmChapter(chapter)
-                                }
-                                className="px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-                              >
-                                <FileQuestion className="w-3.5 h-3.5" />
-                                <span>Ambil Pretest</span>
-                              </button>
-                            )}
+                            <button
+                              onClick={() =>
+                                setActivePretestResult({
+                                  chapterName: chapter.name,
+                                  result: chapter.pretestResult,
+                                })
+                              }
+                              className="px-4 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                            >
+                              <Award className="w-3.5 h-3.5" />
+                              <span>Lihat Hasil Pretest</span>
+                            </button>
                           </div>
                         </div>
-                      </div>
 
-                      {/* === 2. DAFTAR SUBBAB (DI TENGAH) === */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-muted">
-                            Langkah 2: Materi & Latihan Subbab (
-                            {chapter.filteredSubtopics.length})
-                          </span>
-                          {isPretestPending && (
-                            <span className="text-[11px] text-amber-700 font-medium bg-amber-100/70 px-2 py-0.5 rounded-md border border-amber-200">
-                              Selesaikan pretest untuk membuka subbab
-                            </span>
-                          )}
-                        </div>
-
-                        {chapter.filteredSubtopics.length === 0 ? (
-                          <div className="py-6 text-center text-xs text-neutral-muted bg-neutral-card rounded-xl border border-neutral-border">
-                            Tidak ada subbab di BAB ini untuk {selectedGrade}.
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 gap-2.5">
-                            {chapter.filteredSubtopics.map((subtopic) => {
+                        {/* 2. DAFTAR SUB BAB (BERDASARKAN TABEL DB SUBBAB, TANPA PROGRESS BAR DI SETIAP SUBBAB) */}
+                        <div className="space-y-2.5">
+                          {(
+                            chapter.filteredSubbab ||
+                            chapter.filteredSubtopics ||
+                            []
+                          ).length === 0 ? (
+                            <div className="py-6 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200">
+                              Tidak ada subbab di BAB ini untuk {selectedGrade}.
+                            </div>
+                          ) : (
+                            (
+                              chapter.filteredSubbab ||
+                              chapter.filteredSubtopics ||
+                              []
+                            ).map((subbab) => {
                               const { badge, buttonText, buttonClass } =
-                                renderSubtopicStatusAndAction(
-                                  subtopic,
-                                  chapter,
-                                );
+                                renderSubtopicStatusAndAction(subbab);
 
                               return (
                                 <div
-                                  key={subtopic.id}
-                                  className="bg-neutral-card border border-neutral-border rounded-xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-primary/40 transition-all shadow-2xs"
+                                  key={subbab._id || subbab.id}
+                                  className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-300 transition-all shadow-2xs"
                                 >
-                                  {/* Left Info */}
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                                      <h4 className="text-sm font-bold text-neutral-text leading-tight">
-                                        {subtopic.name}
+                                      <span className="text-[11px] font-bold text-slate-400">
+                                        Subbab {subbab.display_order || 1}
+                                      </span>
+                                      <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                                        {subbab.name}
                                       </h4>
-                                      <span className="text-[11px] font-medium px-2 py-0.2 rounded-md bg-neutral-100 text-neutral-600 border border-neutral-200">
-                                        {subtopic.classReference}
+                                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                                        {subbab.classReference}
                                       </span>
                                       {badge}
                                     </div>
 
-                                    {/* Prerequisite hint if needs_prerequisite */}
-                                    {subtopic.status === "needs_prerequisite" &&
-                                      !isPretestPending && (
-                                        <p className="text-[11px] text-amber-700 mt-1 flex items-center gap-1.5 font-medium">
-                                          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                                          Prasyarat disarankan:{" "}
-                                          <span className="underline font-semibold">
-                                            {subtopic.prerequisiteName}
-                                          </span>
-                                        </p>
-                                      )}
+                                    {/* Deskripsi Subbab dari Kolom DB */}
+                                    <p className="text-xs text-slate-500 leading-relaxed mt-0.5">
+                                      {subbab.description}
+                                    </p>
 
-                                    {/* Progress bar per subtopic */}
-                                    <div className="mt-2 flex items-center gap-3 max-w-xs">
-                                      <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
-                                        <div
-                                          className={`h-full rounded-full transition-all duration-300 ${
-                                            subtopic.status === "completed"
-                                              ? "bg-emerald-500"
-                                              : "bg-primary"
-                                          }`}
-                                          style={{
-                                            width: `${subtopic.progress}%`,
-                                          }}
-                                        />
-                                      </div>
-                                      <span className="text-[11px] text-neutral-muted font-medium">
-                                        {subtopic.progress}%
-                                      </span>
-                                    </div>
+                                    {/* Peringatan jika perlu prasyarat */}
+                                    {subbab.status === "needs_prerequisite" && (
+                                      <p className="text-[11px] text-amber-700 mt-1 flex items-center gap-1 font-medium">
+                                        <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                                        Prasyarat disarankan:{" "}
+                                        <span className="font-semibold underline">
+                                          {subbab.prerequisiteName}
+                                        </span>
+                                      </p>
+                                    )}
                                   </div>
 
-                                  {/* Right Action Button */}
-                                  <div className="shrink-0 flex items-center gap-2 self-end sm:self-center">
+                                  {/* Tombol Aksi Subbab */}
+                                  <div className="shrink-0 flex items-center self-end sm:self-center">
                                     <button
                                       onClick={() =>
-                                        handleSubtopicAction(subtopic, chapter)
+                                        handleSubtopicAction(subbab, chapter)
                                       }
-                                      className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${buttonClass}`}
+                                      className={`px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer ${buttonClass}`}
                                     >
                                       <span>{buttonText}</span>
                                       <ChevronRight className="w-3.5 h-3.5" />
@@ -830,405 +680,218 @@ const Topics = () => {
                                   </div>
                                 </div>
                               );
-                            })}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* === 3. POST TEST ITEM (PALING BAWAH) === */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-muted">
-                            Langkah 3: Evaluasi Akhir (Post Test)
-                          </span>
+                            })
+                          )}
                         </div>
-                        <div
-                          className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                            chapter.postTestStatus === "completed"
-                              ? "bg-purple-50/40 border-purple-200"
-                              : chapter.postTestStatus === "available"
-                                ? "bg-blue-50/40 border-blue-200 shadow-2xs"
-                                : "bg-neutral-100/50 border-neutral-200"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3 flex-1 min-w-0">
-                            <div
-                              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                                chapter.postTestStatus === "completed"
-                                  ? "bg-purple-100 text-purple-700"
-                                  : chapter.postTestStatus === "available"
-                                    ? "bg-blue-100 text-primary"
-                                    : "bg-neutral-200 text-neutral-500"
-                              }`}
-                            >
-                              <Trophy className="w-4.5 h-4.5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                                <h4 className="text-sm font-bold text-neutral-text">
-                                  Post Test: {chapter.name}
-                                </h4>
-                                {chapter.postTestStatus === "completed" ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                    Selesai (Skor:{" "}
-                                    {chapter.postTestResult?.score || 90})
-                                  </span>
-                                ) : chapter.postTestStatus === "available" ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-100 text-primary border border-blue-200">
-                                    Siap Dikerjakan
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-200 text-neutral-600 border border-neutral-300">
-                                    <Lock className="w-3 h-3 text-neutral-500" />
-                                    Selesaikan Subbab Dahulu
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-neutral-muted leading-relaxed">
-                                {chapter.postTestStatus === "completed"
-                                  ? "Selamat! Kamu telah menyelesaikan post test untuk memvalidasi ketuntasan belajar bab ini."
-                                  : chapter.postTestStatus === "available"
-                                    ? "Seluruh materi telah dipelajari. Ambil post test untuk menguji ketuntasan dan mengukur pemahaman akhirmu."
-                                    : "Evaluasi akhir akan terbuka setelah kamu mempelajari materi pada subbab di atas."}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="shrink-0 self-end sm:self-center">
-                            {chapter.postTestStatus === "completed" ? (
-                              <button
-                                onClick={() =>
-                                  setActivePostTestResult({
-                                    chapterName: chapter.name,
-                                    result: chapter.postTestResult,
-                                  })
-                                }
-                                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-neutral-card hover:bg-neutral-50 text-purple-700 border border-purple-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              >
-                                <Award className="w-3.5 h-3.5" />
-                                <span>Lihat Hasil</span>
-                              </button>
-                            ) : chapter.postTestStatus === "available" ? (
-                              <button
-                                onClick={() => handlePostTestAction(chapter)}
-                                className="px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-                              >
-                                <Trophy className="w-3.5 h-3.5" />
-                                <span>Mulai Post Test</span>
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handlePostTestAction(chapter)}
-                                className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-neutral-card hover:bg-neutral-50 text-neutral-600 border border-neutral-300 transition-colors flex items-center gap-1.5 cursor-pointer"
-                              >
-                                <Lock className="w-3.5 h-3.5" />
-                                <span>Info Post Test</span>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
-          </div>
-        )}
-
-        {/* MODAL 0: PILIH TINGKATAN JENJANG BELAJAR (SD / SMP / SMA) - POP UP DI TENGAH */}
-        {showLevelModal && (
-          <Modal onClose={() => setShowLevelModal(false)}>
-            <div className="flex items-center gap-3 mb-3.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary border border-blue-200 flex items-center justify-center shrink-0">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-neutral-text leading-tight">
-                  Pilih Jenjang Pembelajaran
-                </h3>
-                <p className="text-xs text-neutral-muted">
-                  Sesuaikan kurikulum dengan jenjang sekolahmu
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2.5 my-4">
-              {Object.entries(educationLevels).map(([key, info]) => {
-                const isSelected = currentLevel === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => handleSelectLevel(key)}
-                    className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      isSelected
-                        ? "bg-blue-50/80 border-primary text-primary ring-1 ring-primary/20 shadow-2xs"
-                        : "bg-neutral-card border-neutral-border hover:border-primary/40 text-neutral-text"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-neutral-text">
-                          {info.name}
-                        </span>
-                        <span className="text-[11px] font-semibold px-2 py-0.2 rounded-md bg-neutral-100 text-neutral-600 border border-neutral-200">
-                          {info.grades.filter((g) => g !== "Semua Kelas")[0]}–
-                          {info.grades[info.grades.length - 1]}
-                        </span>
-                      </div>
-                      <p className="text-xs text-neutral-muted mt-1">
-                        {key === "SD" &&
-                          "Operasi Bilangan Cacah, Pecahan, Geometri Dasar, Pengolahan Data"}
-                        {key === "SMP" &&
-                          "Bilangan Bulat & Akar, Aljabar, Teorema Pythagoras, Peluang"}
-                        {key === "SMA" &&
-                          "Nilai Mutlak & SPLTV, Trigonometri, Kalkulus, Dimensi Tiga"}
-                      </p>
-                    </div>
-                    {isSelected && (
-                      <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0 ml-2">
-                        <Check className="w-3.5 h-3.5" />
                       </div>
                     )}
-                  </button>
+                  </article>
                 );
               })}
             </div>
+          )}
+        </main>
+      </div>
 
-            <p className="text-[11px] text-neutral-muted text-center">
-              Filter kelas dan daftar BAB akan otomatis disesuaikan dengan
-              jenjang terpilih.
+      {/* MODAL 1: KONFIRMASI MULAI PRETEST */}
+      {pretestConfirmChapter && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-2xl relative text-center">
+            <button
+              onClick={() => setPretestConfirmChapter(null)}
+              className="absolute right-4 top-4 p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 border border-orange-200 flex items-center justify-center mx-auto mb-3.5">
+              <FileQuestion className="w-6 h-6" />
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-900 mb-1">
+              Mulai Diagnostic Pretest
+            </h3>
+            <p className="text-xs font-semibold text-primary mb-3">
+              BAB: {pretestConfirmChapter.name}
             </p>
-          </Modal>
-        )}
 
-        {/* MODAL 1: PRETEST WAJIB SEBELUM MENGERJAKAN SUBBAB (POP UP DI TENGAH) */}
-        {mandatoryPretestModal && (
-          <Modal onClose={() => setMandatoryPretestModal(null)}>
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto mb-3.5">
-                <Lock className="w-6 h-6" />
-              </div>
+            <p className="text-xs text-slate-500 leading-relaxed mb-6">
+              Pretest ini digunakan untuk memetakan pemahaman awalanmu sebelum
+              membuka materi subbab. Setelah menyelesaikan pretest, daftar
+              subbab akan otomatis terbuka.
+            </p>
 
-              <h3 className="text-lg font-bold text-neutral-text mb-1.5">
-                Pretest Wajib Diselesaikan
-              </h3>
-              <p className="text-xs font-semibold text-primary mb-3">
-                BAB: {mandatoryPretestModal.chapter.name}
-              </p>
-
-              <p className="text-xs text-neutral-muted leading-relaxed mb-6">
-                Karena kamu baru mulai mempelajari bab ini, kamu wajib
-                menyelesaikan{" "}
-                <span className="font-semibold text-neutral-text">
-                  Diagnostic Pretest
-                </span>{" "}
-                terlebih dahulu sebelum dapat membuka dan mengerjakan latihan
-                pada subbab{" "}
-                <span className="font-semibold text-neutral-text">
-                  "{mandatoryPretestModal.subtopic.name}"
-                </span>
-                . Hal ini diperlukan agar sistem dapat memetakan materi awal
-                yang paling tepat untukmu.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <button
-                  onClick={() => {
-                    const chapter = mandatoryPretestModal.chapter;
-                    setMandatoryPretestModal(null);
-                    executeCompletePretest(chapter);
-                  }}
-                  className="flex-1 py-2.5 px-4 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <FileQuestion className="w-4 h-4" />
-                  <span>Ambil Pretest Sekarang</span>
-                </button>
-                <button
-                  onClick={() => setMandatoryPretestModal(null)}
-                  className="py-2.5 px-4 bg-neutral-card text-neutral-muted border border-neutral-border text-xs font-medium rounded-xl hover:bg-neutral-50 hover:text-neutral-text transition-colors cursor-pointer"
-                >
-                  Nanti Saja
-                </button>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <button
+                onClick={() => {
+                  const chap = pretestConfirmChapter;
+                  setPretestConfirmChapter(null);
+                  executeCompletePretest(chap);
+                }}
+                className="flex-1 py-2.5 px-4 bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>Mulai Pretest Sekarang</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setPretestConfirmChapter(null)}
+                className="py-2.5 px-4 bg-white text-slate-600 border border-slate-200 text-xs font-medium rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
             </div>
-          </Modal>
-        )}
+          </div>
+        </div>
+      )}
 
-        {/* MODAL 2: KONFIRMASI MULAI PRETEST (POP UP DI TENGAH) */}
-        {pretestConfirmChapter && (
-          <Modal onClose={() => setPretestConfirmChapter(null)}>
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-primary border border-blue-200 flex items-center justify-center mx-auto mb-3.5">
-                <FileQuestion className="w-6 h-6" />
-              </div>
+      {/* MODAL 2: HASIL PRETEST (REVIEW NILAI KAPAN SAJA) */}
+      {activePretestResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setActivePretestResult(null)}
+              className="absolute right-4 top-4 p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-              <h3 className="text-lg font-bold text-neutral-text mb-1.5">
-                Mulai Diagnostic Pretest
-              </h3>
-              <p className="text-xs font-semibold text-primary mb-3">
-                BAB: {pretestConfirmChapter.name}
-              </p>
-
-              <p className="text-xs text-neutral-muted leading-relaxed mb-6">
-                Pretest ini hanya dapat diambil{" "}
-                <span className="font-semibold text-neutral-text">1 kali</span>{" "}
-                untuk mendeteksi penguasaan materi awalmu. Setelah selesai,
-                seluruh subbab pada bab ini akan terbuka dan kamu dapat langsung
-                mulai berlatih secara terarah.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <button
-                  onClick={() => {
-                    const chapter = pretestConfirmChapter;
-                    setPretestConfirmChapter(null);
-                    executeCompletePretest(chapter);
-                  }}
-                  className="flex-1 py-2.5 px-4 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Mulai Pretest Sekarang</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => setPretestConfirmChapter(null)}
-                  className="py-2.5 px-4 bg-neutral-card text-neutral-muted border border-neutral-border text-xs font-medium rounded-xl hover:bg-neutral-50 hover:text-neutral-text transition-colors cursor-pointer"
-                >
-                  Batal
-                </button>
-              </div>
-            </div>
-          </Modal>
-        )}
-
-        {/* MODAL 3: KONFIRMASI MULAI POST TEST (POP UP DI TENGAH) */}
-        {postTestConfirmChapter && (
-          <Modal onClose={() => setPostTestConfirmChapter(null)}>
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center mx-auto mb-3.5">
-                <Trophy className="w-6 h-6" />
-              </div>
-
-              <h3 className="text-lg font-bold text-neutral-text mb-1.5">
-                Mulai Evaluasi Post Test
-              </h3>
-              <p className="text-xs font-semibold text-primary mb-3">
-                BAB: {postTestConfirmChapter.name}
-              </p>
-
-              <p className="text-xs text-neutral-muted leading-relaxed mb-6">
-                Post test ini digunakan untuk mengukur dan memvalidasi
-                ketuntasan pemahamanmu setelah mempelajari materi subbab pada
-                bab ini.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <button
-                  onClick={() => {
-                    const chapter = postTestConfirmChapter;
-                    setPostTestConfirmChapter(null);
-                    executeCompletePostTest(chapter);
-                  }}
-                  className="flex-1 py-2.5 px-4 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Mulai Post Test</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => setPostTestConfirmChapter(null)}
-                  className="py-2.5 px-4 bg-neutral-card text-neutral-muted border border-neutral-border text-xs font-medium rounded-xl hover:bg-neutral-50 hover:text-neutral-text transition-colors cursor-pointer"
-                >
-                  Batal
-                </button>
-              </div>
-            </div>
-          </Modal>
-        )}
-
-        {/* MODAL 4: POST TEST TERKUNCI (POP UP DI TENGAH) */}
-        {postTestLockedModal && (
-          <Modal onClose={() => setPostTestLockedModal(null)}>
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-600 border border-neutral-200 flex items-center justify-center mx-auto mb-3.5">
-                <Lock className="w-6 h-6" />
-              </div>
-
-              <h3 className="text-lg font-bold text-neutral-text mb-1.5">
-                Post Test Belum Terbuka
-              </h3>
-              <p className="text-xs font-semibold text-primary mb-3">
-                BAB: {postTestLockedModal.name}
-              </p>
-
-              <p className="text-xs text-neutral-muted leading-relaxed mb-6">
-                Post test berfungsi sebagai evaluasi akhir ketuntasan bab. Kami
-                menyarankan untuk mempelajari dan menyelesaikan materi subbab di
-                atas terlebih dahulu agar hasil evaluasimu maksimal.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-2.5">
-                <button
-                  onClick={() => {
-                    const chapter = postTestLockedModal;
-                    setPostTestLockedModal(null);
-                    executeCompletePostTest(chapter);
-                  }}
-                  className="flex-1 py-2.5 px-4 bg-neutral-card text-neutral-text border border-neutral-border text-xs font-semibold rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
-                >
-                  Tetap Coba Evaluasi Akhir
-                </button>
-                <button
-                  onClick={() => setPostTestLockedModal(null)}
-                  className="py-2.5 px-4 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors cursor-pointer"
-                >
-                  Pelajari Subbab Dahulu
-                </button>
-              </div>
-            </div>
-          </Modal>
-        )}
-
-        {/* MODAL 5: PERINGATAN MATERI PRASYARAT (POP UP DI TENGAH) */}
-        {prerequisiteModal && (
-          <Modal onClose={() => setPrerequisiteModal(null)}>
-            <div className="flex items-center gap-3 mb-3.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5" />
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
+                <Award className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-neutral-text leading-tight">
-                  Materi Prasyarat Belum Dikuasai
+                <h3 className="text-base font-bold text-slate-900">
+                  Hasil Diagnostic Pretest
                 </h3>
-                <p className="text-xs text-neutral-muted">
-                  Rekomendasi Pembelajaran Adaptif
+                <p className="text-xs text-slate-500">
+                  BAB: {activePretestResult.chapterName}
                 </p>
               </div>
             </div>
 
-            <div className="p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl mb-4 text-xs text-neutral-text leading-relaxed">
-              Kamu belum mempelajari atau menyelesaikan materi prasyarat{" "}
-              <span className="font-bold text-amber-900">
-                "{prerequisiteModal.prerequisiteName}"
-              </span>
-              . Kami sangat menyarankan mempelajari materi prasyarat terlebih
-              dahulu agar kamu tidak kesulitan memahami konsep baru pada materi
-              ini.
+            {/* Skor & Ringkasan */}
+            <div className="grid grid-cols-3 gap-2.5 mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
+              <div>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Skor Pretest
+                </p>
+                <p className="text-xl font-extrabold text-primary mt-0.5">
+                  {activePretestResult.result?.score || 85}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Benar / Salah
+                </p>
+                <p className="text-sm font-bold text-slate-800 mt-1">
+                  <span className="text-emerald-600">
+                    {activePretestResult.result?.correctCount || 13}
+                  </span>{" "}
+                  /{" "}
+                  <span className="text-red-500">
+                    {activePretestResult.result?.wrongCount || 2}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-slate-500 font-medium">Durasi</p>
+                <p className="text-xs font-bold text-slate-800 mt-1.5">
+                  {activePretestResult.result?.duration || "14 Menit"}
+                </p>
+              </div>
             </div>
 
-            <p className="text-xs text-neutral-muted leading-relaxed mb-6">
-              Namun, kamu tetap memiliki kebebasan untuk melanjutkan belajar{" "}
-              <span className="font-semibold text-neutral-text">
-                "
-                {prerequisiteModal.type === "chapter"
-                  ? prerequisiteModal.chapter.name
-                  : prerequisiteModal.subtopic.name}
-                "
-              </span>{" "}
-              sekarang jika kamu merasa sudah cukup siap.
-            </p>
+            {/* Breakdown per Subbab */}
+            {activePretestResult.result?.breakdown && (
+              <div className="mb-5">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">
+                  Breakdown Pemahaman per Subbab
+                </h4>
+                <div className="space-y-2">
+                  {activePretestResult.result.breakdown.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2.5 bg-slate-50/80 rounded-xl border border-slate-200 text-xs"
+                    >
+                      <span className="font-semibold text-slate-700">
+                        {item.subtopic}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500 text-[11px]">
+                          {item.score}
+                        </span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                            item.status === "Kuasai"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            {/* Action Buttons: Pelajari Prasyarat vs Tetap Lanjutkan Belajar */}
+            {/* Rekomendasi */}
+            {activePretestResult.result?.recommendation && (
+              <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-2xl mb-5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-primary mb-1">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Rekomendasi Pembelajaran
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {activePretestResult.result.recommendation}
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={() => setActivePretestResult(null)}
+              className="w-full py-2.5 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover transition-colors cursor-pointer"
+            >
+              Tutup Ringkasan
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: PERINGATAN MATERI PRASYARAT */}
+      {prerequisiteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setPrerequisiteModal(null)}
+              className="absolute right-4 top-4 p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 leading-tight">
+                  Materi Prasyarat Belum Selesai
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Rekomendasi Pembelajaran Terstruktur
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl mb-4 text-xs text-slate-700 leading-relaxed">
+              Kamu disarankan mempelajari materi prasyarat{" "}
+              <span className="font-bold text-amber-900">
+                "{prerequisiteModal.prerequisiteName}"
+              </span>{" "}
+              terlebih dahulu untuk mempermudah pemahaman konsep baru ini.
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-2.5">
               <button
                 onClick={() => {
@@ -1236,55 +899,33 @@ const Topics = () => {
                   setPrerequisiteModal(null);
                   setSearchQuery(targetName);
                 }}
-                className="flex-1 py-2.5 px-3 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                className="flex-1 py-2.5 px-3 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
               >
-                <span>Pelajari Prasyarat Dahulu</span>
+                <span>Cari Prasyarat</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
               <button
                 onClick={() => {
                   if (prerequisiteModal.type === "chapter") {
-                    const chapId = prerequisiteModal.chapter.id;
+                    const chapKey =
+                      prerequisiteModal.chapter._id ||
+                      prerequisiteModal.chapter.id;
                     setBypassedChapterPrerequisites((prev) =>
-                      new Set(prev).add(chapId),
+                      new Set(prev).add(chapKey),
                     );
-                    setExpandedChapters((prev) => new Set(prev).add(chapId));
-                  } else {
-                    console.log(
-                      `User memilih tetap belajar subbab: ${prerequisiteModal.subtopic.name}`,
-                    );
+                    setExpandedChapters((prev) => new Set(prev).add(chapKey));
                   }
                   setPrerequisiteModal(null);
                 }}
-                className="py-2.5 px-4 bg-neutral-card text-neutral-text border border-neutral-border text-xs font-semibold rounded-xl hover:bg-neutral-50 transition-colors cursor-pointer"
+                className="py-2.5 px-4 bg-white text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                Tetap Lanjutkan Belajar
+                Tetap Lanjutkan
               </button>
             </div>
-          </Modal>
-        )}
-
-        {/* MODAL 6: HASIL PRETEST (POP UP DI TENGAH) */}
-        {activePretestResult && (
-          <TestResultModal
-            variant="pretest"
-            chapterName={activePretestResult.chapterName}
-            result={activePretestResult.result}
-            onClose={() => setActivePretestResult(null)}
-          />
-        )}
-
-        {/* MODAL 7: HASIL POST TEST (POP UP DI TENGAH) */}
-        {activePostTestResult && (
-          <TestResultModal
-            variant="posttest"
-            chapterName={activePostTestResult.chapterName}
-            result={activePostTestResult.result}
-            onClose={() => setActivePostTestResult(null)}
-          />
-        )}
-      </main>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
