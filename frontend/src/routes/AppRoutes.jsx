@@ -15,6 +15,7 @@ import ResultPage from "../pages/ResultPage";
 import VerifyEmail from "../pages/Auth/VerifyEmail";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
+import TopikDetail from "../pages/TopicDetailPage";
 
 const AppRoutes = () => {
   return (
@@ -36,6 +37,7 @@ const AppRoutes = () => {
       <Route path="/verify" element={<VerifyEmail />} />
       <Route path="/forgot" element={<ForgotPassword />} />
       <Route path="/reset" element={<ResetPassword />} />
+      <Route path="/topicDetail" element={<TopikDetail />} />
 
       {/* Fallback 404 / Route Tidak Ditemukan */}
       <Route
