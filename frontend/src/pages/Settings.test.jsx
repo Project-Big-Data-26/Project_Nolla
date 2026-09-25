@@ -1,8 +1,30 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import Settings from "./Settings";
+
+// TopHeader sekarang baca localStorage.getItem("user_name") langsung
+// (bukan lewat props lagi). Di beberapa environment Node (22+ dengan
+// --experimental-webstorage), localStorage bawaan bisa rusak/nggak
+// lengkap kalau tidak dikonfigurasi dengan file path yang valid, makanya
+// di-stub manual pakai implementasi in-memory sendiri biar konsisten di
+// semua environment.
+function createLocalStorageMock() {
+    let store = {};
+    return {
+        getItem: (key) => (key in store ? store[key] : null),
+        setItem: (key, value) => {
+            store[key] = String(value);
+        },
+        removeItem: (key) => {
+            delete store[key];
+        },
+        clear: () => {
+            store = {};
+        },
+    };
+}
 
 function renderWithRouter(ui) {
     return render(<MemoryRouter>{ui}</MemoryRouter>);
@@ -16,6 +38,14 @@ function renderWithRouter(ui) {
 // pakai getByLabelText.
 
 describe("Settings", () => {
+    beforeEach(() => {
+        vi.stubGlobal("localStorage", createLocalStorageMock());
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("merender tanpa crash", () => {
         renderWithRouter(<Settings />);
     });
