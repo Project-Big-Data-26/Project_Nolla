@@ -28,9 +28,9 @@ export default function Settings() {
 
     return (
         <div className="flex min-h-screen bg-neutral-bg font-sans text-neutral-text">
-            <Navbar />
+            <Navbar activePage="Setting" />
 
-            <main className="flex-1 overflow-y-auto px-6 py-8 md:px-8 md:py-10 pb-28 md:pb-12 max-w-6xl mx-auto w-full">
+            <div className="flex-1 flex flex-col min-w-0">
                 <TopHeader
                     track={jenjang}
                     streak={user.streak}
@@ -38,9 +38,10 @@ export default function Settings() {
                     dailyGoal={user.dailyGoal}
                 />
 
-                <h1 className="font-heading text-xl md:text-2xl font-bold text-neutral-text">
-                    Pengaturan
-                </h1>
+                <main className="flex-1 px-4 sm:px-6 md:px-8 max-w-5xl mx-auto w-full pb-24 md:pb-8">
+                    <h1 className="font-heading text-xl md:text-2xl font-bold text-neutral-text">
+                        Pengaturan
+                    </h1>
                 <p className="text-xs text-neutral-muted mt-0.5">
                     Atur target harian dan jenjang belajarmu.
                 </p>
@@ -113,6 +114,7 @@ export default function Settings() {
                     </button>
                 </SectionCard>
             </main>
+            </div>
         </div>
     );
 }
