@@ -631,14 +631,30 @@ const resetPassword = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
+    const user = await User.findById(req.user.id).select(
+      "_id name email jenjang_id role isProfileComplete isVerified",
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: "error",
+        message: "User tidak ditemukan",
+      });
+    }
+
     return res.status(200).json({
       statusCode: 200,
       status: "success",
       message: "Token valid",
       data: {
         user: {
-          id: req.user.id,
-          email: req.user.email,
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          jenjangId: user.jenjang_id,
+          isProfileComplete: user.isProfileComplete,
+          isVerified: user.isVerified,
         },
       },
     });
@@ -798,15 +814,14 @@ const googleLogin = async (req, res) => {
 };
 
 const handleGoogleCallback = async (req, res, next) => {
+  const frontendUrl = process.env.FRONTEND_URL;
   try {
     const { code, state } = req.query;
     const savedState = req.cookies.google_oauth_state;
     const codeVerifier = req.cookies.google_code_verifier;
 
     if (!code || !state || state !== savedState) {
-      return res.redirect(
-        "http://localhost:5173/login?error=google_auth_failed"
-      );
+      return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
     }
 
     // Tukar code -> token
@@ -840,13 +855,12 @@ const handleGoogleCallback = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("Google callback exchange error:", error);
-    return res.redirect(
-      "http://localhost:5173/login?error=google_auth_failed"
-    );
+    return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
 };
 
 const googleCallback = async (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL;
   try {
     // Buat token JWT untuk user yang berhasil login via Google
     const accessToken = generateAccessToken(req.user); // sesuaikan dengan helper token di controller kalian
@@ -854,13 +868,17 @@ const googleCallback = async (req, res) => {
 
     // Cek kelengkapan profil pengguna baru
     if (!req.user.isProfileComplete) {
-      return res.redirect(`http://localhost:5173/personalization?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+      return res.redirect(
+        `${frontendUrl}/personalization?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+      );
     } else {
-      return res.redirect(`http://localhost:5173/dashboard?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+      return res.redirect(
+        `${frontendUrl}/dashboard?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+      );
     }
   } catch (error) {
     console.error("Error Google Callback Controller:", error);
-    return res.redirect('http://localhost:5173/login?error=google_auth_failed');
+    return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
 };
 

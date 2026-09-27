@@ -3,7 +3,7 @@ const Jenjang = require("../models/Jenjang");
 const mongoose = require("mongoose");
 const setPersonalization = async (req, res) => {
   try {
-    const { educationLevel: jenjangId } = req.body; 
+    const { educationLevel: jenjangId } = req.body;
     const userId = req.user.id;
     // ... sisanya tetap sama
     if (!jenjangId) {
@@ -19,10 +19,10 @@ const setPersonalization = async (req, res) => {
       jenjang = await Jenjang.findById(jenjangId);
     }
     if (!jenjang) {
-  jenjang = await Jenjang.findOne({
-    name: { $regex: new RegExp(`^${jenjangId}$`, "i") },
-  });
-}
+      jenjang = await Jenjang.findOne({
+        name: { $regex: new RegExp(`^${jenjangId}$`, "i") },
+      });
+    }
 
     if (!jenjang) {
       return res.status(400).json({
@@ -35,10 +35,10 @@ const setPersonalization = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       userId,
       {
-        jenjangId: jenjang._id,
+        jenjang_id: jenjang._id,
         isProfileComplete: true,
       },
-      { new: true }
+      { new: true },
     );
 
     // ... sisanya tetap sama
@@ -61,7 +61,7 @@ const setPersonalization = async (req, res) => {
           name: user.name,
           email: user.email,
           isProfileComplete: user.isProfileComplete,
-          jenjangId: user.jenjangId,
+          jenjangId: user.jenjang_id,
         },
       },
     });
@@ -74,6 +74,5 @@ const setPersonalization = async (req, res) => {
     });
   }
 };
-
 
 module.exports = { setPersonalization };
