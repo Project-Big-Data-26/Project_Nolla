@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+const Bab = require("../models/Bab");
+const Kelas = require("../models/Kelas");
+const Jenjang = require("../models/Jenjang");
 const Subbab = require("../models/Subbab");
 const Pretest = require("../models/MengerjakanPretest");
 const Soal = require("../models/Soal");
@@ -86,6 +89,37 @@ const getUnlockedSubbab = async (userId, subbabId) => {
   return completedPretest ? subbab : null;
 };
 
+const getRequiredQuestionCount = async (subbab) => {
+  const bab = await Bab.findById(subbab.bab_id).select("kelas_id").lean();
+  if (!bab) return null;
+
+  const kelas = await Kelas.findById(bab.kelas_id).select("jenjang_id").lean();
+  if (!kelas) return null;
+
+  const jenjang = await Jenjang.findById(kelas.jenjang_id)
+    .select("name")
+    .lean();
+
+  return { SD: 10, SMP: 15, SMA: 20 }[jenjang?.name] ?? null;
+};
+
+const sendQuestionShortage = (
+  res,
+  { subbabId, difficulty, requiredCount, availableCount },
+) =>
+  res.status(409).json({
+    statusCode: 409,
+    success: false,
+    message: `Soal ${difficulty} habis atau belum mencukupi. Dibutuhkan ${requiredCount} soal, tersedia ${availableCount}.`,
+    data: {
+      subbab_id: subbabId,
+      difficulty,
+      required_questions: requiredCount,
+      available_questions: availableCount,
+      exhausted: true,
+    },
+  });
+
 const getOrCreateDifficulty = async (userId, subbabId) =>
   MendapatkanDifficulty.findOneAndUpdate(
     { user_id: userId, subbab_id: subbabId },
@@ -115,6 +149,11 @@ const startQuiz = async (req, res) => {
       return sendError(res, 403, "Subbab belum tersedia untuk quiz");
     }
 
+    const requiredQuestionCount = await getRequiredQuestionCount(subbab);
+    if (!requiredQuestionCount) {
+      return sendError(res, 500, "Jenjang subbab tidak dapat ditentukan");
+    }
+
     const activeSession = await MengerjakanKuis.findOne({
       user_id: userId,
       subbab_id: subbabId,
@@ -125,6 +164,16 @@ const startQuiz = async (req, res) => {
 
     if (activeSession) {
       const activeQuestionIds = activeSession.soal.map((item) => item.soal_id);
+
+      if (activeQuestionIds.length !== requiredQuestionCount) {
+        return sendQuestionShortage(res, {
+          subbabId,
+          difficulty: activeSession.cognitive_level,
+          requiredCount: requiredQuestionCount,
+          availableCount: activeQuestionIds.length,
+        });
+      }
+
       const activeQuestions = await Soal.find({
         _id: { $in: activeQuestionIds },
       }).lean();
@@ -180,44 +229,20 @@ const startQuiz = async (req, res) => {
         })
       ).map((questionId) => questionId.toString()),
     );
-
-    if (!trackQuestions.length) {
-      if (previouslyUsedQuestionIds.size > 0) {
-        return res.status(409).json({
-          statusCode: 409,
-          success: false,
-          message: `Soal untuk level ${track} pada subbab ini sudah habis`,
-          data: {
-            subbab_id: subbabId,
-            difficulty: track,
-            exhausted: true,
-          },
-        });
-      }
-
-      return sendError(
-        res,
-        409,
-        `Bank soal ${track} untuk subbab ini belum mencukupi`,
-      );
-    }
-
-    const questions = trackQuestions.filter(
+    const availableQuestions = trackQuestions.filter(
       (question) => !previouslyUsedQuestionIds.has(question._id.toString()),
     );
 
-    if (!questions.length) {
-      return res.status(409).json({
-        statusCode: 409,
-        success: false,
-        message: `Soal untuk level ${track} pada subbab ini sudah habis`,
-        data: {
-          subbab_id: subbabId,
-          difficulty: track,
-          exhausted: true,
-        },
+    if (availableQuestions.length < requiredQuestionCount) {
+      return sendQuestionShortage(res, {
+        subbabId,
+        difficulty: track,
+        requiredCount: requiredQuestionCount,
+        availableCount: availableQuestions.length,
       });
     }
+
+    const questions = availableQuestions.slice(0, requiredQuestionCount);
 
     const latestSession = await MengerjakanKuis.findOne({
       user_id: userId,
@@ -300,7 +325,16 @@ const submitQuiz = async (req, res) => {
         return sendError(res, 400, "Question tidak boleh dijawab dua kali");
       }
 
+      const selectedAnswer = answer.selected_option ?? answer.selected_answer;
+      if (selectedAnswer === undefined || selectedAnswer === null) {
+        return sendError(res, 400, "Jawaban untuk setiap question wajib diisi");
+      }
+
       answerMap.set(answer.question_id.toString(), answer);
+    }
+
+    if (answerMap.size !== selectedQuestionIds.length) {
+      return sendError(res, 400, "Semua soal dalam session quiz wajib dijawab");
     }
 
     const questions = await Soal.find({
@@ -341,7 +375,7 @@ const submitQuiz = async (req, res) => {
       studentRating += K_STUDENT * (actualScore - expectedScore);
 
       const updatedQuestionRating =
-        questionRating + effectiveQuestionK * (actualScore - expectedScore);
+        questionRating + effectiveQuestionK * (expectedScore - actualScore);
       await Soal.updateOne(
         { _id: question._id },
         {

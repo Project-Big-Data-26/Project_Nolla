@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const Pertanyaan = require("../models/Soal");
+const TARGET_KELAS12_BAB_ID = "SMA12U-B4";
 
 const makeChoiceSet = (values) => {
   const optionIds = ["A", "B", "C", "D"];
@@ -10,6 +11,22 @@ const makeChoiceSet = (values) => {
     option_id: optionId,
     text: values[index],
   }));
+};
+
+const combinationsOfThree = (count) => (count * (count - 1) * (count - 2)) / 6;
+
+const getAtLeastOneGirlProbability = (boys, girls) => {
+  const totalStudents = boys + girls;
+  const denominator = combinationsOfThree(totalStudents);
+  const numerator = denominator - combinationsOfThree(boys);
+  let left = numerator;
+  let right = denominator;
+
+  while (right !== 0) {
+    [left, right] = [right, left % right];
+  }
+
+  return `${numerator / left}/${denominator / left}`;
 };
 
 const moveCorrectAnswerToOptionB = (values, correctAnswer) => {
@@ -48,9 +65,9 @@ const buildQuestion = ({
   correct_answer,
   cognitive_score,
   cognitive_level:
-    cognitive_score >= 1200
+    cognitive_score >= 1400
       ? "hard"
-      : cognitive_score >= 600
+      : cognitive_score >= 1000
         ? "medium"
         : "easy",
   confidence_score: null,
@@ -66,9 +83,12 @@ const buildKelas12SubbabQuestions = (
   subbabName,
   order,
 ) => {
-  const easyScore = 100 + order * 25;
-  const mediumScore = 600 + order * 30;
-  const hardScore = 1200 + order * 35;
+  const easyScore = 100 + order * 10;
+  const mediumScore = 1000 + order * 5;
+  const hardScore = 1400 + order * 5;
+  const boys = order + 5;
+  const girls = order + 3;
+  const atLeastOneGirlProbability = getAtLeastOneGirlProbability(boys, girls);
 
   return [
     // 1 Soal Easy
@@ -103,10 +123,10 @@ const buildKelas12SubbabQuestions = (
     buildQuestion({
       subbab_id,
       kelas_id,
-      soal_text: `(Variasi ${order} - Hard) Dari ${order + 5} siswa putra dan ${order + 3} siswa putri akan dipilih 3 orang utusan sekolah secara acak. Peluang terpilihnya paling sedikit 1 siswa putri adalah ...`,
+      soal_text: `(Variasi ${order} - Hard) Dari ${boys} siswa putra dan ${girls} siswa putri akan dipilih 3 orang utusan sekolah secara acak. Peluang terpilihnya paling sedikit 1 siswa putri adalah ...`,
       options: makeChoiceSet([
         "1/4", // A
-        "27/52", // B (Jawaban Benar dipindah ke B)
+        atLeastOneGirlProbability, // B
         "7/13", // C
         "1/2", // D
       ]),
@@ -245,50 +265,25 @@ const buildPrerequisiteQuestions = ({
 };
 
 const getKelas12PrerequisiteBabIds = (data, babMap) => {
-  const kelas12Keys = new Set(
-    data.kelas
-      .filter((item) => Number(item.nomor_kelas) === 12)
-      .map((item) => item.key),
-  );
+  const targetBab = data.bab.find((item) => item.id === TARGET_KELAS12_BAB_ID);
+  if (!targetBab || !Array.isArray(targetBab.prasyarat)) return [];
 
-  const prerequisiteBabIds = new Set();
-
-  for (const item of data.bab) {
-    if (!kelas12Keys.has(item.kelas_key) || !Array.isArray(item.prasyarat)) {
-      continue;
-    }
-
-    if (!item.name.toLowerCase().includes("peluang")) {
-      continue;
-    }
-
-    for (const prasyaratKey of item.prasyarat) {
-      const mappedBabId = babMap.get(prasyaratKey);
-      if (mappedBabId) {
-        prerequisiteBabIds.add(mappedBabId.toString());
-      }
-    }
-  }
-
-  return Array.from(prerequisiteBabIds);
+  return targetBab.prasyarat
+    .map((prasyaratKey) => babMap.get(prasyaratKey))
+    .filter(Boolean);
 };
 
 const seedKelas12Questions = async ({ data, babMap, kelasMap, subbab }) => {
-  const kelas12Keys = data.kelas
-    .filter((item) => item.nomor_kelas === 12)
-    .map((item) => item.key);
+  const targetBab = data.bab.find((item) => item.id === TARGET_KELAS12_BAB_ID);
+  const targetKelasId = targetBab ? kelasMap.get(targetBab.kelas_key) : null;
 
-  const kelas12Ids = kelas12Keys
-    .map((key) => kelasMap.get(key))
-    .filter(Boolean);
-
-  if (kelas12Ids.length === 0) {
+  if (!targetBab || !targetKelasId || !Array.isArray(targetBab.subbab)) {
     return { inserted: 0, total: 0 };
   }
 
   const subbabMap = new Map();
 
-  for (const item of data.bab) {
+  for (const item of [targetBab]) {
     const babId = babMap.get(item.id);
 
     if (!babId || !Array.isArray(item.subbab)) continue;
@@ -306,16 +301,12 @@ const seedKelas12Questions = async ({ data, babMap, kelasMap, subbab }) => {
     }
   }
 
-  await Pertanyaan.deleteMany({ kelas_id: { $in: kelas12Ids } });
-
   const kelas12QuestionData = [];
+  const targetSubbabIds = [];
 
-  for (const item of data.bab) {
-    if (!kelas12Keys.includes(item.kelas_key)) continue;
-    if (!item.name.toLowerCase().includes("peluang")) continue;
-
+  for (const item of [targetBab]) {
     const babId = babMap.get(item.id);
-    const kelasId = kelasMap.get(item.kelas_key);
+    const kelasId = targetKelasId;
 
     if (!babId || !kelasId || !Array.isArray(item.subbab)) continue;
 
@@ -324,9 +315,10 @@ const seedKelas12Questions = async ({ data, babMap, kelasMap, subbab }) => {
       const subbabId = subbabMap.get(`${item.id}:${subbabItem.name}`);
 
       if (!subbabId) continue;
+      targetSubbabIds.push(subbabId);
 
-      // 20 Iterasi x 3 tingkat = 60 soal per subbab
-      for (let i = 1; i <= 20; i++) {
+      // 60 variasi per tingkat memberi stok untuk beberapa attempt tanpa pengulangan.
+      for (let i = 1; i <= 60; i++) {
         const questions = buildKelas12SubbabQuestions(
           subbabId,
           kelasId,
@@ -338,13 +330,17 @@ const seedKelas12Questions = async ({ data, babMap, kelasMap, subbab }) => {
     }
   }
 
+  await Pertanyaan.deleteMany({ subbab_id: { $in: targetSubbabIds } });
+
   if (kelas12QuestionData.length > 0) {
     await Pertanyaan.insertMany(kelas12QuestionData);
   }
 
   return {
     inserted: kelas12QuestionData.length,
-    total: await Pertanyaan.countDocuments({ kelas_id: { $in: kelas12Ids } }),
+    total: await Pertanyaan.countDocuments({
+      subbab_id: { $in: targetSubbabIds },
+    }),
   };
 };
 
@@ -354,19 +350,11 @@ const seedKelas12PrerequisiteQuestions = async ({
   kelasMap,
   subbab,
 }) => {
-  const kelas12Keys = new Set(
-    data.kelas
-      .filter((item) => Number(item.nomor_kelas) === 12)
-      .map((item) => item.key),
-  );
-
-  const kelas12Ids = Array.from(kelas12Keys)
-    .map((key) => kelasMap.get(key))
-    .filter(Boolean);
-
   const prerequisiteBabIds = getKelas12PrerequisiteBabIds(data, babMap);
+  const targetBab = data.bab.find((item) => item.id === TARGET_KELAS12_BAB_ID);
+  const targetKelasId = targetBab ? kelasMap.get(targetBab.kelas_key) : null;
 
-  if (!prerequisiteBabIds.length || kelas12Ids.length === 0) {
+  if (!prerequisiteBabIds.length || !targetKelasId) {
     return { inserted: 0, total: 0, prerequisiteBabCount: 0 };
   }
 
@@ -415,7 +403,17 @@ const seedKelas12PrerequisiteQuestions = async ({
 
   return {
     inserted: insertedCount,
-    total: await Pertanyaan.countDocuments({ kelas_id: { $in: kelas12Ids } }),
+    total: await Pertanyaan.countDocuments({
+      subbab_id: {
+        $in: subbab
+          .filter((doc) =>
+            prerequisiteBabIds.some(
+              (id) => id.toString() === doc.bab_id.toString(),
+            ),
+          )
+          .map((doc) => doc._id),
+      },
+    }),
     prerequisiteBabCount,
   };
 };
@@ -444,8 +442,7 @@ if (require.main === module) {
         const matched = kelas.find(
           (doc) =>
             doc.name === item.name &&
-            Number(doc.nomor_kelas) === Number(item.nomor_kelas) &&
-            (doc.jalur || null) === (item.jalur ?? null),
+            Number(doc.nomor_kelas) === Number(item.nomor_kelas),
         );
 
         if (matched) {
@@ -467,7 +464,7 @@ if (require.main === module) {
       }
 
       console.log(
-        "Menjalankan seeder: 60 Soal (20 Easy, 20 Medium, 20 Hard) per subbab Peluang + 1 Soal Prasyarat Khusus...",
+        "Menjalankan seeder: 180 Soal (60 Easy, 60 Medium, 60 Hard) per subbab Peluang + soal prasyarat khusus...",
       );
 
       const result = await seedKelas12Questions({
@@ -488,9 +485,9 @@ if (require.main === module) {
       console.log(
         JSON.stringify(
           {
-            soalSubbabInserted: result.inserted, // 2 subbab x 60 = 120
+            soalSubbabInserted: result.inserted, // 2 subbab x 180 = 360
             prasyaratInserted: prereqResult.inserted, // 1
-            totalInsertedDiProsesIni: result.inserted + prereqResult.inserted, // Total 121
+            totalInsertedDiProsesIni: result.inserted + prereqResult.inserted,
           },
           null,
           2,

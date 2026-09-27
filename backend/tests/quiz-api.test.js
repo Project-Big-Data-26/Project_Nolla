@@ -181,6 +181,11 @@ const run = async () => {
     }
 
     assertFixedDifficulty(startData.questions, startData.difficulty);
+    assert.equal(
+      startData.questions.length,
+      20,
+      "Quiz jenjang SMA harus memiliki tepat 20 soal",
+    );
     for (const question of startData.questions) {
       assert.equal(
         previouslySeenQuestionIds.has(question.question_id),
@@ -213,6 +218,14 @@ const run = async () => {
       selected_option: DEFAULT_ANSWER,
       response_time: 1,
     }));
+
+    const incompleteSubmit = await request(
+      "POST",
+      `/api/quiz/${startData.session_id}/submit`,
+      accessToken,
+      { answers: answers.slice(0, -1), duration: answers.length },
+    );
+    expectStatus(incompleteSubmit, 400);
 
     const submit = await request(
       "POST",
