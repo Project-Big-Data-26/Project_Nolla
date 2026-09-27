@@ -12,10 +12,13 @@ import {
 
 const Navbar = ({ activePage = "Dashboard" }) => {
   const menuItems = [
-    { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { label: "Topik", icon: BookOpen, path: "/topik" },
+    {
+      label: "Hasil Belajar",
+      icon: LayoutDashboard,
+      path: "/hasil-pembelajaran",
+    },
     { label: "Profil", icon: User, path: "/profile" },
-    { label: "Setting", icon: Settings, path: "/settings" },
   ];
 
   return (

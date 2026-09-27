@@ -1,41 +1,42 @@
 import React, { useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
+import { toast, Toaster } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 
 const VerifyEmail = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const email = location.state?.email || "user@example.com";
 
-  // State untuk 6 digit OTP
+  // Data dari navigate state
+  const email = location.state?.email || "user@example.com";
+  const action = location.state?.action || "register"; // 'register' atau 'reset-password'
+
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const inputRefs = useRef([]);
 
-  // Tangani perubahan isi kotak OTP
   const handleChange = (index, value) => {
-    // Hanya menerima karakter angka
     if (!/^\d*$/.test(value)) return;
+    if (errorMessage) setErrorMessage("");
 
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1); // Ambil 1 karakter terakhir
+    newOtp[index] = value.slice(-1);
     setOtp(newOtp);
 
-    // Otomatis pindah fokus ke kotak berikutnya jika diisi
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  // Tangani tombol Backspace untuk kembali ke kotak sebelumnya
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  // Tangani Paste (misal user copy 6 digit sekaligus)
   const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").trim().slice(0, 6);
@@ -47,32 +48,107 @@ const VerifyEmail = () => {
     });
     setOtp(newOtp);
 
-    // Fokus ke kotak terakhir setelah paste
     const nextIndex = Math.min(pastedData.length, 5);
     inputRefs.current[nextIndex]?.focus();
   };
 
-  const handleVerify = (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
     const fullOtp = otp.join("");
+    setErrorMessage("");
+
     if (fullOtp.length < 6) {
-      alert("Harap masukkan 6 digit kode OTP secara lengkap!");
+      setErrorMessage("Harap masukkan 6 digit kode OTP secara lengkap!");
       return;
     }
 
-    console.log("Static OTP Verification:", { email, otp: fullOtp });
-    // Simulasi verifikasi sukses -> alihkan ke Dashboard
-    navigate("/dashboard");
+    setLoading(true);
+
+    try {
+      if (action === "reset-password") {
+        //Cek OTP ke Backend
+        const response = await fetch(
+          "http://localhost:5000/api/auth/verify-reset-otp",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, otp: fullOtp }),
+          },
+        );
+
+        const result = await response.json();
+
+        if (response.ok && result.status === "success") {
+          toast.success("Kode OTP Valid!", {
+            description: "Silakan buat kata sandi baru Anda.",
+          });
+
+          setTimeout(() => {
+            navigate("/reset", {
+              state: { email: email, otp: fullOtp },
+            });
+          }, 1200);
+        } else {
+          // ❌ OTP NGAWUR PASTI DITOLAK DI SINI
+          setErrorMessage(
+            result.message || "Kode OTP salah atau sudah kedaluwarsa.",
+          );
+        }
+      } else {
+        // Alur Verifikasi Email Registrasi biasa
+        const response = await fetch(
+          "http://localhost:5000/api/auth/verify-email",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, otp: fullOtp }),
+          },
+        );
+
+        const result = await response.json();
+
+        if (response.ok && result.status === "success") {
+          toast.success("Verifikasi Berhasil!", {
+            description: "Akun Anda telah aktif.",
+          });
+
+          localStorage.setItem("accessToken", result.data.accessToken);
+          localStorage.setItem("refreshToken", result.data.refreshToken);
+
+          const isProfileComplete = result.data.user?.isProfileComplete;
+
+          setTimeout(() => {
+            if (!isProfileComplete) {
+              navigate("/personalization");
+            } else {
+              navigate("/");
+            }
+          }, 1200);
+        } else {
+          setErrorMessage(
+            result.message || "Kode OTP salah atau sudah kedaluwarsa.",
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error verifikasi OTP:", error);
+      setErrorMessage(
+        "Terjadi kesalahan pada server. Pastikan backend menyala.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <AuthCard>
-      {/* LEFT COLUMN: FORM VERIFY (6 KOTAK OTP) */}
+      <Toaster position="top-center" richColors closeButton />
+
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
           <div className="mt-2 sm:mt-4">
             <h1 className="font-heading text-xl sm:text-2xl font-bold text-neutral-text text-center">
-              Verifikasi Email
+              Verifikasi Kode OTP
             </h1>
             <p className="mt-2 text-xs text-neutral-muted text-center leading-relaxed">
               Kode OTP telah dikirimkan ke <br />
@@ -80,9 +156,14 @@ const VerifyEmail = () => {
             </p>
           </div>
 
-          {/* FORM VERIFIKASI OTP */}
-          <form onSubmit={handleVerify} className="mt-8 space-y-6">
-            {/* 6 KOTAK INPUT OTP */}
+          {errorMessage && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 animate-in fade-in duration-200">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleVerify} className="mt-6 space-y-6">
             <div className="flex items-center justify-center gap-2 sm:gap-2.5">
               {otp.map((digit, index) => (
                 <input
@@ -100,17 +181,16 @@ const VerifyEmail = () => {
               ))}
             </div>
 
-            {/* TOMBOL VERIFIKASI */}
             <button
               type="submit"
-              className="w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-hover cursor-pointer"
+              disabled={loading}
+              className="w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-hover cursor-pointer disabled:opacity-50"
             >
-              Verifikasi Email
+              {loading ? "Memproses..." : "Verifikasi OTP"}
             </button>
           </form>
         </div>
 
-        {/* FOOTER LINK */}
         <div className="mt-6 sm:mt-8 text-center">
           <Link
             to="/login"
@@ -122,10 +202,9 @@ const VerifyEmail = () => {
         </div>
       </div>
 
-      {/* RIGHT COLUMN: BRAND BANNER */}
       <AuthBrandPanel
         title="Verifikasi Keamanan"
-        description="Memastikan akun Anda terhubung secara aman dengan alamat email resmi."
+        description="Memastikan verifikasi terhubung secara aman dengan alamat email resmi."
       />
     </AuthCard>
   );

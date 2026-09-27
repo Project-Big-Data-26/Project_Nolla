@@ -1,8 +1,8 @@
 import React from "react";
 import { ArrowLeft, ArrowRight, Target, Flame } from "lucide-react";
-import Navbar from "../components/Navbar";
-import SectionCard from "../components/SectionCard";
-import ResultQuestionCard from "../components/ResultQuestionCard";
+import Navbar from "../../components/Navbar";
+import SectionCard from "../../components/SectionCard";
+import ResultQuestionCard from "../../components/ResultQuestionCard";
 
 const ResultPage = () => {
   const results = [
@@ -219,9 +219,7 @@ const ResultPage = () => {
         <SectionCard as="section" className="mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <p className="text-sm text-neutral-muted mb-1">
-                Latihan selesai
-              </p>
+              <p className="text-sm text-neutral-muted mb-1">Latihan selesai</p>
 
               <h2 className="text-xl font-bold text-neutral-text">
                 Pecahan & Persentase
@@ -262,9 +260,7 @@ const ResultPage = () => {
                 Persentase jawaban benar
               </span>
 
-              <span className="font-semibold text-primary">
-                {percentage}%
-              </span>
+              <span className="font-semibold text-primary">{percentage}%</span>
             </div>
 
             <div className="h-2.5 bg-neutral-bg rounded-full overflow-hidden">

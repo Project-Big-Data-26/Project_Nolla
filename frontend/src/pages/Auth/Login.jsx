@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { toast, Toaster } from "sonner"; // Import Sonner
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -15,19 +18,82 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    // Bersihkan banner error saat pengguna mengetik ulang
+    if (errorMessage) setErrorMessage("");
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  // --- FUNGSI LOGIN GOOGLE ---
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/api/auth/google";
+  };
+
+  // --- FUNGSI LOGIN EMAIL ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", formData);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.status === "success") {
+        // 1. Simpan token ke localStorage
+        localStorage.setItem("accessToken", result.data.accessToken);
+        localStorage.setItem("refreshToken", result.data.refreshToken);
+
+        // 2. Munculkan Toast Sonner
+        toast.success("Login Berhasil!");
+
+        const isProfileComplete = result.data.user.isProfileComplete;
+
+        // 3. Jeda singkat agar animasi toast terlihat halus sebelum navigasi
+        setTimeout(() => {
+          if (!isProfileComplete) {
+            navigate("/personalization");
+          } else {
+            navigate("/");
+          }
+        }, 1200);
+      } else {
+        // Tampilkan pesan error pada inline banner
+        const msg =
+          result.message || "Email atau password yang Anda masukkan salah.";
+        setErrorMessage(msg);
+        toast.error("Login Gagal", {
+          description: msg,
+        });
+      }
+    } catch (error) {
+      console.error("Error saat login:", error);
+      const connError = "Gagal terhubung ke server. Pastikan backend menyala.";
+      setErrorMessage(connError);
+      toast.error("Masalah Jaringan", {
+        description: connError,
+      });
+    }
   };
 
   return (
     <AuthCard>
+      {/* Container Toaster Sonner di posisi kanan atas */}
+      <Toaster position="top-center" richColors closeButton />
+
       {/* LEFT COLUMN: FORM LOGIN */}
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
@@ -41,8 +107,21 @@ const Login = () => {
             </p>
           </div>
 
+          {/* BANNER ERROR INLINE (Di atas tombol Google Auth) */}
+          {errorMessage && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 animate-in fade-in duration-200">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           {/* GOOGLE OAUTH BUTTON */}
-          <GoogleAuthButton label="Masuk dengan Google" />
+          <div className="mt-4">
+            <GoogleAuthButton
+              label="Masuk dengan Google"
+              onClick={handleGoogleLogin}
+            />
+          </div>
 
           {/* DIVIDER */}
           <div className="relative my-5 sm:my-6 flex items-center justify-center">
@@ -111,12 +190,12 @@ const Login = () => {
                   Ingat saya
                 </span>
               </label>
-              <a
-                href="/forgot"
+              <Link
+                to="/forgot-password"
                 className="font-semibold text-primary hover:text-primary-hover transition-colors text-[11px] sm:text-xs"
               >
                 Lupa Kata Sandi?
-              </a>
+              </Link>
             </div>
 
             {/* SUBMIT BUTTON */}
@@ -141,7 +220,7 @@ const Login = () => {
         </p>
       </div>
 
-      {/* RIGHT COLUMN: BRAND BANNER (WARNA PRIMARY) */}
+      {/* RIGHT COLUMN: BRAND BANNER */}
       <AuthBrandPanel />
     </AuthCard>
   );

@@ -6,8 +6,8 @@ import {
   BookOpen,
   ArrowRight,
 } from "lucide-react";
-import Navbar from "../components/Navbar";
-import SectionCard from "../components/SectionCard";
+import Navbar from "../../components/Navbar";
+import SectionCard from "../../components/SectionCard";
 
 const EvaluationPage = () => {
   // Data dummy hasil pretest
@@ -27,9 +27,7 @@ const EvaluationPage = () => {
       <main className="flex-1 p-5 md:p-8 pb-24 md:pb-8">
         {/* Header */}
         <header className="mb-7">
-          <p className="text-sm text-neutral-muted mb-1">
-            Evaluasi Pretest
-          </p>
+          <p className="text-sm text-neutral-muted mb-1">Evaluasi Pretest</p>
 
           <h1 className="font-heading text-2xl md:text-3xl font-bold text-neutral-text">
             Hasil Evaluasi
@@ -44,17 +42,11 @@ const EvaluationPage = () => {
         <section className="bg-primary rounded-3xl p-6 md:p-8 text-white mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <p className="text-white/70 text-sm mb-2">
-                NILAI PRETEST
-              </p>
+              <p className="text-white/70 text-sm mb-2">NILAI PRETEST</p>
 
-              <h2 className="text-5xl font-bold">
-                {score}
-              </h2>
+              <h2 className="text-5xl font-bold">{score}</h2>
 
-              <p className="text-white/70 mt-2">
-                dari 100 poin
-              </p>
+              <p className="text-white/70 mt-2">dari 100 poin</p>
             </div>
 
             <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center">
@@ -69,16 +61,11 @@ const EvaluationPage = () => {
           <SectionCard>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                <CheckCircle2
-                  size={24}
-                  className="text-green-600"
-                />
+                <CheckCircle2 size={24} className="text-green-600" />
               </div>
 
               <div>
-                <p className="text-sm text-neutral-muted">
-                  Jawaban Benar
-                </p>
+                <p className="text-sm text-neutral-muted">Jawaban Benar</p>
 
                 <p className="text-2xl font-bold text-neutral-text">
                   {correct}
@@ -91,16 +78,11 @@ const EvaluationPage = () => {
           <SectionCard>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
-                <XCircle
-                  size={24}
-                  className="text-red-600"
-                />
+                <XCircle size={24} className="text-red-600" />
               </div>
 
               <div>
-                <p className="text-sm text-neutral-muted">
-                  Jawaban Salah
-                </p>
+                <p className="text-sm text-neutral-muted">Jawaban Salah</p>
 
                 <p className="text-2xl font-bold text-neutral-text">
                   {incorrect}
@@ -115,10 +97,7 @@ const EvaluationPage = () => {
           <SectionCard as="section">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                <BookOpen
-                  size={24}
-                  className="text-blue-600"
-                />
+                <BookOpen size={24} className="text-blue-600" />
               </div>
 
               <div className="flex-1">
@@ -127,9 +106,8 @@ const EvaluationPage = () => {
                 </h2>
 
                 <p className="text-sm text-neutral-muted mt-1">
-                  Nilai pretest kamu masih perlu ditingkatkan.
-                  Sebaiknya pelajari kembali materi berikut sebelum
-                  melanjutkan.
+                  Nilai pretest kamu masih perlu ditingkatkan. Sebaiknya
+                  pelajari kembali materi berikut sebelum melanjutkan.
                 </p>
 
                 <div className="mt-4 flex items-center justify-between bg-neutral-bg rounded-xl p-4">
@@ -143,10 +121,7 @@ const EvaluationPage = () => {
                     </p>
                   </div>
 
-                  <ArrowRight
-                    size={20}
-                    className="text-primary"
-                  />
+                  <ArrowRight size={20} className="text-primary" />
                 </div>
               </div>
             </div>

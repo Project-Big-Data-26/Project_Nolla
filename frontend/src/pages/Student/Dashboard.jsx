@@ -9,8 +9,8 @@ import {
   BookOpen,
   ChevronRight,
 } from "lucide-react";
-import Navbar from "../components/Navbar";
-import SectionCard from "../components/SectionCard";
+import Navbar from "../../components/Navbar";
+import SectionCard from "../../components/SectionCard";
 
 const Dashboard = () => {
   const topics = [

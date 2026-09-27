@@ -7,18 +7,18 @@ import React from "react";
  * contoh: <SectionCard padding="p-5">.
  */
 const SectionCard = ({
-    as: Tag = "div",
-    padding = "p-6",
-    className = "",
-    children,
-    ...props
+  as: Tag = "div",
+  padding = "p-6",
+  className = "",
+  children,
+  ...props
 }) => (
-    <Tag
-        className={`rounded-2xl border border-neutral-border bg-neutral-card ${padding} shadow-xs ${className}`}
-        {...props}
-    >
-        {children}
-    </Tag>
+  <Tag
+    className={`rounded-2xl border border-neutral-border bg-neutral-card ${padding} shadow-xs ${className}`}
+    {...props}
+  >
+    {children}
+  </Tag>
 );
 
 export default SectionCard;

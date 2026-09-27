@@ -1,37 +1,51 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, AlertCircle } from "lucide-react";
+import { toast, Toaster } from "sonner";
 import API from "../../api/axios";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState({ type: "", text: "" });
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleChangeEmail = (e) => {
+    setEmail(e.target.value);
+    if (errorMessage) setErrorMessage("");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setStatusMessage({ type: "", text: "" });
+    setErrorMessage("");
 
     try {
       const response = await API.post("/auth/forgot-password", {
         email: email.trim(),
       });
 
-      setStatusMessage({
-        type: "success",
-        text: response.data.message || "Kode OTP telah dikirim ke email Anda.",
+      toast.success("Kode OTP Terkirim!", {
+        description:
+          response.data.message ||
+          "Silakan cek email Anda untuk kode verifikasi.",
       });
 
+      // Arahkan ke /verify dengan menyertakan action 'reset-password'
       setTimeout(() => {
-        navigate("/reset-password", { state: { email } });
-      }, 1500);
+        navigate("/verify", {
+          state: {
+            email: email.trim(),
+            action: "reset-password",
+          },
+        });
+      }, 1200);
     } catch (err) {
-      setStatusMessage({
-        type: "error",
-        text: err.response?.data?.message || "Gagal mengirimkan kode OTP.",
-      });
+      const msg =
+        err.response?.data?.message ||
+        "Gagal mengirimkan kode OTP. Pastikan email terdaftar.";
+      setErrorMessage(msg);
+      toast.error("Gagal Mengirim OTP", { description: msg });
     } finally {
       setLoading(false);
     }
@@ -39,6 +53,8 @@ const ForgotPassword = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-bg p-4 sm:p-6 font-sans text-neutral-text">
+      <Toaster position="top-center" richColors closeButton />
+
       <div className="flex w-full max-w-4xl overflow-hidden rounded-2xl sm:rounded-3xl bg-neutral-card shadow-lg border border-neutral-border">
         {/* LEFT COLUMN: FORM FORGOT */}
         <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
@@ -52,17 +68,15 @@ const ForgotPassword = () => {
               </p>
             </div>
 
-            {statusMessage.text && (
-              <div
-                className={`mt-4 rounded-xl p-3 text-center text-xs border ${statusMessage.type === "success"
-                  ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                  : "bg-red-50 text-red-600 border-red-100"
-                  }`}
-              >
-                {statusMessage.text}
+            {/* BANNER ERROR INLINE */}
+            {errorMessage && (
+              <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 animate-in fade-in duration-200">
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+                <span>{errorMessage}</span>
               </div>
             )}
 
+            {/* TAG FORM MEMBUNGKUS INPUT DAN TOMBOL SUBMIT */}
             <form
               onSubmit={handleSubmit}
               className="mt-6 space-y-3.5 sm:space-y-4"
@@ -73,7 +87,7 @@ const ForgotPassword = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleChangeEmail}
                     placeholder="Alamat Email Terdaftar"
                     required
                     className="w-full rounded-xl border border-neutral-border bg-neutral-bg py-2.5 pl-10 pr-4 text-xs text-neutral-text placeholder-neutral-muted transition-colors focus:border-primary focus:bg-neutral-card focus:outline-none"

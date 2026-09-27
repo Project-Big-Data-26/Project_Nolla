@@ -5,16 +5,26 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "node seeders/index.js",
+    "seed:fresh": "node seeders/index.js fresh",
+    "seed:clear": "node seeders/index.js clear"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "google-auth-library": "^10.9.1",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.1",
+    "nodemailer": "^10.0.10",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"
   },

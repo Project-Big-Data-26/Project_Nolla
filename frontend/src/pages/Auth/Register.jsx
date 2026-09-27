@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { toast, Toaster } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
@@ -8,6 +9,8 @@ import GoogleAuthButton from "../../components/GoogleAuthButton";
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -18,23 +21,72 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    // Bersihkan banner error saat pengguna mulai mengetik ulang
+    if (errorMessage) setErrorMessage("");
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
+
+    // Validasi Kesesuaian Password
     if (formData.password !== formData.confirmPassword) {
-      alert("Kata sandi dan konfirmasi kata sandi tidak cocok!");
+      setErrorMessage("Kata sandi dan konfirmasi kata sandi tidak cocok!");
       return;
     }
-    console.log("Register Data:", formData);
+
+    const payloadData = {
+      name: formData.fullName,
+      email: formData.email,
+      password: formData.password,
+    };
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payloadData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Toast Notifikasi Sukses via Sonner
+        toast.success("Pendaftaran Berhasil!", {
+          description: "Kode verifikasi OTP telah dikirimkan ke email Anda.",
+        });
+
+        // Jeda singkat agar toast sempat terbaca sebelum navigasi
+        setTimeout(() => {
+          navigate("/verify", { state: { email: formData.email } });
+        }, 1200);
+      } else {
+        // Tampilkan error dari backend di banner inline
+        setErrorMessage(
+          data.message || "Pendaftaran gagal, silakan coba lagi.",
+        );
+      }
+    } catch (error) {
+      console.error("Error saat integrasi:", error);
+      setErrorMessage(
+        "Terjadi kesalahan pada server. Pastikan backend sudah menyala.",
+      );
+    }
   };
 
   return (
     <AuthCard>
+      {/* Container Toaster Sonner di posisi tengah atas */}
+      <Toaster position="top-center" richColors closeButton />
+
       {/* LEFT COLUMN: FORM REGISTER */}
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
@@ -48,8 +100,23 @@ const Register = () => {
             </p>
           </div>
 
+          {/* BANNER ERROR INLINE (Di atas tombol Google Auth) */}
+          {errorMessage && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 animate-in fade-in duration-200">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           {/* GOOGLE OAUTH BUTTON */}
-          <GoogleAuthButton label="Daftar dengan Google" />
+          <div className="mt-4">
+            <GoogleAuthButton
+              label="Daftar dengan Google"
+              onClick={() => {
+                window.location.href = "http://localhost:5000/api/auth/google";
+              }}
+            />
+          </div>
 
           {/* DIVIDER */}
           <div className="relative my-5 sm:my-6 flex items-center justify-center">
@@ -186,7 +253,7 @@ const Register = () => {
         </p>
       </div>
 
-      {/* RIGHT COLUMN: BRAND BANNER (WARNA PRIMARY) */}
+      {/* RIGHT COLUMN: BRAND BANNER */}
       <AuthBrandPanel />
     </AuthCard>
   );

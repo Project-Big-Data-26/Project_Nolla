@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 
-const TopHeader = ({ userName = "Putri Yuni" }) => {
+const TopHeader = ({ userName = "User" }) => {
   // Menentukan sapaan waktu otomatis (Morning, Afternoon, Evening, Night)
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -15,7 +15,7 @@ const TopHeader = ({ userName = "Putri Yuni" }) => {
     const rawName = (
       localStorage.getItem("user_name") ||
       userName ||
-      "Putri Yuni"
+      "User"
     ).trim();
     return rawName.endsWith("!") ? rawName : `${rawName}!`;
   }, [userName]);
@@ -23,31 +23,31 @@ const TopHeader = ({ userName = "Putri Yuni" }) => {
   return (
     <section
       id="top-header-section"
-      className="w-full relative overflow-hidden bg-gradient-to-r from-[#eaf3fe] via-[#edf5fe] to-[#e5eefc] border-b border-[#d6e5fb] pt-3.5 sm:pt-4 pb-0 mb-6 shadow-2xs"
+      className="w-full relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#eaf3fe] via-[#edf5fe] to-[#e5eefc] border-b border-[#d6e5fb] pt-3 sm:pt-5 md:pt-7 pb-0 mb-6 shadow-2xs"
     >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-6 relative z-10">
-        {/* BAGIAN 1: Rata kiri semua - sejajar presisi dengan ujung card di bawah */}
-        <div className="flex-1 min-w-0 pb-3.5 sm:pb-4">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 md:px-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 relative z-10">
+        {/* BAGIAN 1: TEKS HEADER (Rata kiri presisi dengan ruang vertikal yang lega) */}
+        <div className="flex-1 min-w-0 pb-6 sm:pb-8 md:pb-10">
           {/* Font sedang: Good {Morning/dll} */}
-          <div className="text-xs sm:text-sm font-semibold text-slate-700 flex items-center gap-1.5 mb-0.5">
+          <div className="text-xs sm:text-sm font-semibold text-slate-700 flex items-center gap-1.5 mb-1">
             <span>{greeting}</span>
           </div>
 
-          {/* Font besar: Nama pengguna disertai tanda seru di akhir */}
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#1d63ed] tracking-tight leading-tight my-0.5">
+          {/* Font besar: Nama pengguna */}
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1d63ed] tracking-tight leading-tight my-1">
             {formattedName}
           </h1>
 
-          {/* Font kecil: Stay update with your academy journey */}
-          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+          {/* Font kecil: Subtitle */}
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
             Stay update with your academy journey.
           </p>
         </div>
 
-        {/* BAGIAN 2: Buku, Pot Tanaman, dan Samar-samar Awan Biru (Rata kanan tapi agak ketengah, batas bawah buku pas di garis bawah card) */}
-        <div className="shrink-0 self-end flex items-end justify-center md:justify-end md:pr-8 lg:pr-14 -mb-px">
-          <div className="relative w-44 sm:w-56 md:w-60 h-16 sm:h-20 md:h-[82px] flex items-end justify-center">
-            {/* SVG Ilustrasi Buku, Pot Tanaman, dan Awan Biru Samar (batas bawah buku y=88 pas di garis dasar) */}
+        {/* BAGIAN 2: ILUSTRASI SVG (Proporsional tinggi mengikuti banner & menempel di dasar garis) */}
+        <div className="shrink-0 self-end flex items-end justify-center md:justify-end md:pr-6 lg:pr-10 -mb-px">
+          <div className="relative w-52 sm:w-64 md:w-72 h-20 sm:h-24 md:h-28 flex items-end justify-center">
+            {/* SVG Ilustrasi Buku, Pot Tanaman, dan Awan Biru */}
             <svg
               viewBox="0 10 245 78"
               className="w-full h-full overflow-visible select-none pointer-events-none block"
@@ -130,9 +130,8 @@ const TopHeader = ({ userName = "Putri Yuni" }) => {
                 />
               </g>
 
-              {/* POT TANAMAN (Di samping kiri buku) */}
+              {/* POT TANAMAN */}
               <g id="potted-plant">
-                {/* Daun-daun hijau tanaman */}
                 <path
                   d="M93 68C92 50 97 34 94 24C96 28 103 40 96 66"
                   fill="url(#plantLeaf)"
@@ -154,7 +153,6 @@ const TopHeader = ({ userName = "Putri Yuni" }) => {
                   fill="#22c55e"
                 />
 
-                {/* Pot Putih Minimalis Keramik */}
                 <rect
                   x="80"
                   y="68"
@@ -175,7 +173,6 @@ const TopHeader = ({ userName = "Putri Yuni" }) => {
 
               {/* TUMPUKAN BUKU */}
               <g id="book-stack">
-                {/* BUKU 1 (Bawah - Biru Tua) - Batas bawah tepat di y=88 */}
                 <g id="bottom-book">
                   <rect
                     x="126"
@@ -225,7 +222,6 @@ const TopHeader = ({ userName = "Putri Yuni" }) => {
                   />
                 </g>
 
-                {/* BUKU 2 (Tengah - Kuning/Amber) */}
                 <g id="middle-book">
                   <rect
                     x="132"
@@ -259,7 +255,6 @@ const TopHeader = ({ userName = "Putri Yuni" }) => {
                   />
                 </g>
 
-                {/* BUKU 3 (Atas - Biru Cerah dengan Bookmark Pita) */}
                 <g id="top-book">
                   <rect
                     x="137"

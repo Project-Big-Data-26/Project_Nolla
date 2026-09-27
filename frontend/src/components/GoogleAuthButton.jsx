@@ -1,14 +1,12 @@
 import React from "react";
 
 /**
- * Tombol OAuth Google (SVG logo 4-warna + label). Dipakai di Login.jsx dan
- * Register.jsx dengan markup yang identik persis, cuma beda teks label
- * ("Masuk dengan Google" vs "Daftar dengan Google") — jadi di-extract biar
- * gak nulis SVG yang sama dua kali.
+ * Tombol OAuth Google (SVG logo 4-warna + label). 
  */
-const GoogleAuthButton = ({ label }) => (
+const GoogleAuthButton = ({ label, onClick }) => (
     <button
         type="button"
+        onClick={onClick} // <-- INI YANG KURANG SEBELUMNYA! Wajib dipasang di sini.
         className="mt-5 sm:mt-6 flex w-full items-center justify-center gap-2.5 rounded-xl border border-neutral-border bg-neutral-card py-2.5 px-4 text-xs font-semibold text-neutral-text transition-colors hover:bg-neutral-bg cursor-pointer"
     >
         <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
