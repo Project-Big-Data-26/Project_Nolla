@@ -17,6 +17,7 @@ import VerifyEmail from "../pages/Auth/VerifyEmail";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
 import TopikDetail from "../pages/TopicDetailPage";
+import EditProfile from "../pages/EditProfile";
 
 const AppRoutes = () => {
   return (
@@ -28,6 +29,7 @@ const AppRoutes = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/quiz" element={<QuestionPage />} />
       <Route path="/profile" element={<PersonalizationProfile />} />
+      <Route path="/profile/edit" element={<EditProfile />} />
       <Route path="/topik" element={<Topics />} />
       <Route path="/topik/detail" element={<TopicDetailPage />} />
       <Route path="/login" element={<Login />} />

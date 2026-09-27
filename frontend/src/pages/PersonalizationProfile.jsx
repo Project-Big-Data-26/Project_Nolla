@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from 'react-router-dom'
 import Navbar from "../components/Navbar";
 import TopHeader from "../components/TopHeader";
 import SectionCard from "../components/SectionCard";
@@ -81,14 +82,22 @@ export default function PersonalizationProfile() {
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-white shadow-xs">
                         {user.name.charAt(0)}
                     </div>
-                    <div>
-                        <h2 className="font-heading text-xl md:text-2xl font-bold text-neutral-text">
-                            {user.name}
-                        </h2>
-                        <p className="text-xs text-neutral-muted mt-0.5">{user.email}</p>
-                        <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                            🎓 {user.level} · {user.track}
-                        </span>
+                    <div className="flex flex-1 items-center justify-between">
+                        <div>
+                            <h2 className="font-heading text-xl md:text-2xl font-bold text-neutral-text">
+                                {user.name}
+                            </h2>
+                            <p className="text-xs text-neutral-muted mt-0.5">{user.email}</p>
+                            <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                🎓 {user.level} · {user.track}
+                            </span>
+                        </div>
+                        <Link
+                            to="/profile/edit"
+                            className="rounded-xl border border-neutral-border px-4 py-2 text-sm font-medium text-neutral-text transition hover:border-primary"
+                        >
+                            Edit Profil
+                        </Link>
                     </div>
                 </div>
 
