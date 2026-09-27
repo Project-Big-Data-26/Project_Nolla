@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
+import { useAuth } from "../context/AuthContext";
 
-const TopHeader = ({ userName = "User" }) => {
+const TopHeader = () => {
+  const { user } = useAuth();
   // Menentukan sapaan waktu otomatis (Morning, Afternoon, Evening, Night)
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -12,13 +14,9 @@ const TopHeader = ({ userName = "User" }) => {
 
   // Format nama pengguna dengan tanda seru di akhir
   const formattedName = useMemo(() => {
-    const rawName = (
-      localStorage.getItem("user_name") ||
-      userName ||
-      "User"
-    ).trim();
+    const rawName = (user?.name || "User").trim();
     return rawName.endsWith("!") ? rawName : `${rawName}!`;
-  }, [userName]);
+  }, [user]);
 
   return (
     <section

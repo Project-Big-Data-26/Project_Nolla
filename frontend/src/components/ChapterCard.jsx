@@ -70,7 +70,7 @@ const ChapterCard = ({
           </div>
           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#f97316] rounded-full transition-all duration-500"
+              className="h-full bg-primary rounded-full transition-all duration-500"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
@@ -86,7 +86,7 @@ const ChapterCard = ({
             {!isPretestCompleted ? (
               <button
                 onClick={() => setPretestConfirmChapter(chapter)}
-                className="bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-bold px-5 py-2.5 rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-sm"
+                className="bg-primary hover:bg-primary-dark text-white text-xs font-bold px-5 py-2.5 rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-sm"
               >
                 <Play className="w-3.5 h-3.5 fill-white" />
                 <span>Mulai Pretest</span>

@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
-import { toast, Toaster } from "sonner"; // Import Sonner
+import { toast, Toaster } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
+import { useAuth } from "../../context/AuthContext"; // 1. IMPORT USEAUTH
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth(); // 2. AMBIL FUNGSI LOGIN DARI CONTEXT
+
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState({
@@ -18,22 +21,17 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    // Bersihkan banner error saat pengguna mengetik ulang
     if (errorMessage) setErrorMessage("");
-
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  // --- FUNGSI LOGIN GOOGLE ---
   const handleGoogleLogin = () => {
     window.location.href = "http://localhost:5000/api/auth/google";
   };
 
-  // --- FUNGSI LOGIN EMAIL ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -53,25 +51,30 @@ const Login = () => {
       const result = await response.json();
 
       if (response.ok && result.status === "success") {
-        // 1. Simpan token ke localStorage
-        localStorage.setItem("accessToken", result.data.accessToken);
-        localStorage.setItem("refreshToken", result.data.refreshToken);
+        // 3. PANGGIL FUNGSI LOGIN CONTEXT UNTUK MEMPERBARUI STATE GLOBAL & LOCALSTORAGE
+        // Pastikan parameter pertama adalah objek user, parameter kedua adalah token utama
+        const userData = result.data.user || { email: formData.email };
+        const token = result.data.accessToken;
 
-        // 2. Munculkan Toast Sonner
+        login(userData, token);
+
+        // Jika backend mengirim refreshToken, simpan juga ke localStorage
+        if (result.data.refreshToken) {
+          localStorage.setItem("refreshToken", result.data.refreshToken);
+        }
+
         toast.success("Login Berhasil!");
 
-        const isProfileComplete = result.data.user.isProfileComplete;
+        const isProfileComplete = result.data.user?.isProfileComplete;
 
-        // 3. Jeda singkat agar animasi toast terlihat halus sebelum navigasi
         setTimeout(() => {
           if (!isProfileComplete) {
             navigate("/personalization");
           } else {
-            navigate("/");
+            navigate("/topik");
           }
         }, 1200);
       } else {
-        // Tampilkan pesan error pada inline banner
         const msg =
           result.message || "Email atau password yang Anda masukkan salah.";
         setErrorMessage(msg);
@@ -91,13 +94,11 @@ const Login = () => {
 
   return (
     <AuthCard>
-      {/* Container Toaster Sonner di posisi kanan atas */}
       <Toaster position="top-center" richColors closeButton />
 
       {/* LEFT COLUMN: FORM LOGIN */}
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
-          {/* HEADER TEXT */}
           <div className="mt-2 sm:mt-4">
             <h1 className="font-heading text-xl sm:text-2xl font-bold text-neutral-text text-center">
               Masuk ke Akun Anda
@@ -107,7 +108,6 @@ const Login = () => {
             </p>
           </div>
 
-          {/* BANNER ERROR INLINE (Di atas tombol Google Auth) */}
           {errorMessage && (
             <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 animate-in fade-in duration-200">
               <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
@@ -115,7 +115,6 @@ const Login = () => {
             </div>
           )}
 
-          {/* GOOGLE OAUTH BUTTON */}
           <div className="mt-4">
             <GoogleAuthButton
               label="Masuk dengan Google"
@@ -123,7 +122,6 @@ const Login = () => {
             />
           </div>
 
-          {/* DIVIDER */}
           <div className="relative my-5 sm:my-6 flex items-center justify-center">
             <div className="w-full border-t border-neutral-border"></div>
             <span className="absolute bg-neutral-card px-3 text-[11px] text-neutral-muted">
@@ -131,9 +129,7 @@ const Login = () => {
             </span>
           </div>
 
-          {/* LOGIN FORM */}
           <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
-            {/* EMAIL FIELD */}
             <div>
               <div className="relative flex items-center">
                 <Mail className="absolute left-3.5 h-4 w-4 text-neutral-muted shrink-0" />
@@ -149,7 +145,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* PASSWORD FIELD */}
             <div>
               <div className="relative flex items-center">
                 <Lock className="absolute left-3.5 h-4 w-4 text-neutral-muted shrink-0" />
@@ -176,7 +171,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* REMEMBER ME & FORGOT PASSWORD */}
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
@@ -198,7 +192,6 @@ const Login = () => {
               </Link>
             </div>
 
-            {/* SUBMIT BUTTON */}
             <button
               type="submit"
               className="mt-2 w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-hover cursor-pointer"
@@ -208,7 +201,6 @@ const Login = () => {
           </form>
         </div>
 
-        {/* FOOTER TEXT */}
         <p className="mt-6 sm:mt-8 text-center text-xs text-neutral-muted">
           Belum memiliki akun?{" "}
           <Link
@@ -220,7 +212,6 @@ const Login = () => {
         </p>
       </div>
 
-      {/* RIGHT COLUMN: BRAND BANNER */}
       <AuthBrandPanel />
     </AuthCard>
   );

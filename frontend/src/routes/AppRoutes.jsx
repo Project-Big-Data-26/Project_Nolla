@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
 
 // Import Pages
 import Login from "../pages/Auth/Login";
@@ -25,32 +26,32 @@ import ResultPage from "../pages/Student/ResultPage";
 const AppRoutes = () => {
   return (
     <Routes>
-      {/*Auth Route */}
+      {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset" element={<ResetPassword />} />
 
-      {/*Personalization Route */}
-      <Route path="/personalization" element={<PersonalizationWizard />} />
+      {/* Protected Student Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/personalization" element={<PersonalizationWizard />} />
 
-      {/*Dashboard Student Role */}
-      <Route path="/" element={<Navigate to="/topik" replace />} />
-      <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
-      <Route path="/topik" element={<Topics />} />
-      <Route path="/profile" element={<PersonalizationProfile />} />
+        <Route path="/" element={<Navigate to="/topik" replace />} />
+        <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
+        <Route path="/topik" element={<Topics />} />
+        <Route path="/profile" element={<PersonalizationProfile />} />
 
-      <Route path="/quiz" element={<QuestionPage />} />
-      <Route path="/review-quiz" element={<QuestionReviewPage />} />
+        <Route path="/quiz" element={<QuestionPage />} />
+        <Route path="/review-quiz" element={<QuestionReviewPage />} />
 
-      {/*Route gk kepake */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/evaluasi" element={<EvaluationPage />} />
-      <Route path="/result" element={<ResultPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/evaluasi" element={<EvaluationPage />} />
+        <Route path="/result" element={<ResultPage />} />
+      </Route>
 
-      {/* Fallback 404 / Route Tidak Ditemukan */}
+      {/* Single Fallback 404 */}
       <Route
         path="*"
         element={
