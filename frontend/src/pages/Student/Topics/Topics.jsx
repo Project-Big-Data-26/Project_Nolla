@@ -183,18 +183,43 @@ const Topics = () => {
 
   const executeCompletePretest = (chapter) => {
     const simulatedScore = 85;
-    const correct = Math.round((simulatedScore / 100) * 15);
-    const wrong = 15 - correct;
+    const totalQuestions = 15;
+    const correct = Math.round((simulatedScore / 100) * totalQuestions);
+    const wrong = totalQuestions - correct;
     const newResult = {
       score: simulatedScore,
       correctCount: correct,
       wrongCount: wrong,
+      totalQuestions,
       duration: "14 Menit 20 Detik",
-      breakdown: (chapter.subbab || chapter.subtopics || []).map((s, idx) => ({
-        subtopic: s.name,
-        status: idx % 2 === 0 ? "Kuasai" : "Perlu Latihan",
-        score: idx % 2 === 0 ? "90%" : "65%",
-      })),
+      prerequisites:
+        chapter.hasPrerequisite && chapter.prerequisiteName
+          ? [
+              {
+                name: chapter.prerequisiteName,
+                status: chapter.prerequisiteCompleted
+                  ? "Terpenuhi"
+                  : "Tidak Terpenuhi",
+              },
+            ]
+          : [
+              {
+                name: `Fondasi Pemahaman ${chapter.name}`,
+                status: "Terpenuhi",
+              },
+            ],
+      breakdown: (chapter.subbab || chapter.subtopics || []).map((s, idx) => {
+        const elo = idx % 2 === 0 ? 1280 : 910;
+        const difficulty = elo >= 1200 ? "Hard" : elo >= 800 ? "Medium" : "Easy";
+        return {
+          subtopic: s.name,
+          elo,
+          maxElo: 1400,
+          difficulty,
+          status: idx % 2 === 0 ? "Kuasai" : "Perlu Latihan",
+          score: idx % 2 === 0 ? "90%" : "65%",
+        };
+      }),
       recommendation: `Berdasarkan hasil pretest diagnostik, kamu siap mempelajari materi bab ${chapter.name}. Direkomendasikan memulai dari subbab pertama untuk memperkuat fondasi konsep.`,
     };
 
@@ -215,6 +240,7 @@ const Topics = () => {
 
     setActivePretestResult({
       chapterName: chapter.name,
+      chapter: chapter,
       result: newResult,
     });
   };
