@@ -30,7 +30,7 @@ const soalSchema = new mongoose.Schema(
     image_url: { type: [String], default: [] },
     soal_type: { type: String, default: "multiple_choice" },
     options: { type: [optionSchema], default: [] },
-    correct_answer: { type: String, required: true },
+    jawaban: { type: String, required: true },
     cognitive_level: { type: String, enum: ["easy", "medium", "hard"] },
     cognitive_score: { type: Number },
     status: { type: String, default: "active" },

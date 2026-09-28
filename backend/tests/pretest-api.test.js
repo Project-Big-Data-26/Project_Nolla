@@ -196,15 +196,15 @@ const run = async () => {
     review.body.data.questions.every(
       (item) =>
         typeof item.selected_answer === "string" &&
-        typeof item.correct_answer === "string" &&
+        typeof item.jawaban === "string" &&
         typeof item.is_correct === "boolean" &&
-        item.options.some((option) => option.option_id === item.correct_answer),
+        item.options.some((option) => option.option_id === item.jawaban),
     ),
     "Review harus menyertakan jawaban pengguna, kunci, dan status yang valid",
   );
   assert.ok(
     review.body.data.questions.every(
-      (item) => item.is_correct === (item.selected_answer === item.correct_answer),
+      (item) => item.is_correct === (item.selected_answer === item.jawaban),
     ),
     "Status jawaban review harus konsisten dengan jawaban benar",
   );

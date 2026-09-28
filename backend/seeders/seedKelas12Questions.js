@@ -50,7 +50,7 @@ const buildQuestion = ({
   kelas_id,
   soal_text,
   options,
-  correct_answer,
+  jawaban,
   cognitive_score,
 }) => ({
   subbab_id,
@@ -62,7 +62,7 @@ const buildQuestion = ({
     option_id: option.option_id,
     text: option.text,
   })),
-  correct_answer,
+  jawaban,
   cognitive_score,
   cognitive_level:
     cognitive_score >= 1400
@@ -102,7 +102,7 @@ const buildKelas12SubbabQuestions = (
         `1/${order + 2}`, // C
         `1/${2 * order + 5}`, // D
       ]),
-      correct_answer: "B",
+      jawaban: "B",
       cognitive_score: easyScore,
     }),
     // 1 Soal Medium
@@ -116,7 +116,7 @@ const buildKelas12SubbabQuestions = (
         `${9 * order}`, // C
         `${order / 2}`, // D
       ]),
-      correct_answer: "B",
+      jawaban: "B",
       cognitive_score: mediumScore,
     }),
     // 1 Soal Hard
@@ -130,7 +130,7 @@ const buildKelas12SubbabQuestions = (
         "7/13", // C
         "1/2", // D
       ]),
-      correct_answer: "B",
+      jawaban: "B",
       cognitive_score: hardScore,
     }),
   ];
@@ -258,7 +258,7 @@ const buildPrerequisiteQuestions = ({
       options: makeChoiceSet(
         moveCorrectAnswerToOptionB(question.options, question.answer),
       ),
-      correct_answer: "B",
+      jawaban: "B",
       cognitive_score: 1250 + index * 50,
     }),
   );

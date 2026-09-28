@@ -875,8 +875,7 @@ const answerPretestQuestion = async (req, res) => {
       }
     }
 
-    const isCorrect =
-      String(question.correct_answer) === String(selected_answer);
+    const isCorrect = String(question.jawaban) === String(selected_answer);
     const answerSequence = await PertanyaanPretest.countDocuments({
       pretest_id: pretestId,
     });
@@ -1193,19 +1192,6 @@ const getPretestResult = async (req, res) => {
         "subbab_id current_cognitive_level current_cognitive_score pretest_subbab_correct pretest_subbab_total updated_at",
       )
       .lean();
-    const difficultySnapshot = pretest.difficulty_snapshot?.length
-      ? pretest.difficulty_snapshot
-      : difficultyRecords.map((record) => {
-          const pretestDifficulty = getSubbabDifficultyFromPerformance(
-            record.pretest_subbab_correct,
-            record.pretest_subbab_total,
-          );
-          return {
-            ...record,
-            current_cognitive_level: pretestDifficulty.difficulty,
-            current_cognitive_score: pretestDifficulty.score,
-          };
-        });
     const difficultyMap = new Map(
       difficultyRecords.map((record) => [record.subbab_id.toString(), record]),
     );

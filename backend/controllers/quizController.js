@@ -359,7 +359,7 @@ const submitQuiz = async (req, res) => {
         answer?.selected_option ?? answer?.selected_answer ?? null;
       const isCorrect =
         selectedAnswer !== null &&
-        String(selectedAnswer) === String(question.correct_answer);
+        String(selectedAnswer) === String(question.jawaban);
       const questionRating = getQuestionRating(question);
       const expectedScore = calculateExpectedScore(
         studentRating,
@@ -514,29 +514,35 @@ const getQuizReview = async (req, res) => {
       const question = questionById.get(answer.soal_id.toString());
       if (!question) return [];
 
-      return [{
-        question_id: question._id.toString(),
-        sequence: sequence + 1,
-        subbab_id: question.subbab_id.toString(),
-        question_text: question.soal_text,
-        soal_type: question.soal_type || null,
-        options: Array.isArray(question.options)
-          ? question.options.map((option) => ({
-              option_id: option.option_id,
-              text: option.text,
-            }))
-          : [],
-        image_url: Array.isArray(question.image_url) ? question.image_url : [],
-        cognitive_level: getQuestionDifficulty(question),
-        cognitive_score: getQuestionRating(question),
-        selected_answer: answer.pilihan_jawaban,
-        correct_answer: question.correct_answer,
-        is_correct: Boolean(answer.is_correct),
-        response_time: answer.response_time ?? null,
-      }];
+      return [
+        {
+          question_id: question._id.toString(),
+          sequence: sequence + 1,
+          subbab_id: question.subbab_id.toString(),
+          question_text: question.soal_text,
+          soal_type: question.soal_type || null,
+          options: Array.isArray(question.options)
+            ? question.options.map((option) => ({
+                option_id: option.option_id,
+                text: option.text,
+              }))
+            : [],
+          image_url: Array.isArray(question.image_url)
+            ? question.image_url
+            : [],
+          cognitive_level: getQuestionDifficulty(question),
+          cognitive_score: getQuestionRating(question),
+          selected_answer: answer.pilihan_jawaban,
+          jawaban: question.jawaban,
+          is_correct: Boolean(answer.is_correct),
+          response_time: answer.response_time ?? null,
+        },
+      ];
     });
 
-    const correctCount = reviewQuestions.filter((item) => item.is_correct).length;
+    const correctCount = reviewQuestions.filter(
+      (item) => item.is_correct,
+    ).length;
 
     return res.status(200).json({
       statusCode: 200,
