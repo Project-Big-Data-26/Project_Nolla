@@ -36,10 +36,16 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-        jenjangId: {
+    jenjang_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Jenjang",
       default: null,
+    },
+
+    role: {
+      type: String,
+      enum: ["Siswa", "Guru", "Admin"],
+      default: "Siswa",
     },
   },
   {

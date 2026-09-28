@@ -53,13 +53,11 @@ const TopicModals = ({
             <div className="flex flex-col sm:flex-row gap-2.5">
               <button
                 onClick={() => {
-                  const chap = pretestConfirmChapter;
-                  setPretestConfirmChapter(null);
-                  executeCompletePretest(chap);
+                  executeCompletePretest(pretestConfirmChapter);
                 }}
                 className="flex-1 py-2.5 px-4 bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>Mulai Pretest Sekarang</span>
+                <span>Mulai atau Lanjutkan Pretest</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
               <button
@@ -104,7 +102,10 @@ const TopicModals = ({
                   Skor Pretest
                 </p>
                 <p className="text-xl font-extrabold text-primary mt-0.5">
-                  {activePretestResult.result?.score || 85}
+                  {activePretestResult.result?.score === null ||
+                  activePretestResult.result?.score === undefined
+                    ? "-"
+                    : `${activePretestResult.result.score}%`}
                 </p>
               </div>
               <div>
@@ -113,21 +114,63 @@ const TopicModals = ({
                 </p>
                 <p className="text-sm font-bold text-slate-800 mt-1">
                   <span className="text-emerald-600">
-                    {activePretestResult.result?.correctCount || 13}
+                    {activePretestResult.result?.correctCount ?? 0}
                   </span>{" "}
                   /{" "}
                   <span className="text-red-500">
-                    {activePretestResult.result?.wrongCount || 2}
+                    {activePretestResult.result?.wrongCount ?? 0}
                   </span>
                 </p>
               </div>
               <div>
                 <p className="text-[11px] text-slate-500 font-medium">Durasi</p>
                 <p className="text-xs font-bold text-slate-800 mt-1.5">
-                  {activePretestResult.result?.duration || "14 Menit"}
+                  {activePretestResult.result?.duration ?? "-"}
                 </p>
               </div>
             </div>
+
+            {Array.isArray(
+              activePretestResult.result?.prerequisiteBreakdown,
+            ) && (
+              <div className="mb-5">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">
+                  Breakdown Materi Prasyarat
+                </h4>
+                <div className="space-y-2">
+                  {activePretestResult.result.prerequisiteBreakdown.length ? (
+                    activePretestResult.result.prerequisiteBreakdown.map(
+                      (item, idx) => {
+                        const isMet = item.status === "terpenuhi";
+                        return (
+                          <div
+                            key={`${item.name}-${idx}`}
+                            className="flex items-center justify-between p-2.5 bg-slate-50/80 rounded-xl border border-slate-200 text-xs"
+                          >
+                            <span className="font-semibold text-slate-700">
+                              {item.name}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                isMet
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : "bg-amber-50 text-amber-700 border border-amber-200"
+                              }`}
+                            >
+                              {isMet ? "Terpenuhi" : "Tidak terpenuhi"}
+                            </span>
+                          </div>
+                        );
+                      },
+                    )
+                  ) : (
+                    <p className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 text-xs text-slate-500">
+                      Tidak ada materi prasyarat untuk bab ini.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {activePretestResult.result?.breakdown && (
               <div className="mb-5">

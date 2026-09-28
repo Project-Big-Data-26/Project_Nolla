@@ -8,7 +8,10 @@ const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
 const authRoutes = require("./routes/authRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 const personalizationRoutes = require("./routes/personalizationRoutes");
+const pretestRoutes = require("./routes/pretestRoutes");
+const quizRoutes = require("./routes/quizRoutes");
 
 const app = express();
 
@@ -18,6 +21,9 @@ app.use(cookieParser());
 app.use("/api/personalization", personalizationRoutes);
 // --- AUTH ROUTES ---
 app.use("/api/auth", authRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/pretest", pretestRoutes);
+app.use("/api/quiz", quizRoutes);
 
 // --- SWAGGER SETUP ---
 const swaggerOptions = {
@@ -27,6 +33,15 @@ const swaggerOptions = {
       title: "E-Learning API",
       version: "1.0.0",
       description: "Dokumentasi API untuk Proyek Big Data E-Learning",
+    },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
     },
     servers: [
       {

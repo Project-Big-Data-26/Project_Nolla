@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check, X } from "lucide-react";
 import Navbar from "../../components/Navbar";
+import API from "../../api/axios";
 
 import smaIcon from "../../assets/icon/SMA.png";
 
@@ -62,17 +63,193 @@ const reviewQuestions = [
   },
 ];
 
+const readPretestReview = (sessionId) => {
+  if (!sessionId) return null;
+  try {
+    const stored = sessionStorage.getItem(`pretest-review:${sessionId}`);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+};
+
+const formatResponseTime = (value) => {
+  if (
+    value === null ||
+    value === undefined ||
+    !Number.isFinite(Number(value))
+  ) {
+    return "-";
+  }
+
+  const seconds = Math.max(0, Math.floor(Number(value)));
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+};
+
 const QuestionReviewPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get("sessionId");
+  const reviewMode = searchParams.get("mode") === "quiz" ? "quiz" : "pretest";
+  const routeTopicName =
+    searchParams.get("topicName") ||
+    searchParams.get("chapterName") ||
+    (reviewMode === "quiz" ? "Kuis Subbab" : "Pretest");
+  const [pretestReview] = useState(() =>
+    reviewMode === "pretest" ? readPretestReview(sessionId) : null,
+  );
+  const [reviewData, setReviewData] = useState(pretestReview);
+  const [reviewLoading, setReviewLoading] = useState(Boolean(sessionId));
+  const [reviewError, setReviewError] = useState("");
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [showQuizResult, setShowQuizResult] = useState(false);
 
-  const question = reviewQuestions[currentQuestion];
+  useEffect(() => {
+    if (!sessionId) {
+      setReviewLoading(false);
+      return undefined;
+    }
+
+    let isCurrent = true;
+    const reviewEndpoint =
+      reviewMode === "quiz"
+        ? `/quiz/${sessionId}/review`
+        : `/pretest/${sessionId}/review`;
+
+    API.get(reviewEndpoint)
+      .then((response) => {
+        if (!isCurrent) return;
+        const data = response.data.data;
+        setReviewData({
+          mode: reviewMode,
+          sessionId: String(data.pretest_id || data.session_id),
+          babId: data.bab_id ? String(data.bab_id) : null,
+          subbabId: data.subbab_id ? String(data.subbab_id) : null,
+          name: pretestReview?.name || routeTopicName,
+          score: data.score,
+          correct_answers: data.correct_answers ?? data.correct_count ?? 0,
+          wrong_answers:
+            data.wrong_answers ??
+            data.wrong_count ??
+            Math.max(
+              0,
+              (data.total_questions || 0) - (data.correct_count || 0),
+            ),
+          duration: data.duration,
+          questions: (data.questions || []).map((item) => ({
+            sequence: item.sequence,
+            question: {
+              id: String(item.question_id),
+              stage: item.stage || null,
+              text: item.question_text || "",
+              images: Array.isArray(item.image_url) ? item.image_url : [],
+              options: (item.options || []).map((option) => ({
+                id: String(option.option_id),
+                text: option.text,
+              })),
+            },
+            selectedAnswer: item.selected_answer,
+            correctAnswer: item.correct_answer,
+            isCorrect: item.is_correct,
+            responseTime: item.response_time,
+          })),
+        });
+        setReviewError("");
+      })
+      .catch((error) => {
+        if (isCurrent) {
+          setReviewError(
+            error.response?.data?.message || "Review pretest gagal dimuat.",
+          );
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setReviewLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [sessionId, reviewMode, routeTopicName, pretestReview?.name]);
+
+  const questionsToReview = useMemo(() => {
+    if (!reviewData) return reviewQuestions;
+
+    return (reviewData.questions || []).map((item) => ({
+      id: item.question.id,
+      level: item.question.stage || "Pretest",
+      topic: reviewData.name || "Pretest",
+      question: item.question.text,
+      image: item.question.images?.[0] || null,
+      options: item.question.options.map((option) => ({
+        label: option.id,
+        value: option.text,
+      })),
+      correctAnswer: item.correctAnswer ?? item.question.correct_answer ?? null,
+      userAnswer: item.selectedAnswer,
+      isCorrect: item.isCorrect ?? null,
+      timeSpent: formatResponseTime(item.responseTime),
+      solution: "",
+    }));
+  }, [reviewData]);
+
+  if (sessionId && reviewLoading && !reviewData) {
+    return (
+      <div className="flex min-h-screen bg-neutral-bg">
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center p-6">
+          <p className="text-sm font-semibold text-slate-600">
+            Memuat review pretest...
+          </p>
+        </main>
+      </div>
+    );
+  }
+
+  if (sessionId && reviewError && !reviewData) {
+    return (
+      <div className="flex min-h-screen bg-neutral-bg">
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center p-6">
+          <section className="max-w-md rounded-2xl border border-red-200 bg-white p-5">
+            <p role="alert" className="text-sm text-red-700">
+              {reviewError}
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/topik")}
+              className="mt-4 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
+            >
+              Kembali ke topik
+            </button>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  const question = questionsToReview[currentQuestion];
   const hasImage = Boolean(question.image);
-  const isLastQuestion = currentQuestion === reviewQuestions.length - 1;
+  const isLastQuestion = currentQuestion === questionsToReview.length - 1;
 
   const handleNext = () => {
     if (isLastQuestion) {
-      navigate("/student/result");
+      if (reviewData) {
+        if (reviewMode === "quiz") {
+          setShowQuizResult(true);
+          return;
+        } else {
+          const query = new URLSearchParams({
+            pretestResultId: reviewData.sessionId,
+            babId: reviewData.babId || "",
+            chapterName: reviewData.name || "Pretest",
+          });
+          navigate(`/topik?${query.toString()}`);
+        }
+      } else {
+        navigate("/student/result");
+      }
     } else {
       setCurrentQuestion(currentQuestion + 1);
     }
@@ -84,8 +261,73 @@ const QuestionReviewPage = () => {
     }
   };
 
+  if (showQuizResult && reviewData && reviewMode === "quiz") {
+    const totalQuestions =
+      reviewData.total_questions || questionsToReview.length;
+    const correctCount = reviewData.correct_answers ?? 0;
+    const wrongCount =
+      reviewData.wrong_answers ?? Math.max(0, totalQuestions - correctCount);
+    const scorePercentage = totalQuestions
+      ? Math.round((correctCount / totalQuestions) * 100)
+      : 0;
+
+    return (
+      <div className="flex min-h-screen bg-neutral-bg">
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center p-5 pb-24 md:pb-5">
+          <section className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <p className="text-xs font-bold uppercase text-primary">
+              Hasil Quiz
+            </p>
+            <h1 className="mt-2 text-2xl font-extrabold text-slate-900">
+              {reviewData.name || "Kuis Subbab"}
+            </h1>
+            <div className="mt-6 grid grid-cols-3 gap-3 text-center">
+              <div className="rounded-xl bg-slate-50 p-3">
+                <p className="text-xs text-slate-500">Skor</p>
+                <p className="mt-1 text-xl font-extrabold text-primary">
+                  {scorePercentage}%
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3">
+                <p className="text-xs text-slate-500">Benar / Salah</p>
+                <p className="mt-1 text-sm font-bold text-slate-800">
+                  <span className="text-emerald-700">{correctCount}</span>
+                  {" / "}
+                  <span className="text-rose-700">{wrongCount}</span>
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3">
+                <p className="text-xs text-slate-500">Durasi</p>
+                <p className="mt-1 font-mono text-sm font-bold text-slate-800">
+                  {formatResponseTime(reviewData.duration)}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setShowQuizResult(false)}
+                className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
+              >
+                Lihat Review Jawaban
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/topik")}
+                className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-hover"
+              >
+                Kembali ke Topik
+              </button>
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen max-h-screen w-full bg-[#f8fafc] font-sans overflow-hidden">
+    <div className="flex h-screen max-h-screen w-full bg-neutral-bg font-sans overflow-hidden">
       <Navbar />
 
       <main className="flex-1 flex flex-col p-3 sm:p-5 md:p-6 pb-20 md:pb-6 overflow-y-auto md:overflow-hidden">
@@ -93,8 +335,10 @@ const QuestionReviewPage = () => {
           {/* HEADER TOP */}
           <div className="flex items-center justify-between gap-2 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-100 shrink-0">
             <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 px-1">
-              {reviewQuestions.map((q, idx) => {
-                const isCorrect = q.userAnswer === q.correctAnswer;
+              {questionsToReview.map((q, idx) => {
+                const isCorrect = reviewData
+                  ? q.isCorrect === true
+                  : q.userAnswer === q.correctAnswer;
                 const isActive = idx === currentQuestion;
 
                 const badgeBg = isCorrect
@@ -121,8 +365,10 @@ const QuestionReviewPage = () => {
               <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase tracking-wider">
                 WAKTU PENGERJAAN
               </span>
-              <span className="text-xs sm:text-sm font-extrabold text-slate-700 font-mono leading-none sm:leading-normal">
-                {question.timeSpent}
+              <span className="text-right text-[10px] font-extrabold leading-tight text-slate-700 sm:text-sm">
+                {reviewData
+                  ? formatResponseTime(reviewData.duration)
+                  : question.timeSpent}
               </span>
             </div>
           </div>
@@ -154,17 +400,31 @@ const QuestionReviewPage = () => {
                   <div className="flex flex-col space-y-2.5 sm:space-y-3 justify-center flex-1">
                     {question.options.map((opt) => {
                       const isCorrectAnswer =
-                        opt.label === question.correctAnswer;
+                        question.correctAnswer !== null &&
+                        question.correctAnswer !== undefined
+                          ? opt.label === String(question.correctAnswer)
+                          : question.isCorrect === undefined
+                            ? opt.label === question.correctAnswer
+                            : question.isCorrect === true &&
+                              opt.label === question.userAnswer;
                       const isUserWrongAnswer =
-                        opt.label === question.userAnswer && !isCorrectAnswer;
+                        question.isCorrect === undefined
+                          ? opt.label === question.userAnswer &&
+                            !isCorrectAnswer
+                          : question.isCorrect === false &&
+                            opt.label === question.userAnswer;
 
                       let btnStyle =
                         "bg-slate-50/80 text-slate-700 border-slate-100";
                       let badgeStyle = "bg-slate-200/60 text-slate-600";
 
                       if (isCorrectAnswer) {
-                        btnStyle = "bg-primary text-white";
-                        badgeStyle = "bg-white text-primary";
+                        btnStyle = reviewData
+                          ? "bg-emerald-600 text-white"
+                          : "bg-primary text-white";
+                        badgeStyle = reviewData
+                          ? "bg-white text-emerald-700"
+                          : "bg-white text-primary";
                       } else if (isUserWrongAnswer) {
                         btnStyle = "bg-rose-500 text-white";
                         badgeStyle = "bg-white text-rose-500";
@@ -212,7 +472,7 @@ const QuestionReviewPage = () => {
                       type="button"
                       onClick={handlePrev}
                       disabled={currentQuestion === 0}
-                      className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Sebelumnya
                     </button>
@@ -222,7 +482,13 @@ const QuestionReviewPage = () => {
                       onClick={handleNext}
                       className="flex items-center justify-center gap-1.5 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-primary text-white font-bold text-xs sm:text-sm hover:bg-primary-hover transition-all cursor-pointer"
                     >
-                      {isLastQuestion ? "Lihat Hasil" : "Selanjutnya"}
+                      {isLastQuestion
+                        ? reviewMode === "quiz"
+                          ? "Lihat Hasil"
+                          : reviewData
+                            ? "Kembali ke Topik"
+                            : "Lihat Hasil"
+                        : "Selanjutnya"}
                     </button>
                   </div>
                 </div>
@@ -240,17 +506,31 @@ const QuestionReviewPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-4">
                     {question.options.map((opt) => {
                       const isCorrectAnswer =
-                        opt.label === question.correctAnswer;
+                        question.correctAnswer !== null &&
+                        question.correctAnswer !== undefined
+                          ? opt.label === String(question.correctAnswer)
+                          : question.isCorrect === undefined
+                            ? opt.label === question.correctAnswer
+                            : question.isCorrect === true &&
+                              opt.label === question.userAnswer;
                       const isUserWrongAnswer =
-                        opt.label === question.userAnswer && !isCorrectAnswer;
+                        question.isCorrect === undefined
+                          ? opt.label === question.userAnswer &&
+                            !isCorrectAnswer
+                          : question.isCorrect === false &&
+                            opt.label === question.userAnswer;
 
                       let btnStyle =
                         "bg-slate-50/80 text-slate-700 border-slate-100";
                       let badgeStyle = "bg-slate-200/60 text-slate-600";
 
                       if (isCorrectAnswer) {
-                        btnStyle = "bg-primary text-white";
-                        badgeStyle = "bg-white text-primary";
+                        btnStyle = reviewData
+                          ? "bg-emerald-600 text-white"
+                          : "bg-primary text-white";
+                        badgeStyle = reviewData
+                          ? "bg-white text-emerald-700"
+                          : "bg-white text-primary";
                       } else if (isUserWrongAnswer) {
                         btnStyle = "bg-rose-500 text-white";
                         badgeStyle = "bg-white text-rose-500";
@@ -298,7 +578,7 @@ const QuestionReviewPage = () => {
                       type="button"
                       onClick={handlePrev}
                       disabled={currentQuestion === 0}
-                      className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Sebelumnya
                     </button>
@@ -308,7 +588,13 @@ const QuestionReviewPage = () => {
                       onClick={handleNext}
                       className="flex items-center justify-center gap-1.5 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-primary text-white font-bold text-xs sm:text-sm hover:bg-primary-hover transition-all cursor-pointer"
                     >
-                      {isLastQuestion ? "Lihat Hasil" : "Selanjutnya"}
+                      {isLastQuestion
+                        ? reviewMode === "quiz"
+                          ? "Lihat Hasil"
+                          : reviewData
+                            ? "Kembali ke Topik"
+                            : "Lihat Hasil"
+                        : "Selanjutnya"}
                     </button>
                   </div>
                 </div>

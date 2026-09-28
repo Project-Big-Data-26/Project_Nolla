@@ -23,7 +23,7 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
               Sedang Dipelajari
             </span>
           ),
-          buttonText: "Lanjutkan",
+          buttonText: "Mulai",
           buttonClass:
             "bg-primary hover:bg-primary-hover text-white shadow-xs font-semibold",
         };
@@ -35,7 +35,7 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
               Prasyarat Disarankan
             </span>
           ),
-          buttonText: "Mulai Belajar",
+          buttonText: "Mulai",
           buttonClass:
             "bg-amber-500 hover:bg-amber-600 text-white shadow-xs font-semibold",
         };
@@ -46,7 +46,7 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
               Belum Dimulai
             </span>
           ),
-          buttonText: "Mulai Belajar",
+          buttonText: "Mulai",
           buttonClass:
             "bg-white hover:bg-slate-50 text-primary border border-primary/30 hover:border-primary font-semibold",
         };
@@ -56,6 +56,9 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
   const { badge, buttonText, buttonClass } = renderStatusAndAction(
     subbab.status,
   );
+  const difficultyLevel = subbab.current_cognitive_level || "medium";
+  const eloThreshold =
+    ({ easy: 600, medium: 1000, hard: 1400 })[difficultyLevel] ?? 1000;
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-300 transition-all shadow-2xs">
@@ -75,6 +78,10 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
 
         <p className="text-xs text-slate-500 leading-relaxed mt-0.5">
           {subbab.description}
+        </p>
+
+        <p className="mt-1 text-[11px] font-semibold text-slate-500">
+          Level {difficultyLevel} · Ambang Elo {eloThreshold}
         </p>
 
         {subbab.status === "needs_prerequisite" && (

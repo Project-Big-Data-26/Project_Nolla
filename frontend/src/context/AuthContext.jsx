@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext(null);
 
@@ -19,6 +19,23 @@ export const AuthProvider = ({ children }) => {
       localStorage.getItem("accessToken") || localStorage.getItem("token");
     return savedToken && savedToken !== "undefined" ? savedToken : null;
   });
+
+  useEffect(() => {
+    const handleTokenRefresh = () => {
+      setToken(localStorage.getItem("accessToken"));
+    };
+    const handleSessionExpiry = () => {
+      setUser(null);
+      setToken(null);
+    };
+
+    window.addEventListener("auth:refreshed", handleTokenRefresh);
+    window.addEventListener("auth:expired", handleSessionExpiry);
+    return () => {
+      window.removeEventListener("auth:refreshed", handleTokenRefresh);
+      window.removeEventListener("auth:expired", handleSessionExpiry);
+    };
+  }, []);
 
   const login = (userData, authToken) => {
     setUser(userData);

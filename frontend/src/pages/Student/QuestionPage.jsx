@@ -1,291 +1,943 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Check, LockKeyhole } from "lucide-react";
 import Navbar from "../../components/Navbar";
+import API from "../../api/axios";
 
-import smaIcon from "../../assets/icon/SMA.png";
+const readSessionValue = (key, fallback) => {
+  try {
+    const value = sessionStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
-const questions = [
-  {
-    id: 1,
-    level: "Intermediate",
-    topic: "Geometri",
-    question: "Berapa panjang sisi AB dari segitiga di bawah ini?",
-    image: smaIcon, // Ada Gambar
-    options: [
-      { label: "A", value: "6√2" },
-      { label: "B", value: "3√2" },
-      { label: "C", value: "12√2" },
-      { label: "D", value: "3" },
-    ],
-    answer: "B",
-    solution: "Menggunakan aturan sinus: AB / sin(C) = BC / sin(A)...",
-  },
-  {
-    id: 2,
-    level: "Beginner",
-    topic: "Aljabar",
-    question: "Berapakah nilai x jika x + 5 = 12?",
-    image: null, // Tanpa Gambar
-    options: [
-      { label: "A", value: "5" },
-      { label: "B", value: "6" },
-      { label: "C", value: "7" },
-      { label: "D", value: "8" },
-    ],
-    answer: "C",
-    solution: "Kurangi 5 dari kedua sisi: x = 12 - 5 = 7.",
-  },
-  {
-    id: 3,
-    level: "Beginner",
-    topic: "Pecahan",
-    question: "Hitunglah hasil dari ½ + ¼",
-    image: null, // Tanpa Gambar
-    options: [
-      { label: "A", value: "¾" },
-      { label: "B", value: "⅙" },
-      { label: "C", value: "⅔" },
-      { label: "D", value: "½" },
-    ],
-    answer: "A",
-    solution: "Samakan penyebut menjadi 4: 2/4 + 1/4 = 3/4.",
-  },
-];
+const normalizeQuestion = (question) => ({
+  id: String(question.question_id || question._id),
+  text: question.question_text || question.soal_text || "",
+  stage: question.stage || null,
+  options: (question.options || []).map((option) => ({
+    id: String(option.option_id ?? option.label ?? option.text),
+    text: option.text ?? option.value ?? "",
+  })),
+  images: Array.isArray(question.image_url)
+    ? question.image_url
+    : question.image_url
+      ? [question.image_url]
+      : [],
+});
 
 const QuestionPage = () => {
   const navigate = useNavigate();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get("mode") === "pretest" ? "pretest" : "quiz";
+  const babId = searchParams.get("babId");
+  const subbabId = searchParams.get("subbabId");
+  const chapterName = searchParams.get("chapterName") || "Pretest";
+  const topicName = searchParams.get("topicName") || "Kuis Subbab";
+  const routeKey = `${mode}:${babId || ""}:${subbabId || ""}`;
+
+  const [loading, setLoading] = useState(true);
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [error, setError] = useState("");
+  const [session, setSession] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [answers, setAnswers] = useState({});
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [checked, setChecked] = useState(false);
-  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [viewedSequence, setViewedSequence] = useState(null);
+  const [result, setResult] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [questionStartedAt, setQuestionStartedAt] = useState(0);
+  const [now, setNow] = useState(0);
+  const initializationRef = useRef(null);
 
-  const question = questions[currentQuestion];
-  const hasImage = Boolean(question.image);
-  const isLastQuestion = currentQuestion === questions.length - 1;
-
-  // Format Timer HH:MM:SS
-  const formatTime = (seconds) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, "0")}:${mins
-      .toString()
-      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  // Timer Pengerjaan (Stopwatch)
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeElapsed((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
   }, []);
 
-  const handleSelectAnswer = (label) => {
-    if (!checked) {
-      setSelectedAnswer(label);
+  useEffect(() => {
+    let isCurrent = true;
+
+    const initialize = async () => {
+      setLoading(true);
+      setError("");
+      setResult(null);
+      setSession(null);
+      setQuestions([]);
+      setHistory([]);
+      setAnswers({});
+      setSelectedAnswer(null);
+      setCurrentIndex(0);
+      setViewedSequence(null);
+
+      try {
+        if (mode === "pretest") {
+          if (!babId) throw new Error("ID bab pretest tidak ditemukan.");
+
+          const statusResponse = await API.get(`/pretest/status/${babId}`);
+          const statusData = statusResponse.data.data;
+
+          if (statusData.status === "completed") {
+            const pretestId = String(statusData.pretest_id);
+            if (readSessionValue(`pretest-review:${pretestId}`, null)) {
+              return {
+                navigateToReview: `/review-quiz?mode=pretest&sessionId=${encodeURIComponent(pretestId)}`,
+                session: null,
+              };
+            }
+            const resultResponse = await API.get(
+              `/pretest/${pretestId}/result`,
+            );
+            return { result: resultResponse.data.data, session: null };
+          }
+
+          let pretestId = statusData.pretest_id;
+          let questionData;
+          let sequence = 1;
+          let totalQuestions;
+          let startedAt;
+
+          if (statusData.status === "active") {
+            const questionResponse = await API.get(
+              `/pretest/${pretestId}/question`,
+            );
+            questionData = questionResponse.data.data.question;
+            sequence = questionResponse.data.data.sequence || 1;
+            totalQuestions = questionResponse.data.data.total_questions;
+          } else {
+            const startResponse = await API.post("/pretest/start", {
+              bab_id: babId,
+            });
+            const startData = startResponse.data.data;
+            pretestId = startData.pretest_id;
+            questionData = startData.first_question;
+            totalQuestions = startData.total_questions;
+            startedAt = startData.started_at
+              ? new Date(startData.started_at).getTime()
+              : Date.now();
+          }
+
+          if (!pretestId) throw new Error("Sesi pretest tidak dapat dimuat.");
+
+          const storageKey = `pretest:${pretestId}`;
+          const stored = readSessionValue(storageKey, {});
+          const savedHistory = Array.isArray(stored.history)
+            ? stored.history
+            : [];
+          const sessionStartedAt = stored.startedAt || startedAt || Date.now();
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify({
+              ...stored,
+              history: savedHistory,
+              startedAt: sessionStartedAt,
+            }),
+          );
+
+          if (!questionData) {
+            await API.post(`/pretest/${pretestId}/submit`, {});
+            const resultResponse = await API.get(
+              `/pretest/${pretestId}/result`,
+            );
+            sessionStorage.setItem(
+              `pretest-review:${pretestId}`,
+              JSON.stringify({
+                sessionId: String(pretestId),
+                babId: String(babId),
+                name: chapterName,
+                questions: savedHistory,
+                result: resultResponse.data.data,
+              }),
+            );
+            sessionStorage.removeItem(storageKey);
+            return {
+              navigateToReview: `/review-quiz?mode=pretest&sessionId=${encodeURIComponent(pretestId)}`,
+              session: null,
+            };
+          }
+
+          return {
+            session: {
+              mode: "pretest",
+              id: String(pretestId),
+              babId,
+              name: chapterName,
+              question: normalizeQuestion(questionData),
+              sequence,
+              totalQuestions,
+              progress: Math.round(((sequence - 1) / totalQuestions) * 100),
+              startedAt: sessionStartedAt,
+            },
+            history: savedHistory,
+            selectedAnswer:
+              stored.draftQuestionId === String(questionData.question_id)
+                ? (stored.draftAnswer ?? null)
+                : null,
+          };
+        }
+
+        if (!subbabId) throw new Error("ID subbab kuis tidak ditemukan.");
+
+        const startResponse = await API.post("/quiz/start", {
+          subbab_id: subbabId,
+        });
+        const startData = startResponse.data.data;
+        const sessionId = String(startData.session_id);
+        const storageKey = `quiz:${sessionId}`;
+        const stored = readSessionValue(storageKey, {});
+        const normalizedQuestions = (startData.questions || []).map(
+          normalizeQuestion,
+        );
+        const validQuestionIds = new Set(
+          normalizedQuestions.map((question) => question.id),
+        );
+        const savedAnswers = Object.fromEntries(
+          Object.entries(stored.answers || {}).filter(([questionId]) =>
+            validQuestionIds.has(questionId),
+          ),
+        );
+        const sessionStartedAt =
+          stored.startedAt ||
+          (startData.started_at
+            ? new Date(startData.started_at).getTime()
+            : Date.now());
+        const savedIndex = Math.min(
+          Math.max(Number(stored.currentIndex) || 0, 0),
+          Math.max(normalizedQuestions.length - 1, 0),
+        );
+
+        sessionStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            ...stored,
+            answers: savedAnswers,
+            currentIndex: savedIndex,
+            startedAt: sessionStartedAt,
+          }),
+        );
+
+        return {
+          session: {
+            mode: "quiz",
+            id: sessionId,
+            subbabId,
+            name: topicName,
+            startedAt: sessionStartedAt,
+          },
+          questions: normalizedQuestions,
+          answers: savedAnswers,
+          currentIndex: savedIndex,
+        };
+      } catch (requestError) {
+        throw new Error(
+          requestError.response?.data?.message ||
+            requestError.message ||
+            "Sesi soal gagal dimuat.",
+        );
+      }
+    };
+
+    if (initializationRef.current?.key !== `${routeKey}:${retryVersion}`) {
+      initializationRef.current = {
+        key: `${routeKey}:${retryVersion}`,
+        promise: initialize(),
+      };
+    }
+
+    initializationRef.current.promise
+      .then((data) => {
+        if (!isCurrent) return;
+        if (data.navigateToReview) {
+          navigate(data.navigateToReview);
+          return;
+        }
+        setSession(data.session || null);
+        setQuestions(data.questions || []);
+        setHistory(data.history || []);
+        setAnswers(data.answers || {});
+        setCurrentIndex(data.currentIndex || 0);
+        setSelectedAnswer(data.selectedAnswer ?? null);
+        setQuestionStartedAt(Date.now());
+        if (data.result) setResult(data.result);
+      })
+      .catch((requestError) => {
+        if (isCurrent) setError(requestError.message);
+      })
+      .finally(() => {
+        if (isCurrent) setLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [
+    mode,
+    babId,
+    subbabId,
+    chapterName,
+    topicName,
+    routeKey,
+    retryVersion,
+    navigate,
+  ]);
+
+  const storageKey = session ? `${session.mode}:${session.id}` : null;
+  const activePretestSequence =
+    session?.mode === "pretest" ? session.sequence : 0;
+  const displaySequence = viewedSequence ?? activePretestSequence;
+  const historicalAnswer =
+    session?.mode === "pretest"
+      ? history.find((item) => item.sequence === displaySequence)
+      : null;
+  const question =
+    session?.mode === "pretest"
+      ? displaySequence < activePretestSequence
+        ? historicalAnswer?.question
+        : session.question
+      : questions[currentIndex];
+  const isHistoricalPretestQuestion =
+    session?.mode === "pretest" && displaySequence < activePretestSequence;
+  const currentAnswer =
+    session?.mode === "pretest"
+      ? isHistoricalPretestQuestion
+        ? historicalAnswer?.selectedAnswer
+        : selectedAnswer
+      : question
+        ? (answers[question.id] ?? null)
+        : null;
+  const elapsedSeconds = session?.startedAt
+    ? Math.max(0, Math.floor((now - session.startedAt) / 1000))
+    : 0;
+  const formattedTime = useMemo(() => {
+    const hours = Math.floor(elapsedSeconds / 3600);
+    const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+    const seconds = elapsedSeconds % 60;
+    return [hours, minutes, seconds]
+      .map((part) => String(part).padStart(2, "0"))
+      .join(":");
+  }, [elapsedSeconds]);
+
+  const persistPretest = (pretestId, nextHistory, startedAt, draft = {}) => {
+    sessionStorage.setItem(
+      `pretest:${pretestId}`,
+      JSON.stringify({
+        history: nextHistory,
+        startedAt,
+        ...draft,
+      }),
+    );
+  };
+
+  const finishPretest = async (pretestId, reviewHistory, name, babId) => {
+    await API.post(`/pretest/${pretestId}/submit`, {});
+    const resultResponse = await API.get(`/pretest/${pretestId}/result`);
+    sessionStorage.setItem(
+      `pretest-review:${pretestId}`,
+      JSON.stringify({
+        sessionId: String(pretestId),
+        babId: String(babId),
+        name,
+        questions: reviewHistory,
+        result: resultResponse.data.data,
+      }),
+    );
+    sessionStorage.removeItem(`pretest:${pretestId}`);
+    navigate(
+      `/review-quiz?mode=pretest&sessionId=${encodeURIComponent(pretestId)}`,
+    );
+  };
+
+  const handlePretestAnswer = async () => {
+    if (
+      !session ||
+      session.mode !== "pretest" ||
+      !selectedAnswer ||
+      isSubmitting
+    ) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+    const answeredQuestion = session.question;
+    const selectedOption = selectedAnswer;
+    const nextHistory = [
+      ...history.filter((item) => item.sequence !== session.sequence),
+      {
+        sequence: session.sequence,
+        question: answeredQuestion,
+        selectedAnswer: selectedOption,
+      },
+    ].sort((left, right) => left.sequence - right.sequence);
+
+    try {
+      const response = await API.post(`/pretest/${session.id}/answer`, {
+        question_id: answeredQuestion.id,
+        selected_answer: selectedOption,
+        response_time: Math.max(
+          0,
+          Math.round((Date.now() - questionStartedAt) / 1000),
+        ),
+      });
+      const answerData = response.data.data;
+      const completedHistory = nextHistory.map((item) =>
+        item.sequence === session.sequence
+          ? { ...item, isCorrect: answerData.is_correct ?? null }
+          : item,
+      );
+      persistPretest(session.id, completedHistory, session.startedAt);
+      setHistory(completedHistory);
+
+      if (!answerData.next_question) {
+        setSession((previous) => ({
+          ...previous,
+          lastQuestionSubmitted: true,
+        }));
+        setSelectedAnswer(null);
+        await finishPretest(
+          session.id,
+          completedHistory,
+          session.name,
+          session.babId,
+        );
+        return;
+      }
+
+      setSession((previous) => ({
+        ...previous,
+        question: normalizeQuestion(answerData.next_question),
+        sequence: answerData.next_question_sequence,
+        totalQuestions: answerData.total_questions,
+        progress: answerData.progress,
+      }));
+      setSelectedAnswer(null);
+      setViewedSequence(null);
+      setQuestionStartedAt(Date.now());
+    } catch (requestError) {
+      try {
+        const recoveryResponse = await API.get(
+          `/pretest/${session.id}/question`,
+        );
+        const recovered = recoveryResponse.data.data;
+
+        if (!recovered.question) {
+          persistPretest(session.id, nextHistory, session.startedAt);
+          setHistory(nextHistory);
+          setSession((previous) => ({
+            ...previous,
+            lastQuestionSubmitted: true,
+          }));
+          setSelectedAnswer(null);
+          return;
+        }
+
+        if (recovered.question.question_id !== answeredQuestion.id) {
+          persistPretest(session.id, nextHistory, session.startedAt);
+          setHistory(nextHistory);
+          setSession((previous) => ({
+            ...previous,
+            question: normalizeQuestion(recovered.question),
+            sequence: recovered.sequence,
+            totalQuestions: recovered.total_questions,
+            progress: Math.round(
+              ((recovered.sequence - 1) / recovered.total_questions) * 100,
+            ),
+            lastQuestionSubmitted: false,
+          }));
+          setSelectedAnswer(null);
+          setViewedSequence(null);
+          setQuestionStartedAt(Date.now());
+          return;
+        }
+      } catch {
+        // Keep the selected answer available so the user can retry.
+      }
+      setError(
+        requestError.response?.data?.message ||
+          "Jawaban belum berhasil dikirim. Periksa koneksi lalu coba lagi.",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleNext = () => {
-    if (isLastQuestion) {
-      navigate("/review-quiz");
+  const retryPretestSubmit = async () => {
+    if (!session || isSubmitting) return;
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await finishPretest(session.id, history, session.name, session.babId);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Pretest belum dapat diselesaikan. Silakan coba lagi.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePretestOptionSelect = (optionId) => {
+    setSelectedAnswer(optionId);
+    persistPretest(session.id, history, session.startedAt, {
+      draftQuestionId: session.question.id,
+      draftAnswer: optionId,
+    });
+  };
+
+  const handleQuizAnswer = (optionId) => {
+    if (!question || !storageKey) return;
+    const nextAnswers = { ...answers, [question.id]: optionId };
+    setAnswers(nextAnswers);
+    sessionStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        answers: nextAnswers,
+        currentIndex,
+        startedAt: session.startedAt,
+      }),
+    );
+  };
+
+  const handleQuizNavigation = (nextIndex) => {
+    setCurrentIndex(nextIndex);
+    setQuestionStartedAt(now);
+    if (!storageKey) return;
+    sessionStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        answers,
+        currentIndex: nextIndex,
+        startedAt: session.startedAt,
+      }),
+    );
+  };
+
+  const openQuizReview = async (quizSession) => {
+    navigate(
+      `/review-quiz?mode=quiz&sessionId=${encodeURIComponent(quizSession.id)}&topicName=${encodeURIComponent(quizSession.name)}`,
+    );
+  };
+
+  const handleQuizSubmit = async () => {
+    if (!session || isSubmitting) return;
+    const unanswered = questions.find((item) => !answers[item.id]);
+    if (unanswered) {
+      const unansweredIndex = questions.indexOf(unanswered);
+      handleQuizNavigation(unansweredIndex);
+      setError(`Soal nomor ${unansweredIndex + 1} belum dijawab.`);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+    try {
+      const response = await API.post(`/quiz/${session.id}/submit`, {
+        answers: questions.map((item) => ({
+          question_id: item.id,
+          selected_option: answers[item.id],
+        })),
+        duration: elapsedSeconds,
+      });
+      sessionStorage.removeItem(storageKey);
+      setSession(null);
+      await openQuizReview(session);
+    } catch (requestError) {
+      try {
+        const resultResponse = await API.get(`/quiz/${session.id}/result`);
+        const savedResult = resultResponse.data.data;
+        if (savedResult.completed_at) {
+          sessionStorage.removeItem(storageKey);
+          setSession(null);
+          await openQuizReview(session);
+          return;
+        }
+      } catch {
+        // Keep the local answers available when the result cannot be checked.
+      }
+      setError(
+        requestError.response?.data?.message ||
+          "Jawaban kuis gagal dikirim. Jawaban Anda tetap tersimpan di halaman ini.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleNumberNavigation = (index) => {
+    if (session?.mode === "pretest") {
+      const sequence = index + 1;
+      if (sequence > session.sequence) return;
+      if (
+        sequence < session.sequence &&
+        !history.some((item) => item.sequence === sequence)
+      ) {
+        return;
+      }
+      setViewedSequence(sequence);
+      return;
+    }
+    handleQuizNavigation(index);
+  };
+
+  const handleBack = () => navigate("/topik");
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-neutral-bg">
+        <Navbar activePage="Topik" />
+        <main className="flex flex-1 items-center justify-center p-6">
+          <p className="text-sm font-semibold text-slate-600">
+            Memuat sesi soal...
+          </p>
+        </main>
+      </div>
+    );
+  }
+
+  if (result) {
+    const correctCount = result.correct_answers ?? result.correct_count ?? 0;
+    const totalCount = result.total_questions ?? 0;
+    const score =
+      mode === "pretest"
+        ? (result.score ?? 0)
+        : totalCount
+          ? Math.round((correctCount / totalCount) * 100)
+          : 0;
+
+    return (
+      <div className="flex min-h-screen bg-neutral-bg">
+        <Navbar activePage="Topik" />
+        <main className="flex flex-1 items-center justify-center p-5 pb-24 md:pb-5">
+          <section className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <p className="text-xs font-bold uppercase text-primary">
+              {mode === "pretest" ? "Pretest selesai" : "Kuis selesai"}
+            </p>
+            <h1 className="mt-2 text-2xl font-extrabold text-slate-900">
+              {chapterName && mode === "pretest" ? chapterName : topicName}
+            </h1>
+            <div className="mt-6 grid grid-cols-3 gap-3 text-center">
+              <div className="rounded-xl bg-slate-50 p-3">
+                <p className="text-xs text-slate-500">Skor</p>
+                <p className="mt-1 text-xl font-extrabold text-primary">
+                  {score}
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3">
+                <p className="text-xs text-slate-500">Benar</p>
+                <p className="mt-1 text-xl font-extrabold text-emerald-700">
+                  {correctCount}
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3">
+                <p className="text-xs text-slate-500">Jumlah soal</p>
+                <p className="mt-1 text-xl font-extrabold text-slate-800">
+                  {totalCount}
+                </p>
+              </div>
+            </div>
+            {result.recommendation && (
+              <p className="mt-5 whitespace-pre-line rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm leading-relaxed text-slate-700">
+                {result.recommendation}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={handleBack}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-hover"
+            >
+              <ArrowLeft size={16} /> Kembali ke topik
+            </button>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (error && !session) {
+    return (
+      <div className="flex min-h-screen bg-neutral-bg">
+        <Navbar activePage="Topik" />
+        <main className="flex flex-1 items-center justify-center p-5 pb-24 md:pb-5">
+          <section className="w-full max-w-lg rounded-2xl border border-red-200 bg-white p-6">
+            <h1 className="text-lg font-bold text-slate-900">
+              Sesi soal tidak dapat dimuat
+            </h1>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setRetryVersion((value) => value + 1)}
+                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white"
+              >
+                Coba lagi
+              </button>
+              <button
+                type="button"
+                onClick={handleBack}
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700"
+              >
+                Kembali ke topik
+              </button>
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (!session || !question) return null;
+
+  const isPretest = session.mode === "pretest";
+  const answeredCount = isPretest
+    ? history.length
+    : Object.keys(answers).length;
+  const questionCount = isPretest ? session.totalQuestions : questions.length;
+  const currentQuestionIndex = isPretest ? displaySequence - 1 : currentIndex;
+  const selectedForQuestion = currentAnswer;
+  const hasImage = question.images.length > 0;
+  const isLastQuestion = isPretest
+    ? session.sequence === session.totalQuestions &&
+      !isHistoricalPretestQuestion
+    : currentIndex === questions.length - 1;
+
+  const navigateRelative = (direction) => {
+    if (isPretest) {
+      if (isHistoricalPretestQuestion) {
+        const nextSequence = Math.min(
+          session.sequence,
+          Math.max(1, displaySequence + direction),
+        );
+        setViewedSequence(
+          nextSequence === session.sequence ? null : nextSequence,
+        );
+      } else if (direction < 0 && session.sequence > 1) {
+        const previousSequence = session.sequence - 1;
+        if (history.some((item) => item.sequence === previousSequence)) {
+          setViewedSequence(previousSequence);
+        }
+      }
+      return;
+    }
+    handleQuizNavigation(
+      Math.min(Math.max(currentIndex + direction, 0), questions.length - 1),
+    );
+  };
+
+  const handleContinue = () => {
+    setError("");
+    if (isPretest) {
+      if (isHistoricalPretestQuestion) {
+        setViewedSequence(null);
+      } else if (session.lastQuestionSubmitted) {
+        retryPretestSubmit();
+      } else {
+        handlePretestAnswer();
+      }
+    } else if (isLastQuestion) {
+      handleQuizSubmit();
     } else {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
-      setChecked(false);
+      navigateRelative(1);
     }
   };
 
-  const handlePrev = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-      setSelectedAnswer(null);
-      setChecked(false);
-    }
-  };
+  const renderOptions = () =>
+    question.options.map((option) => {
+      const isSelected = selectedForQuestion === option.id;
+      return (
+        <button
+          key={option.id}
+          type="button"
+          disabled={isHistoricalPretestQuestion || isSubmitting}
+          onClick={() =>
+            isPretest
+              ? handlePretestOptionSelect(option.id)
+              : handleQuizAnswer(option.id)
+          }
+          className={`flex w-full items-center gap-3 rounded-2xl p-2.5 text-left transition-all duration-200 disabled:cursor-not-allowed sm:gap-4 sm:p-3.5 ${
+            isSelected
+              ? "bg-primary text-white"
+              : "border border-slate-100 bg-slate-50/80 text-slate-700 hover:bg-slate-100"
+          }`}
+        >
+          <div
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors sm:h-9 sm:w-9 sm:text-sm ${
+              isSelected
+                ? "bg-white text-primary"
+                : "bg-primary/10 text-primary"
+            }`}
+          >
+            {option.id}
+          </div>
+          <span className="flex-1 text-xs font-semibold sm:text-sm">
+            {option.text}
+          </span>
+        </button>
+      );
+    });
+
+  const renderNavigation = () => (
+    <>
+      {isHistoricalPretestQuestion && (
+        <p className="text-xs text-slate-500">
+          Jawaban sudah dikirim dan tidak dapat diubah.
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="text-xs text-red-600">
+          {error}
+        </p>
+      )}
+      <div className="flex shrink-0 items-center justify-between gap-2.5 border-t border-slate-100 pt-3 md:justify-end sm:gap-3">
+        <button
+          type="button"
+          onClick={() => navigateRelative(-1)}
+          disabled={
+            isPretest
+              ? isHistoricalPretestQuestion
+                ? displaySequence <= 1
+                : session.sequence <= 1
+              : currentIndex === 0
+          }
+          className="flex items-center justify-center rounded-xl bg-primary/10 px-4 py-2 text-xs font-bold text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:py-2.5 sm:text-sm"
+        >
+          Sebelumnya
+        </button>
+        <button
+          type="button"
+          onClick={handleContinue}
+          disabled={
+            isSubmitting ||
+            (isPretest &&
+              !isHistoricalPretestQuestion &&
+              !session.lastQuestionSubmitted &&
+              !selectedAnswer)
+          }
+          className="flex items-center justify-center rounded-xl bg-primary px-5 py-2 text-xs font-bold text-white transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-2.5 sm:text-sm"
+        >
+          {isSubmitting
+            ? "Mengirim..."
+            : isHistoricalPretestQuestion
+              ? "Kembali ke soal aktif"
+              : isLastQuestion
+                ? "Submit"
+                : "Selanjutnya"}
+        </button>
+      </div>
+    </>
+  );
 
   return (
-    <div className="flex h-screen max-h-screen w-full bg-[#f8fafc] font-sans overflow-hidden">
-      {/* Sidebar / Navbar Kiri */}
+    <div className="flex h-screen max-h-screen w-full overflow-hidden bg-neutral-bg font-sans">
       <Navbar />
+      <main className="flex flex-1 flex-col overflow-y-auto p-3 pb-20 md:overflow-hidden md:p-6 md:pb-6">
+        <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-3 sm:gap-4">
+          <div className="flex shrink-0 items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-white p-2.5 sm:p-3">
+            <div
+              aria-label="Navigasi nomor soal"
+              className="no-scrollbar flex items-center gap-1.5 overflow-x-auto px-1 py-0.5 sm:gap-2"
+            >
+              {Array.from({ length: questionCount }, (_, index) => {
+                const sequence = index + 1;
+                const isCurrent = sequence === currentQuestionIndex + 1;
+                const hasAnswered = isPretest
+                  ? history.some((item) => item.sequence === sequence)
+                  : Boolean(answers[questions[index]?.id]);
+                const canNavigate =
+                  !isPretest ||
+                  sequence === session.sequence ||
+                  history.some((item) => item.sequence === sequence);
 
-      {/* Main Container */}
-      <main className="flex-1 flex flex-col p-3 sm:p-5 md:p-6 pb-20 md:pb-6 overflow-y-auto md:overflow-hidden">
-        <div className="mx-auto w-full max-w-6xl flex flex-col h-full gap-3 sm:gap-4">
-          {/* HEADER TOP: NOMOR SOAL & TIMER PENGERJAAN */}
-          <div className="flex items-center justify-between gap-2 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-100 shrink-0">
-            {/* Navigasi Nomor Soal */}
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 px-1">
-              {questions.map((q, idx) => {
-                const isActive = idx === currentQuestion;
                 return (
                   <button
-                    key={q.id}
-                    onClick={() => {
-                      setCurrentQuestion(idx);
-                      setSelectedAnswer(null);
-                      setChecked(false);
-                    }}
-                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full text-xs font-semibold flex items-center justify-center transition-all cursor-pointer shrink-0 ${
-                      isActive
+                    key={sequence}
+                    type="button"
+                    aria-label={`Soal ${sequence}${!canNavigate ? ", terkunci" : ""}`}
+                    aria-current={isCurrent ? "step" : undefined}
+                    disabled={!canNavigate}
+                    onClick={() => handleNumberNavigation(index)}
+                    className={`relative flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-xs font-semibold transition-all sm:h-8 sm:w-8 ${
+                      isCurrent
                         ? "bg-primary text-white"
                         : "bg-primary/10 text-primary hover:bg-primary/20"
-                    }`}
+                    } disabled:cursor-not-allowed disabled:opacity-40`}
                   >
-                    {idx + 1}
+                    {sequence}
+                    {!canNavigate && (
+                      <LockKeyhole
+                        aria-hidden="true"
+                        className="absolute -right-0.5 -top-0.5 rounded-full bg-white p-0.5"
+                        size={13}
+                      />
+                    )}
+                    {hasAnswered && !isCurrent && (
+                      <Check
+                        aria-hidden="true"
+                        className="absolute -right-0.5 -top-0.5 rounded-full bg-white text-primary"
+                        size={13}
+                      />
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            {/* Timer Badge Waktu Pengerjaan */}
-            <div className="bg-primary/10 border border-primary/20 px-3 py-1 sm:py-1.5 rounded-xl flex flex-col items-end shrink-0">
-              <span className="text-[8px] sm:text-[9px] font-bold text-primary uppercase tracking-wider">
+            <div className="flex shrink-0 flex-col items-end rounded-xl border border-primary/20 bg-primary/10 px-3 py-1 sm:py-1.5">
+              <span className="text-[8px] font-bold uppercase tracking-wider text-primary sm:text-[9px]">
                 WAKTU PENGERJAAN
               </span>
-              <span className="text-xs sm:text-sm font-extrabold text-primary font-mono leading-none sm:leading-normal">
-                {formatTime(timeElapsed)}
+              <span className="font-mono text-xs font-extrabold leading-none text-primary sm:text-sm sm:leading-normal">
+                {formattedTime}
               </span>
             </div>
           </div>
 
-          {/* DYNAMIC CONTENT AREA */}
-          <div className="flex-1 overflow-y-auto no-scrollbar">
+          <div className="no-scrollbar flex-1 overflow-y-auto">
             {hasImage ? (
-              /* ================= CONDITIONAL 1: ADA GAMBAR ================= */
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 h-full items-stretch">
-                {/* KIRI: TEKS & GAMBAR SOAL */}
+              <div className="grid h-full grid-cols-1 items-stretch gap-3 sm:gap-6 md:grid-cols-2">
                 <div className="flex flex-col gap-2.5 sm:gap-4">
-                  <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shrink-0">
-                    <p className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
-                      {question.question}
+                  <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
+                    <p className="whitespace-pre-wrap text-xs font-semibold leading-relaxed text-slate-800 sm:text-sm md:text-base">
+                      {question.text}
                     </p>
                   </div>
-
-                  <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 flex items-center justify-center flex-1 overflow-hidden">
-                    <img
-                      src={question.image}
-                      alt="Ilustrasi Soal"
-                      className="max-h-36 sm:max-h-52 md:max-h-60 max-w-full object-contain rounded-xl"
-                    />
+                  <div className="flex flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 sm:p-4">
+                    <div className="flex max-h-full flex-wrap items-center justify-center gap-3">
+                      {question.images.map((imageUrl) => (
+                        <img
+                          key={imageUrl}
+                          src={imageUrl}
+                          alt="Ilustrasi Soal"
+                          className="max-h-36 max-w-full rounded-xl object-contain sm:max-h-52 md:max-h-60"
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                {/* KANAN: PILIHAN JAWABAN + BUTTON NAVIGASI LANGSUNG DI BAWAHNYA */}
-                <div className="flex flex-col justify-between gap-3 bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-6">
-                  <div className="flex flex-col space-y-2.5 sm:space-y-3 justify-center flex-1">
-                    {question.options.map((opt) => {
-                      const isSelected = selectedAnswer === opt.label;
-                      return (
-                        <button
-                          key={opt.label}
-                          onClick={() => handleSelectAnswer(opt.label)}
-                          className={`w-full flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl text-left transition-all duration-200 cursor-pointer ${
-                            isSelected
-                              ? "bg-primary text-white"
-                              : "bg-slate-50/80 hover:bg-slate-100 text-slate-700 border border-slate-100"
-                          }`}
-                        >
-                          <div
-                            className={`h-7 w-7 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 transition-colors ${
-                              isSelected
-                                ? "bg-white text-primary"
-                                : "bg-primary/10 text-primary"
-                            }`}
-                          >
-                            {opt.label}
-                          </div>
-                          <span className="text-xs sm:text-sm font-semibold flex-1">
-                            {opt.value}
-                          </span>
-                        </button>
-                      );
-                    })}
+                <div className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-3.5 sm:p-6">
+                  <div className="flex flex-1 flex-col justify-center space-y-2.5 sm:space-y-3">
+                    {renderOptions()}
                   </div>
-
-                  {/* NAVIGASI BUTTON: RESPONSIVE (JUSTIFY-BETWEEN MOBILE, MD:JUSTIFY-END DESKTOP) */}
-                  <div className="flex items-center justify-between md:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 shrink-0">
-                    <button
-                      type="button"
-                      onClick={handlePrev}
-                      disabled={currentQuestion === 0}
-                      className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Sebelumnya
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleNext}
-                      className="flex items-center justify-center gap-1.5 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-primary text-white font-bold text-xs sm:text-sm hover:bg-primary-hover transition-all cursor-pointer"
-                    >
-                      {isLastQuestion ? "Submit" : "Selanjutnya"}
-                    </button>
-                  </div>
+                  {renderNavigation()}
                 </div>
               </div>
             ) : (
-              /* ================= CONDITIONAL 2: TANPA GAMBAR ================= */
-              <div className="flex flex-col gap-3 sm:gap-4 h-auto">
-                {/* CARD 1: TEKS SOAL */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shrink-0">
-                  <p className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
-                    {question.question}
+              <div className="flex h-auto flex-col gap-3 sm:gap-4">
+                <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
+                  <p className="whitespace-pre-wrap text-xs font-semibold leading-relaxed text-slate-800 sm:text-sm md:text-base">
+                    {question.text}
                   </p>
                 </div>
-
-                {/* CARD 2: OPTION JAWABAN + BUTTON NAVIGASI LANGSUNG DI BAWAHNYA */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-5 flex flex-col gap-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-4">
-                    {question.options.map((opt) => {
-                      const isSelected = selectedAnswer === opt.label;
-                      return (
-                        <button
-                          key={opt.label}
-                          onClick={() => handleSelectAnswer(opt.label)}
-                          className={`w-full flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl text-left transition-all duration-200 cursor-pointer ${
-                            isSelected
-                              ? "bg-primary text-white"
-                              : "bg-slate-50/80 hover:bg-slate-100 text-slate-700 border border-slate-100"
-                          }`}
-                        >
-                          <div
-                            className={`h-7 w-7 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 transition-colors ${
-                              isSelected
-                                ? "bg-white text-primary"
-                                : "bg-primary/10 text-primary"
-                            }`}
-                          >
-                            {opt.label}
-                          </div>
-                          <span className="text-xs sm:text-sm font-semibold flex-1">
-                            {opt.value}
-                          </span>
-                        </button>
-                      );
-                    })}
+                <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-3.5 sm:p-5">
+                  <div className="grid grid-cols-1 gap-2.5 sm:gap-4 md:grid-cols-2">
+                    {renderOptions()}
                   </div>
-
-                  {/* NAVIGASI BUTTON: RESPONSIVE */}
-                  <div className="flex items-center justify-between md:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 shrink-0">
-                    <button
-                      type="button"
-                      onClick={handlePrev}
-                      disabled={currentQuestion === 0}
-                      className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Sebelumnya
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleNext}
-                      className="flex items-center justify-center gap-1.5 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-primary text-white font-bold text-xs sm:text-sm hover:bg-primary-hover transition-all cursor-pointer"
-                    >
-                      {isLastQuestion ? "Submit" : "Selanjutnya"}
-                    </button>
-                  </div>
+                  {renderNavigation()}
                 </div>
               </div>
             )}

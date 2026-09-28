@@ -1,91 +1,214 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../../../components/Navbar";
 import TopHeader from "../../../components/TopHeader";
 import TopicSearchBar from "../../../components/SearchBar";
 import ChapterCard from "../../../components/ChapterCard";
 import TopicModals from "../../../components/TopicModals";
-import {
-  allChapters,
-  allGrades,
-  chaptersByLevel,
-  gradeFiltersByLevel,
-  educationLevels,
-} from "../../../data/topicsData";
+import API from "../../../api/axios";
+
+const ALL_GRADES = "Semua Kelas";
+const TOPIC_RETURN_STATE_KEY = "topics:return-state";
+
+const readTopicReturnState = () => {
+  try {
+    const stored = sessionStorage.getItem(TOPIC_RETURN_STATE_KEY);
+    sessionStorage.removeItem(TOPIC_RETURN_STATE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+};
+
+const getAuthConfig = () => ({
+  headers: {
+    Authorization: `Bearer ${
+      localStorage.getItem("accessToken") || localStorage.getItem("token") || ""
+    }`,
+  },
+});
+
+const normalizeBab = (bab, classInfo) => ({
+  ...bab,
+  _id: bab.id,
+  diagnosticStatus: bab.has_pretest ? "completed" : "not_completed",
+  classRange: classInfo?.name || "Kurikulum Nasional",
+  subbab: (bab.subbab || []).map((subbab) => ({
+    ...subbab,
+    _id: subbab.id,
+    classReference: classInfo?.name || "",
+    status: subbab.completed
+      ? "completed"
+      : subbab.started
+        ? "in_progress"
+        : "not_started",
+  })),
+});
+
+const fetchBabList = async (classes, selectedGrade) => {
+  const targetClasses =
+    selectedGrade === ALL_GRADES
+      ? classes
+      : classes.filter((item) => item.name === selectedGrade);
+
+  if (!targetClasses.length) {
+    const response = await API.get("/dashboard/bab", getAuthConfig());
+    return (response.data.data || []).map((bab) => normalizeBab(bab));
+  }
+
+  const responses = await Promise.all(
+    targetClasses.map(async (classInfo) => {
+      const response = await API.get("/dashboard/bab", {
+        ...getAuthConfig(),
+        params: { kelas: classInfo.nomor_kelas },
+      });
+      return (response.data.data || []).map((bab) =>
+        normalizeBab(bab, classInfo),
+      );
+    }),
+  );
+
+  return responses.flat();
+};
+
+const formatDuration = (seconds) => {
+  if (seconds === null || seconds === undefined) return "-";
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes} Menit ${seconds % 60} Detik`;
+};
+
+const normalizePretestResult = (data) => ({
+  score: data.score ?? 0,
+  correctCount: data.correct_answers ?? 0,
+  wrongCount: data.wrong_answers ?? 0,
+  duration: formatDuration(data.duration),
+  prerequisiteBreakdown: (data.prerequisite_bab_result || []).map((item) => ({
+    name: item.name,
+    status: item.status,
+  })),
+  breakdown: (data.submateri_result || []).map((item) => ({
+    subtopic: item.subbab_name,
+    status: item.current_cognitive_level || "Belum dinilai",
+    score: item.current_cognitive_score ?? "-",
+  })),
+  recommendation: data.recommendation || "",
+});
 
 const smoothScrollToElement = (element, offsetMargin = 16, duration = 800) => {
   if (!element) return;
-  const topHeaderEl = document.getElementById("top-header-section");
-  const headerHeight = topHeaderEl ? topHeaderEl.offsetHeight : 80;
-
-  const rect = element.getBoundingClientRect();
-  const elementTop = rect.top + window.pageYOffset;
-  const targetY = elementTop - headerHeight - offsetMargin;
-
+  const header = document.getElementById("top-header-section");
+  const headerHeight = header ? header.offsetHeight : 80;
+  const elementTop = element.getBoundingClientRect().top + window.pageYOffset;
   const startY = window.pageYOffset || document.documentElement.scrollTop;
-  const difference = targetY - startY;
-
+  const difference = elementTop - headerHeight - offsetMargin - startY;
   if (Math.abs(difference) < 5) return;
 
   const startTime = performance.now();
-  const easeInOutCubic = (t) =>
-    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const easeInOutCubic = (value) =>
+    value < 0.5 ? 4 * value ** 3 : 1 - (-2 * value + 2) ** 3 / 2;
 
   const step = (currentTime) => {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const easeProgress = easeInOutCubic(progress);
-
-    window.scrollTo(0, startY + difference * easeProgress);
-
-    if (progress < 1) {
-      requestAnimationFrame(step);
-    }
+    const progress = Math.min((currentTime - startTime) / duration, 1);
+    window.scrollTo(0, startY + difference * easeInOutCubic(progress));
+    if (progress < 1) requestAnimationFrame(step);
   };
 
   requestAnimationFrame(step);
 };
 
 const Topics = () => {
-  const userSettingLevel = useMemo(() => {
-    const saved = localStorage.getItem("user_education_level");
-    return saved && educationLevels[saved]
-      ? saved
-      : saved === "Semua"
-        ? "Semua"
-        : "SMP";
-  }, []);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGrade, setSelectedGrade] = useState("Semua Kelas");
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [returnTopicState] = useState(readTopicReturnState);
+  const [searchQuery, setSearchQuery] = useState(
+    () => returnTopicState.searchQuery || "",
+  );
+  const [selectedGrade, setSelectedGrade] = useState(
+    () => returnTopicState.selectedGrade || ALL_GRADES,
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterDropdownRef = useRef(null);
-
-  const activeLevelChapters = useMemo(() => {
-    if (userSettingLevel === "Semua") return allChapters;
-    return chaptersByLevel[userSettingLevel] || chaptersByLevel.SMP;
-  }, [userSettingLevel]);
-
-  const availableGradeFilters = useMemo(() => {
-    if (userSettingLevel === "Semua") return allGrades;
-    return gradeFiltersByLevel[userSettingLevel] || gradeFiltersByLevel.SMP;
-  }, [userSettingLevel]);
-
-  const [chaptersData, setChaptersData] = useState(() => activeLevelChapters);
-
-  useEffect(() => {
-    setChaptersData(activeLevelChapters);
-  }, [activeLevelChapters]);
-
-  const [expandedChapters, setExpandedChapters] = useState(() => {
-    const firstChapter = activeLevelChapters[0];
-    return new Set([firstChapter?._id || firstChapter?.id || ""]);
-  });
-
+  const [classes, setClasses] = useState([]);
+  const [classesLoaded, setClassesLoaded] = useState(false);
+  const [availableGradeFilters, setAvailableGradeFilters] = useState([
+    ALL_GRADES,
+  ]);
+  const [chaptersData, setChaptersData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [expandedChapters, setExpandedChapters] = useState(new Set());
+  const [collapsedSearchChapters, setCollapsedSearchChapters] = useState(
+    new Set(),
+  );
+  const [priorityChapterId, setPriorityChapterId] = useState(() =>
+    searchParams.get("babId"),
+  );
   const [activePretestResult, setActivePretestResult] = useState(null);
   const [pretestConfirmChapter, setPretestConfirmChapter] = useState(null);
+  const [pretestLoadingId, setPretestLoadingId] = useState(null);
   const [prerequisiteModal, setPrerequisiteModal] = useState(null);
   const [bypassedChapterPrerequisites, setBypassedChapterPrerequisites] =
     useState(new Set());
+  const pretestResultId = searchParams.get("pretestResultId");
+  const resultBabId = searchParams.get("babId");
+  const resultChapterName = searchParams.get("chapterName");
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadClasses = async () => {
+      try {
+        const response = await API.get("/dashboard/classes", getAuthConfig());
+        if (!isCurrent) return;
+        const classList = response.data.data.classes || [];
+        setClasses(classList);
+        setAvailableGradeFilters([
+          ALL_GRADES,
+          ...classList.map((item) => item.name),
+        ]);
+      } catch (error) {
+        if (isCurrent) {
+          setLoadError(
+            error.response?.data?.message || "Daftar kelas gagal dimuat.",
+          );
+        }
+      } finally {
+        if (isCurrent) setClassesLoaded(true);
+      }
+    };
+
+    loadClasses();
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!classesLoaded) return undefined;
+    let isCurrent = true;
+
+    const loadBab = async () => {
+      setIsLoading(true);
+      setLoadError("");
+      try {
+        const babList = await fetchBabList(classes, selectedGrade);
+        if (isCurrent) setChaptersData(babList);
+      } catch (error) {
+        if (!isCurrent) return;
+        setLoadError(
+          error.response?.data?.message || "Daftar BAB gagal dimuat.",
+        );
+        setChaptersData([]);
+      } finally {
+        if (isCurrent) setIsLoading(false);
+      }
+    };
+
+    loadBab();
+    return () => {
+      isCurrent = false;
+    };
+  }, [classes, classesLoaded, selectedGrade]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -97,17 +220,60 @@ const Topics = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleChapter = (chapter) => {
+  useEffect(() => {
+    if (!pretestResultId || isLoading) return undefined;
+    let isCurrent = true;
+    const chapter = chaptersData.find(
+      (item) => String(item._id) === String(resultBabId),
+    ) || {
+      _id: resultBabId,
+      name: resultChapterName || "Pretest",
+    };
+
+    showPretestResult(chapter, pretestResultId)
+      .catch((error) => {
+        if (isCurrent) {
+          setLoadError(
+            error.response?.data?.message || "Hasil pretest gagal dimuat.",
+          );
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setSearchParams(
+            (previous) => {
+              previous.delete("pretestResultId");
+              previous.delete("babId");
+              previous.delete("chapterName");
+              return previous;
+            },
+            { replace: true },
+          );
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [
+    pretestResultId,
+    resultBabId,
+    resultChapterName,
+    chaptersData,
+    isLoading,
+    setSearchParams,
+  ]);
+
+  const toggleChapter = (chapter, isCurrentlyExpanded) => {
     const chapterKey = chapter._id || chapter.id;
-    const isCurrentlyExpanded = expandedChapters.has(chapterKey);
+    const chapterIsExpanded =
+      isCurrentlyExpanded ?? expandedChapters.has(chapterKey);
 
     if (
-      !isCurrentlyExpanded &&
+      !chapterIsExpanded &&
       chapter.hasPrerequisite &&
       !chapter.prerequisiteCompleted &&
       !bypassedChapterPrerequisites.has(chapterKey)
@@ -120,103 +286,129 @@ const Topics = () => {
       return;
     }
 
-    setExpandedChapters((prev) => {
-      const next = new Set(prev);
-      if (next.has(chapterKey)) {
-        next.delete(chapterKey);
-      } else {
-        next.add(chapterKey);
+    if (isSearching) {
+      setCollapsedSearchChapters((previous) => {
+        const next = new Set(previous);
+        if (chapterIsExpanded) next.add(chapterKey);
+        else next.delete(chapterKey);
+        return next;
+      });
+
+      if (!chapterIsExpanded) {
+        setTimeout(() => {
+          smoothScrollToElement(
+            document.getElementById(`chapter-card-${chapterKey}`),
+          );
+        }, 50);
       }
+      return;
+    }
+
+    setExpandedChapters((previous) => {
+      const next = new Set(previous);
+      if (next.has(chapterKey)) next.delete(chapterKey);
+      else next.add(chapterKey);
       return next;
     });
 
-    if (!isCurrentlyExpanded) {
+    if (!chapterIsExpanded) {
       setTimeout(() => {
-        const cardElement = document.getElementById(
-          `chapter-card-${chapterKey}`,
+        smoothScrollToElement(
+          document.getElementById(`chapter-card-${chapterKey}`),
         );
-        if (cardElement) {
-          smoothScrollToElement(cardElement, 16, 750);
-        }
       }, 50);
     }
   };
 
   const isSearching = searchQuery.trim().length > 0;
+  useEffect(() => {
+    if (!isSearching) setCollapsedSearchChapters(new Set());
+  }, [isSearching]);
 
   const filteredChapters = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
 
-    return chaptersData
+    const matchingChapters = chaptersData
       .map((chapter) => {
-        const chapterNameMatches =
-          chapter.name.toLowerCase().includes(query) ||
-          chapter.description.toLowerCase().includes(query);
-
-        const chapterSubbab = chapter.subbab || chapter.subtopics || [];
-        const matchingSubbab = chapterSubbab.filter((sub) => {
+        const chapterText = `${chapter.name || ""} ${chapter.description || ""}`;
+        const chapterNameMatches = chapterText.toLowerCase().includes(query);
+        const subbabList = chapter.subbab || [];
+        const filteredSubbab = subbabList.filter((subbab) => {
           const matchesGrade =
-            selectedGrade === "Semua Kelas" ||
-            sub.classReference.toLowerCase() === selectedGrade.toLowerCase();
-
+            selectedGrade === ALL_GRADES ||
+            (subbab.classReference || "").toLowerCase() ===
+              selectedGrade.toLowerCase();
           if (!matchesGrade) return false;
           if (!query) return true;
-
-          const subNameMatches =
-            sub.name.toLowerCase().includes(query) ||
-            (sub.description && sub.description.toLowerCase().includes(query));
-          return subNameMatches || chapterNameMatches;
+          return (
+            (subbab.name || "").toLowerCase().includes(query) ||
+            (subbab.description || "").toLowerCase().includes(query) ||
+            chapterNameMatches
+          );
         });
-
-        const hasMatchingSubbab = matchingSubbab.length > 0;
 
         return {
           ...chapter,
-          subbab: chapterSubbab,
-          filteredSubbab: matchingSubbab,
-          filteredSubtopics: matchingSubbab,
-          isMatch: hasMatchingSubbab,
+          filteredSubbab,
+          filteredSubtopics: filteredSubbab,
+          isMatch: !query || chapterNameMatches || filteredSubbab.length > 0,
         };
       })
       .filter((chapter) => chapter.isMatch);
-  }, [chaptersData, searchQuery, selectedGrade]);
 
-  const executeCompletePretest = (chapter) => {
-    const simulatedScore = 85;
-    const correct = Math.round((simulatedScore / 100) * 15);
-    const wrong = 15 - correct;
-    const newResult = {
-      score: simulatedScore,
-      correctCount: correct,
-      wrongCount: wrong,
-      duration: "14 Menit 20 Detik",
-      breakdown: (chapter.subbab || chapter.subtopics || []).map((s, idx) => ({
-        subtopic: s.name,
-        status: idx % 2 === 0 ? "Kuasai" : "Perlu Latihan",
-        score: idx % 2 === 0 ? "90%" : "65%",
-      })),
-      recommendation: `Berdasarkan hasil pretest diagnostik, kamu siap mempelajari materi bab ${chapter.name}. Direkomendasikan memulai dari subbab pertama untuk memperkuat fondasi konsep.`,
-    };
+    return matchingChapters.sort((left, right) => {
+      const leftComplete = Number(left.progress || 0) >= 100;
+      const rightComplete = Number(right.progress || 0) >= 100;
+      if (leftComplete !== rightComplete) return leftComplete ? 1 : -1;
 
-    const chapterKey = chapter._id || chapter.id;
+      const leftIsPriority = String(left._id) === String(priorityChapterId);
+      const rightIsPriority = String(right._id) === String(priorityChapterId);
+      if (leftIsPriority !== rightIsPriority) return leftIsPriority ? -1 : 1;
+      return 0;
+    });
+  }, [chaptersData, searchQuery, selectedGrade, priorityChapterId]);
 
-    setChaptersData((prev) =>
-      prev.map((c) =>
-        (c._id || c.id) === chapterKey
-          ? { ...c, diagnosticStatus: "completed", pretestResult: newResult }
-          : c,
-      ),
+  const showPretestResult = async (chapter, pretestId) => {
+    const response = await API.get(
+      `/pretest/${pretestId}/result`,
+      getAuthConfig(),
     );
-
-    chapter.diagnosticStatus = "completed";
-    chapter.pretestResult = newResult;
-
-    setExpandedChapters((prev) => new Set(prev).add(chapterKey));
-
     setActivePretestResult({
       chapterName: chapter.name,
-      result: newResult,
+      result: normalizePretestResult(response.data.data),
     });
+    setPriorityChapterId(String(chapter._id || chapter.id));
+  };
+
+  const executeCompletePretest = (chapter) => {
+    const chapterId = chapter._id || chapter.id;
+    sessionStorage.setItem(
+      TOPIC_RETURN_STATE_KEY,
+      JSON.stringify({ searchQuery, selectedGrade }),
+    );
+    setPretestConfirmChapter(null);
+    navigate(
+      `/quiz?mode=pretest&babId=${encodeURIComponent(chapterId)}&chapterName=${encodeURIComponent(chapter.name || "Pretest")}`,
+    );
+  };
+
+  const handleViewPretestResult = async (chapter) => {
+    setPretestLoadingId(chapter._id);
+    setLoadError("");
+    try {
+      const response = await API.get(
+        `/pretest/status/${chapter._id}`,
+        getAuthConfig(),
+      );
+      const pretestId = response.data.data.pretest_id;
+      if (pretestId) await showPretestResult(chapter, pretestId);
+    } catch (error) {
+      setLoadError(
+        error.response?.data?.message || "Hasil pretest gagal dimuat.",
+      );
+    } finally {
+      setPretestLoadingId(null);
+    }
   };
 
   const handleSubtopicAction = (subtopic, chapter) => {
@@ -230,22 +422,22 @@ const Topics = () => {
       return;
     }
 
-    console.log(
-      `Memulai pembelajaran subbab: ${subtopic.name} (${
-        subtopic._id || subtopic.id
-      })`,
+    const subbabId = subtopic._id || subtopic.id;
+    sessionStorage.setItem(
+      TOPIC_RETURN_STATE_KEY,
+      JSON.stringify({ searchQuery, selectedGrade }),
+    );
+    navigate(
+      `/quiz?mode=quiz&subbabId=${encodeURIComponent(subbabId)}&topicName=${encodeURIComponent(subtopic.name || "Kuis")}`,
     );
   };
 
   return (
     <div className="flex min-h-screen bg-neutral-bg">
       <Navbar activePage="Topik" />
-
       <div className="min-w-0 flex-1">
         <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
           <TopHeader />
-
-          {/* Component 1: Search Bar & Filter */}
           <TopicSearchBar
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -257,37 +449,47 @@ const Topics = () => {
             availableGradeFilters={availableGradeFilters}
           />
 
-          {/* Chapters List */}
-          {filteredChapters.length === 0 ? (
-            <div className="text-center py-12 px-4 bg-white rounded-3xl border border-slate-200">
-              <h3 className="text-sm font-bold text-slate-800 mb-1">
+          {loadError && (
+            <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {loadError}
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">
+              Memuat daftar kelas dan BAB...
+            </div>
+          ) : filteredChapters.length === 0 ? (
+            <div className="rounded-3xl border border-slate-200 bg-white px-4 py-12 text-center">
+              <h3 className="mb-1 text-sm font-bold text-slate-800">
                 Tidak ada BAB yang cocok
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
-                Coba sesuaikan kata kunci pencarian atau ganti filter kelas
-                untuk menemukan materi pelajaran.
+              <p className="mx-auto mb-4 max-w-sm text-xs text-slate-500">
+                Coba sesuaikan kata kunci pencarian atau ganti filter kelas.
               </p>
               <button
                 onClick={() => {
                   setSearchQuery("");
-                  setSelectedGrade("Semua Kelas");
+                  setSelectedGrade(ALL_GRADES);
                 }}
-                className="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors cursor-pointer"
+                className="cursor-pointer rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
               >
-                Reset Filter & Pencarian
+                Reset Filter &amp; Pencarian
               </button>
             </div>
           ) : (
             <div className="space-y-5">
               {filteredChapters.map((chapter) => (
                 <ChapterCard
-                  key={chapter._id || chapter.id}
+                  key={chapter._id}
                   chapter={chapter}
                   isSearching={isSearching}
                   expandedChapters={expandedChapters}
+                  collapsedSearchChapters={collapsedSearchChapters}
                   toggleChapter={toggleChapter}
                   setPretestConfirmChapter={setPretestConfirmChapter}
-                  setActivePretestResult={setActivePretestResult}
+                  handleViewPretestResult={handleViewPretestResult}
+                  pretestLoading={pretestLoadingId === chapter._id}
                   selectedGrade={selectedGrade}
                   handleSubtopicAction={handleSubtopicAction}
                 />
@@ -297,7 +499,6 @@ const Topics = () => {
         </main>
       </div>
 
-      {/* Component 2: Modals */}
       <TopicModals
         pretestConfirmChapter={pretestConfirmChapter}
         setPretestConfirmChapter={setPretestConfirmChapter}
