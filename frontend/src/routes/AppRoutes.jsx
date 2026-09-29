@@ -8,6 +8,7 @@ import Register from "../pages/Auth/Register";
 import VerifyEmail from "../pages/Auth/VerifyEmail";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
+import GoogleAuthCallback from "../pages/Auth/GoogleAuthCallback";
 
 import PersonalizationWizard from "../pages/Student/PersonalizationWizard";
 
@@ -32,6 +33,7 @@ const AppRoutes = () => {
       <Route path="/verify" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset" element={<ResetPassword />} />
+      <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
 
       {/* Protected Student Routes */}
       <Route element={<ProtectedRoute />}>

@@ -16,7 +16,6 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    agreeTerms: false,
   });
 
   const handleChange = (e) => {
@@ -38,6 +37,13 @@ const Register = () => {
     // Validasi Kesesuaian Password
     if (formData.password !== formData.confirmPassword) {
       setErrorMessage("Kata sandi dan konfirmasi kata sandi tidak cocok!");
+      return;
+    }
+
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password)) {
+      setErrorMessage(
+        "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
+      );
       return;
     }
 
@@ -66,7 +72,12 @@ const Register = () => {
 
         // Jeda singkat agar toast sempat terbaca sebelum navigasi
         setTimeout(() => {
-          navigate("/verify", { state: { email: formData.email } });
+          navigate("/verify", {
+            state: {
+              email: formData.email,
+              resendAfterSeconds: data.data?.resendAfterSeconds ?? 0,
+            },
+          });
         }, 1200);
       } else {
         // Tampilkan error dari backend di banner inline
@@ -171,6 +182,7 @@ const Register = () => {
                   onChange={handleChange}
                   placeholder="Kata Sandi"
                   required
+                  minLength={8}
                   className="w-full rounded-xl border border-neutral-border bg-neutral-bg py-2.5 pl-10 pr-10 text-xs text-neutral-text placeholder-neutral-muted transition-colors focus:border-primary focus:bg-neutral-card focus:outline-none"
                 />
                 <button
@@ -185,6 +197,9 @@ const Register = () => {
                   )}
                 </button>
               </div>
+              <p className="mt-1.5 pl-1 text-[11px] text-neutral-muted">
+                Minimal 8 karakter, mencakup huruf besar, huruf kecil, dan angka.
+              </p>
             </div>
 
             {/* CONFIRM PASSWORD FIELD */}
@@ -212,23 +227,6 @@ const Register = () => {
                   )}
                 </button>
               </div>
-            </div>
-
-            {/* TERMS & CONDITIONS */}
-            <div className="flex items-center pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  name="agreeTerms"
-                  checked={formData.agreeTerms}
-                  onChange={handleChange}
-                  required
-                  className="h-3.5 w-3.5 rounded border-neutral-border text-primary focus:ring-primary cursor-pointer"
-                />
-                <span className="text-neutral-muted text-[11px] sm:text-xs">
-                  Saya menyetujui Syarat & Ketentuan Layanan
-                </span>
-              </label>
             </div>
 
             {/* SUBMIT BUTTON */}

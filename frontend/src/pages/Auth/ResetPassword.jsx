@@ -10,7 +10,7 @@ const ResetPassword = () => {
   const location = useLocation();
 
   const email = location.state?.email || "";
-  const otp = location.state?.otp || "";
+  const resetToken = location.state?.resetToken || "";
 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -35,17 +35,25 @@ const ResetPassword = () => {
       return;
     }
 
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.newPassword)) {
+      setErrorMessage(
+        "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/reset-password",
+        "http://localhost:5000/api/auth/change-password",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${resetToken}`,
+          },
           body: JSON.stringify({
-            email: email,
-            otp: otp,
             newPassword: formData.newPassword,
           }),
         },
@@ -77,7 +85,7 @@ const ResetPassword = () => {
   };
 
   // Proteksi jika diakses tanpa verifikasi OTP sebelumnya
-  if (!email || !otp) {
+  if (!email || !resetToken) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-bg p-4 text-center font-sans">
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-neutral-border max-w-md">
@@ -133,6 +141,7 @@ const ResetPassword = () => {
                   onChange={handlePasswordChange}
                   placeholder="Kata Sandi Baru"
                   required
+                  minLength={8}
                   className="w-full rounded-xl border border-neutral-border bg-neutral-bg py-2.5 pl-10 pr-10 text-xs text-neutral-text placeholder-neutral-muted transition-colors focus:border-primary focus:bg-neutral-card focus:outline-none"
                 />
                 <button
@@ -147,6 +156,9 @@ const ResetPassword = () => {
                   )}
                 </button>
               </div>
+              <p className="mt-1.5 pl-1 text-[11px] text-neutral-muted">
+                Minimal 8 karakter, mencakup huruf besar, huruf kecil, dan angka.
+              </p>
             </div>
 
             {/* KONFIRMASI KATA SANDI BARU */}

@@ -1,15 +1,21 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom";
 import VerifyEmail from "./VerifyEmail";
+
+vi.mock("../../context/AuthContext", () => ({
+    useAuth: () => ({ login: vi.fn() }),
+}));
+
+afterEach(() => vi.unstubAllGlobals());
 
 function renderWithRoutes(initialEntries) {
     return render(
         <MemoryRouter initialEntries={initialEntries}>
             <Routes>
                 <Route path="/verify-email" element={<VerifyEmail />} />
-                <Route path="/dashboard" element={<div>Halaman Dashboard</div>} />
+                <Route path="/topik" element={<div>Halaman Pilihan Bab</div>} />
             </Routes>
         </MemoryRouter>
     );
@@ -27,9 +33,7 @@ describe("VerifyEmail", () => {
 
     it("menampilkan judul halaman", () => {
         renderWithRoutes(["/verify-email"]);
-        expect(
-            screen.getByRole("heading", { name: "Verifikasi Email" })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Verifikasi Kode OTP" })).toBeInTheDocument();
     });
 
     it("menampilkan email default kalau tidak ada state yang dikirim", () => {
@@ -90,41 +94,39 @@ describe("VerifyEmail", () => {
         expect(inputs.map((input) => input.value).join("")).toBe("123456");
     });
 
-    it("menampilkan alert kalau submit dengan OTP belum lengkap", () => {
-        const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => { });
+    it("menampilkan pesan validasi kalau OTP belum lengkap", () => {
         renderWithRoutes(["/verify-email"]);
 
-        fireEvent.click(screen.getByRole("button", { name: "Verifikasi Email" }));
+        fireEvent.click(screen.getByRole("button", { name: "Verifikasi OTP" }));
 
-        expect(alertSpy).toHaveBeenCalledWith(
-            "Harap masukkan 6 digit kode OTP secara lengkap!"
-        );
-        // belum pindah halaman (pakai role "heading" biar tidak bentrok
-        // dengan tombol submit yang teksnya juga "Verifikasi Email")
-        expect(
-            screen.getByRole("heading", { name: "Verifikasi Email" })
-        ).toBeInTheDocument();
-
-        alertSpy.mockRestore();
+        expect(screen.getByText("Harap masukkan 6 digit kode OTP secara lengkap!")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Verifikasi Kode OTP" })).toBeInTheDocument();
     });
 
-    it("redirect ke /dashboard setelah OTP 6 digit lengkap disubmit", () => {
-        const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => { });
-        renderWithRoutes(["/verify-email"]);
-        const inputs = getOtpInputs();
-
-        fireEvent.paste(inputs[0], {
-            clipboardData: { getData: () => "123456" },
+    it("mengirim ulang OTP dengan jenis reset dan menerapkan cooldown dari API", async () => {
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                status: "success",
+                data: { resendAfterSeconds: 60 },
+            }),
         });
-        fireEvent.click(screen.getByRole("button", { name: "Verifikasi Email" }));
+        vi.stubGlobal("fetch", fetchMock);
+        renderWithRoutes([{
+            pathname: "/verify-email",
+            state: { email: "budi@example.com", action: "reset-password" },
+        }]);
 
-        expect(consoleSpy).toHaveBeenCalledWith(
-            "Static OTP Verification:",
-            expect.objectContaining({ otp: "123456" })
-        );
-        expect(screen.getByText("Halaman Dashboard")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Kirim ulang OTP" }));
 
-        consoleSpy.mockRestore();
+        await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+            "http://localhost:5000/api/auth/send-otp",
+            expect.objectContaining({
+                method: "POST",
+                body: JSON.stringify({ email: "budi@example.com", type: "PASSWORD_RESET" }),
+            }),
+        ));
+        expect(await screen.findByRole("button", { name: "Kirim ulang OTP dalam 1:00" })).toBeDisabled();
     });
 
     it("menampilkan link kembali ke halaman login", () => {

@@ -16,7 +16,9 @@ const getBab = async (req, res) => {
     const userId = req.user.id;
 
     // Ambil data user terbaru dari database
-    const user = await User.findById(userId).select("jenjang_id").lean();
+    const user = await User.findById(userId)
+      .select("jenjang_id allJenjang")
+      .lean();
 
     if (!user) {
       return res.status(404).json({
@@ -66,7 +68,7 @@ const getBab = async (req, res) => {
     const kelasQuery = {};
 
     // Hanya tambahkan filter jenjang jika user memiliki jenjangId
-    if (userJenjangId) {
+    if (userJenjangId && !user.allJenjang) {
       kelasQuery.jenjang_id = userJenjangId;
     }
 

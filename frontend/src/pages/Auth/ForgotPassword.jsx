@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowLeft, AlertCircle } from "lucide-react";
 import { toast, Toaster } from "sonner";
@@ -9,6 +9,16 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(0);
+
+  useEffect(() => {
+    if (resendCountdown <= 0) return undefined;
+    const timer = window.setTimeout(
+      () => setResendCountdown((seconds) => Math.max(0, seconds - 1)),
+      1000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [resendCountdown]);
 
   const handleChangeEmail = (e) => {
     setEmail(e.target.value);
@@ -37,6 +47,7 @@ const ForgotPassword = () => {
           state: {
             email: email.trim(),
             action: "reset-password",
+            resendAfterSeconds: response.data.data?.resendAfterSeconds ?? 0,
           },
         });
       }, 1200);
@@ -44,6 +55,9 @@ const ForgotPassword = () => {
       const msg =
         err.response?.data?.message ||
         "Gagal mengirimkan kode OTP. Pastikan email terdaftar.";
+      if (err.response?.data?.retryAfterSeconds) {
+        setResendCountdown(err.response.data.retryAfterSeconds);
+      }
       setErrorMessage(msg);
       toast.error("Gagal Mengirim OTP", { description: msg });
     } finally {
@@ -97,10 +111,14 @@ const ForgotPassword = () => {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || resendCountdown > 0}
                 className="mt-2 w-full rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-hover cursor-pointer disabled:opacity-50"
               >
-                {loading ? "Mengirim OTP..." : "Kirim Kode OTP"}
+                {loading
+                  ? "Mengirim OTP..."
+                  : resendCountdown > 0
+                    ? `Kirim ulang OTP dalam ${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")}`
+                    : "Kirim Kode OTP"}
               </button>
             </form>
           </div>

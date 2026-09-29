@@ -7,6 +7,7 @@ const User = require("../models/User");
 const OTP = require("../models/OTP");
 const RefreshToken = require("../models/RefreshToken");
 const RevokedToken = require("../models/RevokedToken");
+const { sendOtp } = require("../services/otpService");
 
 const googleOAuth2Client = require("../config/google");
 
@@ -18,12 +19,24 @@ const {
 } = require("../utils/refreshToken");
 
 const { generateAccessToken } = require("../utils/generateAccessToken");
-const generateOTP = require("../utils/generateOTP");
+const passwordIsValid = (password) =>
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
 
-const {
-  sendOTPEmail,
-  sendPasswordResetOTPEmail,
-} = require("../services/emailService");
+const sendOtpError = (res, error) => {
+  if (!error.statusCode) return false;
+
+  if (error.retryAfterSeconds) {
+    res.set("Retry-After", String(error.retryAfterSeconds));
+  }
+
+  res.status(error.statusCode).json({
+    statusCode: error.statusCode,
+    status: "error",
+    message: error.message,
+    retryAfterSeconds: error.retryAfterSeconds,
+  });
+  return true;
+};
 
 // ========================================
 // HELPER
@@ -72,6 +85,14 @@ const register = async (req, res) => {
       });
     }
 
+    if (!passwordIsValid(password)) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
+      });
+    }
+
     const normalizedEmail = email.toLowerCase().trim();
 
     // Cek apakah email sudah terdaftar
@@ -99,28 +120,19 @@ const register = async (req, res) => {
       isProfileComplete: false,
     });
 
-    // Generate OTP
-    const otpCode = generateOTP();
-
-    // Simpan OTP
-    await OTP.create({
-      email: normalizedEmail,
-      otp: otpCode,
-      type: "EMAIL_VERIFICATION",
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    });
-
-    // Kirim OTP melalui email
-    await sendOTPEmail(normalizedEmail, otpCode);
+    const otpResult = await sendOtp(normalizedEmail, "EMAIL_VERIFICATION");
 
     return res.status(200).json({
       statusCode: 200,
       status: "success",
       message:
         "Registrasi berhasil. Silakan cek email Anda untuk kode verifikasi.",
+      data: otpResult,
     });
   } catch (error) {
     console.error("Register error:", error);
+
+    if (sendOtpError(res, error)) return;
 
     return res.status(500).json({
       statusCode: 500,
@@ -219,6 +231,7 @@ const verifyEmail = async (req, res) => {
           name: user.name,
           email: user.email,
           isProfileComplete: user.isProfileComplete,
+          allJenjang: user.allJenjang,
         },
       },
     });
@@ -286,11 +299,11 @@ const login = async (req, res) => {
       });
     }
 
-    // Cek apakah email sudah diverifikasi
     if (!user.isVerified) {
-      return res.status(401).json({
-        statusCode: 401,
+      return res.status(403).json({
+        statusCode: 403,
         status: "error",
+        code: "EMAIL_NOT_VERIFIED",
         message: "Email belum diverifikasi",
       });
     }
@@ -313,6 +326,7 @@ const login = async (req, res) => {
           name: user.name,
           email: user.email,
           isProfileComplete: user.isProfileComplete,
+          allJenjang: user.allJenjang,
         },
       },
     });
@@ -486,34 +500,19 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    // Hapus OTP reset password sebelumnya
-    await OTP.deleteMany({
-      email: normalizedEmail,
-      type: "PASSWORD_RESET",
-    });
-
-    // Generate OTP baru
-    const otpCode = generateOTP();
-
-    // Simpan OTP selama 15 menit
-    await OTP.create({
-      email: normalizedEmail,
-      otp: otpCode,
-      type: "PASSWORD_RESET",
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-    });
-
-    // Kirim OTP ke email
-    await sendPasswordResetOTPEmail(normalizedEmail, otpCode);
+    const otpResult = await sendOtp(normalizedEmail, "PASSWORD_RESET");
 
     return res.status(200).json({
       statusCode: 200,
       status: "success",
       message:
         "Jika email terdaftar, kode OTP untuk reset password telah dikirim.",
+      data: otpResult,
     });
   } catch (error) {
     console.error("Forgot password error:", error);
+
+    if (sendOtpError(res, error)) return;
 
     return res.status(500).json({
       statusCode: 500,
@@ -570,6 +569,13 @@ const verifyResetOTP = async (req, res) => {
       statusCode: 200,
       status: "success",
       message: "Kode OTP valid",
+      data: {
+        resetToken: jwt.sign(
+          { purpose: "password_reset", email: normalizedEmail, otpId: otpData._id },
+          process.env.JWT_SECRET,
+          { expiresIn: "10m" },
+        ),
+      },
     });
   } catch (error) {
     console.error("Verify reset OTP error:", error);
@@ -583,76 +589,85 @@ const verifyResetOTP = async (req, res) => {
 
 // ========================================
 // RESET PASSWORD
-// POST /api/auth/reset-password
+// POST /api/auth/change-password
 // ========================================
 
-const resetPassword = async (req, res) => {
+const changePassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { newPassword } = req.body;
+    const resetToken = req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.slice(7)
+      : req.body.resetToken;
 
-    if (!email || !otp || !newPassword) {
+    if (!resetToken || !newPassword) {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Email, OTP, dan password baru wajib diisi",
+        message: "Token verifikasi dan password baru wajib diisi",
       });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Cari user
-    const user = await User.findOne({
-      email: normalizedEmail,
-    });
-
-    if (!user) {
+    if (!passwordIsValid(newPassword)) {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Kode OTP salah atau sudah kedaluwarsa",
+        message: "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
       });
     }
 
-    // Cari OTP reset password
+    let resetPayload;
+    try {
+      resetPayload = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Token verifikasi tidak valid atau sudah kedaluwarsa",
+      });
+    }
+
+    if (resetPayload.purpose !== "password_reset") {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Token verifikasi tidak valid",
+      });
+    }
+
     const otpData = await OTP.findOne({
-      email: normalizedEmail,
-      otp,
+      _id: resetPayload.otpId,
+      email: resetPayload.email,
       type: "PASSWORD_RESET",
+      expiresAt: { $gt: new Date() },
     });
+    const user = await User.findOne({ email: resetPayload.email });
 
-    if (!otpData) {
+    if (!otpData || !user) {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Kode OTP salah atau sudah kedaluwarsa",
+        message: "Token verifikasi tidak valid atau sudah kedaluwarsa",
       });
     }
 
-    // Cek expiry
-    if (otpData.expiresAt < new Date()) {
-      await OTP.deleteOne({
-        _id: otpData._id,
-      });
-
-      return res.status(400).json({
-        statusCode: 400,
-        status: "error",
-        message: "Kode OTP salah atau sudah kedaluwarsa",
-      });
-    }
-
-    // Hash password baru
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password
-    user.password = hashedPassword;
-
-    await user.save();
-
-    // OTP tidak boleh digunakan lagi
-    await OTP.deleteOne({
+    const consumedOtp = await OTP.findOneAndDelete({
       _id: otpData._id,
+      email: resetPayload.email,
+      type: "PASSWORD_RESET",
+      expiresAt: { $gt: new Date() },
     });
+
+    if (!consumedOtp) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Token verifikasi tidak valid atau sudah digunakan",
+      });
+    }
+
+    user.password = hashedPassword;
+    await user.save();
 
     // Revoke semua refresh token aktif
     // agar session lama tidak dapat digunakan lagi
@@ -672,8 +687,55 @@ const resetPassword = async (req, res) => {
       message: "Password berhasil diubah. Silakan login dengan password baru.",
     });
   } catch (error) {
-    console.error("Reset password error:", error);
+    console.error("Change password error:", error);
 
+    return res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Terjadi kesalahan pada server",
+    });
+  }
+};
+
+const resendOTP = async (req, res) => {
+  try {
+    const { email, type } = req.body;
+    if (!email || !["EMAIL_VERIFICATION", "PASSWORD_RESET"].includes(type)) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Email dan jenis OTP wajib diisi",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (type === "EMAIL_VERIFICATION" && (!user || user.isVerified)) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Akun tidak ditemukan atau email sudah diverifikasi",
+      });
+    }
+
+    if (type === "PASSWORD_RESET" && !user) {
+      return res.status(200).json({
+        statusCode: 200,
+        status: "success",
+        message: "Jika email terdaftar, kode OTP untuk reset password telah dikirim.",
+      });
+    }
+
+    const data = await sendOtp(normalizedEmail, type);
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      message: "Kode OTP berhasil dikirim ulang",
+      data,
+    });
+  } catch (error) {
+    if (sendOtpError(res, error)) return;
+    console.error("Resend OTP error:", error);
     return res.status(500).json({
       statusCode: 500,
       status: "error",
@@ -690,7 +752,7 @@ const resetPassword = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
-      "_id name email jenjang_id role isProfileComplete isVerified",
+      "_id name email jenjang_id role isProfileComplete isVerified allJenjang",
     );
 
     if (!user) {
@@ -713,6 +775,7 @@ const getMe = async (req, res) => {
           jenjangId: user.jenjang_id,
           isProfileComplete: user.isProfileComplete,
           isVerified: user.isVerified,
+          allJenjang: user.allJenjang,
         },
       },
     });
@@ -922,18 +985,13 @@ const googleCallback = async (req, res) => {
   try {
     // Buat token JWT untuk user yang berhasil login via Google
     const accessToken = generateAccessToken(req.user); // sesuaikan dengan helper token di controller kalian
-    const refreshToken = generateRefreshToken(req.user);
+    const refreshToken = await createRefreshToken(req.user);
 
-    // Cek kelengkapan profil pengguna baru
-    if (!req.user.isProfileComplete) {
-      return res.redirect(
-        `${frontendUrl}/personalization?accessToken=${accessToken}&refreshToken=${refreshToken}`,
-      );
-    } else {
-      return res.redirect(
-        `${frontendUrl}/dashboard?accessToken=${accessToken}&refreshToken=${refreshToken}`,
-      );
-    }
+    const callbackUrl = new URL("/auth/google/callback", frontendUrl);
+    callbackUrl.searchParams.set("accessToken", accessToken);
+    callbackUrl.searchParams.set("refreshToken", refreshToken);
+
+    return res.redirect(callbackUrl.toString());
   } catch (error) {
     console.error("Error Google Callback Controller:", error);
     return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
@@ -951,7 +1009,8 @@ module.exports = {
   logout,
   forgotPassword,
   verifyResetOTP,
-  resetPassword,
+  changePassword,
+  resendOTP,
   getMe,
   refreshAccessToken,
   googleLogin,

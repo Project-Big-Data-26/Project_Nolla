@@ -77,6 +77,16 @@ const Login = () => {
       } else {
         const msg =
           result.message || "Email atau password yang Anda masukkan salah.";
+        if (result.code === "EMAIL_NOT_VERIFIED") {
+          navigate("/verify", {
+            state: {
+              email: formData.email.trim(),
+              action: "register",
+              resendAfterSeconds: result.retryAfterSeconds ?? 0,
+            },
+          });
+          return;
+        }
         setErrorMessage(msg);
         toast.error("Login Gagal", {
           description: msg,
