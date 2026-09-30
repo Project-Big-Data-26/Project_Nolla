@@ -35,7 +35,7 @@ export default function GoogleAuthCallback() {
         if (!user) throw new Error("Profil pengguna tidak ditemukan");
 
         login(user, accessToken);
-        navigate(user.isProfileComplete ? "/dashboard" : "/personalization", {
+        navigate(user.isProfileComplete ? "/topik" : "/personalization", {
           replace: true,
         });
       })
