@@ -7,8 +7,9 @@ const Pretest = require("../models/MengerjakanPretest");
 const PertanyaanPretest = require("../models/MenjawabSoalPretest");
 const UserProficiency = require("../models/MendapatkanDifficulty");
 const BabPrasyarat = require("../models/MemilikiPrasyarat");
+const { toPublicImageUrls } = require("../utils/questionImage");
 
-const serializeQuestion = (question) => {
+const serializeQuestion = (question, req) => {
   if (!question) return null;
 
   const normalizedOptions = Array.isArray(question.options)
@@ -25,7 +26,7 @@ const serializeQuestion = (question) => {
     soal_type: question.soal_type || null,
     options: normalizedOptions,
     option_texts: normalizedOptions.map((option) => option.text),
-    image_url: Array.isArray(question.image_url) ? question.image_url : [],
+    image_url: toPublicImageUrls(question.image_url, req),
     cognitive_score: question.cognitive_score ?? null,
   };
 };
@@ -584,7 +585,7 @@ const startPretest = async (req, res) => {
 
     const questionState = await getPretestQuestionState(pretest);
     const firstQuestion = questionState.nextQuestion
-      ? serializeQuestion(questionState.nextQuestion)
+      ? serializeQuestion(questionState.nextQuestion, req)
       : null;
 
     if (firstQuestion?.question_id) {
@@ -727,7 +728,7 @@ const getNextQuestion = async (req, res) => {
         pretest_id: pretest._id,
         bab_id: pretest.bab_id,
         question: {
-          ...serializeQuestion(finalNextQuestion),
+          ...serializeQuestion(finalNextQuestion, req),
           stage: stage || "subbab",
         },
         sequence: nextQuestionSequence,
@@ -902,7 +903,7 @@ const answerPretestQuestion = async (req, res) => {
 
     const nextQuestionPayload = nextQuestion
       ? {
-          ...serializeQuestion(nextQuestion),
+          ...serializeQuestion(nextQuestion, req),
           stage: stage || "subbab",
         }
       : null;
@@ -1026,8 +1027,6 @@ const submitPretest = async (req, res) => {
         )
       : null;
 
-    await pretest.save();
-
     const questionMap = new Map(
       allPretestQuestions.map((question) => [
         question._id.toString(),
@@ -1054,27 +1053,41 @@ const submitPretest = async (req, res) => {
       subbabPerformance.set(subbabId, performance);
     }
 
+    const subbabCognitiveScores = [...subbabPerformance].map(
+      ([subbabId, performance]) => {
+        const subbabDifficulty = getSubbabDifficultyFromPerformance(
+          performance.correct,
+          performance.total,
+        );
+
+        return {
+          subbab_id: subbabId,
+          current_cognitive_level: subbabDifficulty.difficulty,
+          current_cognitive_score: subbabDifficulty.score,
+          pretest_subbab_correct: performance.correct,
+          pretest_subbab_total: performance.total,
+        };
+      },
+    );
+    pretest.subbab_cognitive_scores = subbabCognitiveScores;
+    await pretest.save();
+
     const difficultySummary = [];
 
-    for (const [subbabId, performance] of subbabPerformance) {
-      const subbabDifficulty = getSubbabDifficultyFromPerformance(
-        performance.correct,
-        performance.total,
-      );
-
+    for (const subbabScore of subbabCognitiveScores) {
       const difficultyRecord = await UserProficiency.findOneAndUpdate(
         {
           user_id: req.user.id,
-          subbab_id: subbabId,
+          subbab_id: subbabScore.subbab_id,
         },
         {
           $set: {
             user_id: req.user.id,
-            subbab_id: subbabId,
-            current_cognitive_level: subbabDifficulty.difficulty,
-            current_cognitive_score: subbabDifficulty.score,
-            pretest_subbab_correct: performance.correct,
-            pretest_subbab_total: performance.total,
+            subbab_id: subbabScore.subbab_id,
+            current_cognitive_level: subbabScore.current_cognitive_level,
+            current_cognitive_score: subbabScore.current_cognitive_score,
+            pretest_subbab_correct: subbabScore.pretest_subbab_correct,
+            pretest_subbab_total: subbabScore.pretest_subbab_total,
             updated_at: new Date(),
           },
         },
@@ -1184,16 +1197,11 @@ const getPretestResult = async (req, res) => {
     const targetSubbabMap = new Map(
       targetSubbabRecords.map((subbab) => [subbab._id.toString(), subbab]),
     );
-    const difficultyRecords = await UserProficiency.find({
-      user_id: req.user.id,
-      subbab_id: { $in: [...targetSubbabMap.keys()] },
-    })
-      .select(
-        "subbab_id current_cognitive_level current_cognitive_score pretest_subbab_correct pretest_subbab_total updated_at",
-      )
-      .lean();
     const difficultyMap = new Map(
-      difficultyRecords.map((record) => [record.subbab_id.toString(), record]),
+      (pretest.subbab_cognitive_scores || []).map((record) => [
+        record.subbab_id.toString(),
+        record,
+      ]),
     );
 
     const subbabPerformanceMap = new Map();
@@ -1221,9 +1229,14 @@ const getPretestResult = async (req, res) => {
     const subbabResultSummary = [];
     for (const item of subbabPerformanceMap.values()) {
       const difficulty = difficultyMap.get(item.subbab_id);
+      const fallbackDifficulty = getSubbabDifficultyFromPerformance(
+        item.correct,
+        item.total,
+      );
       const currentCognitiveLevel =
-        difficulty?.current_cognitive_level ?? "easy";
-      const currentCognitiveScore = difficulty?.current_cognitive_score ?? 600;
+        difficulty?.current_cognitive_level ?? fallbackDifficulty.difficulty;
+      const currentCognitiveScore =
+        difficulty?.current_cognitive_score ?? fallbackDifficulty.score;
 
       subbabResultSummary.push({
         subbab_id: item.subbab_id,
@@ -1439,9 +1452,7 @@ const getPretestReview = async (req, res) => {
               text: option.text,
             }))
           : [],
-        image_url: Array.isArray(record.soal_id.image_url)
-          ? record.soal_id.image_url
-          : [],
+        image_url: toPublicImageUrls(record.soal_id.image_url, req),
         selected_answer: record.selected_answer,
         correct_answer: record.soal_id.correct_answer,
         is_correct: Boolean(record.is_correct),

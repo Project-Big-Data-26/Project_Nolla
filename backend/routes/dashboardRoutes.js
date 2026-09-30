@@ -202,7 +202,7 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                         example: true
  *                       progress:
  *                         type: integer
- *                         description: Persentase subbab selesai, dari 0 sampai 100
+ *                         description: Rata-rata progress seluruh subbab, dari 0 sampai 100
  *                         example: 50
  *                       total_subbab:
  *                         type: integer
@@ -215,7 +215,7 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                         description: Kosong sebelum pretest bab selesai; berisi daftar subbab setelah pretest selesai
  *                         items:
  *                           type: object
- *                           required: [id, name, description, display_order, completed]
+ *                           required: [id, name, description, display_order, progress, completed, current_cognitive_score, current_cognitive_level]
  *                           properties:
  *                             id:
  *                               type: string
@@ -229,9 +229,21 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                             display_order:
  *                               type: integer
  *                               example: 1
+ *                             progress:
+ *                               type: integer
+ *                               description: Progress subbab berdasarkan cognitive score; score 600 = 0% dan score 1600 = 100%
+ *                               example: 33
  *                             completed:
  *                               type: boolean
+ *                               description: Selesai jika cognitive score mencapai 1600
  *                               example: true
+ *                             current_cognitive_score:
+ *                               type: number
+ *                               example: 1000
+ *                             current_cognitive_level:
+ *                               type: string
+ *                               enum: [easy, medium, hard]
+ *                               example: medium
  *             examples:
  *               babDenganProgress:
  *                 summary: Bab sudah dipretest dan memiliki progress subbab
