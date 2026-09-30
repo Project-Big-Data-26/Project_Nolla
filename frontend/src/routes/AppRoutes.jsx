@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
 // Import Pages
@@ -8,6 +8,7 @@ import Register from "../pages/Auth/Register";
 import VerifyEmail from "../pages/Auth/VerifyEmail";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
+import LandingPage from "../pages/Landing/LandingPage";
 
 import PersonalizationWizard from "../pages/Student/PersonalizationWizard";
 
@@ -26,6 +27,9 @@ import ResultPage from "../pages/Student/ResultPage";
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public / Landing Route */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -37,7 +41,6 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route path="/personalization" element={<PersonalizationWizard />} />
 
-        <Route path="/" element={<Navigate to="/topik" replace />} />
         <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
         <Route path="/topik" element={<Topics />} />
         <Route path="/profile" element={<PersonalizationProfile />} />
