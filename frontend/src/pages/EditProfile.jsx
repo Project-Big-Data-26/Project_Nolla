@@ -24,6 +24,14 @@ import avatar1 from "../assets/avatar/avatar1.png";
 import avatar2 from "../assets/avatar/avatar2.png";
 import avatar3 from "../assets/avatar/avatar3.png";
 import avatar4 from "../assets/avatar/avatar4.png";
+import avatar5 from "../assets/avatar/avatar5.svg";
+import avatar6 from "../assets/avatar/avatar6.svg";
+import avatar7 from "../assets/avatar/avatar7.svg";
+import avatar8 from "../assets/avatar/avatar8.svg";
+import avatar9 from "../assets/avatar/avatar9.svg";
+import avatar10 from "../assets/avatar/avatar10.svg";
+import avatar11 from "../assets/avatar/avatar11.svg";
+import avatar12 from "../assets/avatar/avatar12.svg";
 
 const MAX_PHOTO_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png"];
@@ -34,6 +42,14 @@ const presetAvatars = [
   { id: "avatar2", label: "Avatar 2", src: avatar2 },
   { id: "avatar3", label: "Avatar 3", src: avatar3 },
   { id: "avatar4", label: "Avatar 4", src: avatar4 },
+  { id: "avatar5", label: "Avatar 5", src: avatar5 },
+  { id: "avatar6", label: "Avatar 6", src: avatar6 },
+  { id: "avatar7", label: "Avatar 7", src: avatar7 },
+  { id: "avatar8", label: "Avatar 8", src: avatar8 },
+  { id: "avatar9", label: "Avatar 9", src: avatar9 },
+  { id: "avatar10", label: "Avatar 10", src: avatar10 },
+  { id: "avatar11", label: "Avatar 11", src: avatar11 },
+  { id: "avatar12", label: "Avatar 12", src: avatar12 },
 ];
 
 const jenjangOptions = [
@@ -471,12 +487,12 @@ export default function EditProfile() {
                         Pilih Avatar Karakter
                       </span>
                       <span className="text-[10px] text-slate-400 font-medium">
-                        5 Pilihan
+                        {presetAvatars.length} Pilihan
                       </span>
                     </div>
 
-                    {/* Deretan Avatar Thumbnails */}
-                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                    {/* Deretan Avatar Thumbnails dalam Scrollable Grid */}
+                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 gap-2.5 max-h-52 overflow-y-auto p-1 scrollbar-thin">
                       {presetAvatars.map((item) => {
                         const isSelected = photoPreview === item.src;
                         return (
@@ -487,10 +503,10 @@ export default function EditProfile() {
                               setPhotoPreview(item.src);
                               setErrors((prev) => ({ ...prev, photo: undefined }));
                             }}
-                            className={`relative h-11 w-11 rounded-full overflow-hidden border-2 transition-all cursor-pointer group ${
+                            className={`relative h-11 w-11 rounded-full overflow-hidden border-2 transition-all cursor-pointer group mx-auto ${
                               isSelected
                                 ? "border-primary ring-2 ring-primary/30 scale-105 shadow-xs"
-                                : "border-slate-200 hover:border-primary/50 hover:scale-105 opacity-80 hover:opacity-100 bg-white"
+                                : "border-slate-200 hover:border-primary/50 hover:scale-105 opacity-85 hover:opacity-100 bg-white"
                             }`}
                             title={`Gunakan ${item.label}`}
                           >
