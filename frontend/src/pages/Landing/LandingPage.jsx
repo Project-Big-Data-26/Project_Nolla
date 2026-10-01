@@ -12,7 +12,13 @@ import smpIcon from "../../assets/icon/SMP.png";
 import smaIcon from "../../assets/icon/SMA.png";
 import backgroundBack from "../../assets/background_back.png";
 import siswaHero from "../../assets/siswa_hero.png";
+import siswaMenunjuk from "../../assets/siswa_menunjuk.png";
+import siswaSd from "../../assets/siswa_sd.png";
 import logoNolla from "../../assets/logo-nolla.png";
+import mathPi from "../../assets/komponenTambahan4.png";
+import mathOperators from "../../assets/komponenTambahan5.png";
+import mathSigma from "../../assets/komponenTambahan7.png";
+import pialaIcon from "../../assets/Piala-komponenTambahan10.png";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -58,11 +64,10 @@ const LandingPage = () => {
     <div className="min-h-screen bg-white text-[#1b1f3b] font-['Poppins',sans-serif] antialiased selection:bg-[#ff8a1f]/20 selection:text-[#ff8a1f]">
       {/* -------------------- NAVBAR (Floating & Blurred on Scroll) -------------------- */}
       <nav
-        className={`sticky top-0 z-50 transition-all duration-300 rounded-b-2xl sm:rounded-b-3xl ${
-          isScrolled
-            ? "bg-white/80 backdrop-blur-md shadow-lg border-b border-slate-200/50 py-3"
-            : "bg-white/90 backdrop-blur-sm shadow-sm py-4"
-        }`}
+        className={`sticky top-0 z-50 transition-all duration-300 rounded-b-2xl sm:rounded-b-3xl ${isScrolled
+          ? "bg-white/60 backdrop-blur-md shadow-lg border-b border-slate-200/50 py-3"
+          : "bg-white/100 backdrop-blur-sm shadow-sm py-4"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo & Brand (Clean official logo) */}
@@ -103,11 +108,6 @@ const LandingPage = () => {
               </a>
             </li>
             <li>
-              <a href="#harga" className="hover:text-[#0284c7] transition-colors">
-                Paket
-              </a>
-            </li>
-            <li>
               <a href="#faq" className="hover:text-[#0284c7] transition-colors">
                 FAQ
               </a>
@@ -127,13 +127,13 @@ const LandingPage = () => {
               <>
                 <Link
                   to="/login"
-                  className="px-5 py-2 rounded-full font-bold text-sm text-[#0284c7] border-2 border-[#0284c7] hover:bg-[#0284c7] hover:text-white hover:shadow-[0_0_20px_rgba(2,132,199,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+                  className="px-5 py-2 rounded-full font-bold text-sm text-[#ff8a1f] border-2 border-[#ff8a1f] hover:bg-[#ff8a1f] hover:text-white hover:border-[#ff8a1f] hover:shadow-[0_0_20px_rgba(255,138,31,0.5)] hover:-translate-y-0.5 transition-all duration-300"
                 >
                   Masuk
                 </Link>
                 <Link
                   to="/register"
-                  className="px-6 py-2.5 rounded-full font-bold text-sm bg-[#009bf2] hover:bg-[#0086d4] text-white hover:shadow-[0_0_25px_rgba(0,155,242,0.85)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-1.5"
+                  className="px-6 py-2.5 rounded-full font-bold text-sm bg-[#009bf2] hover:bg-[#1e3a8a] text-white hover:shadow-[0_0_25px_rgba(56,189,248,0.85)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-1.5"
                 >
                   <span>Daftar Sekarang</span>
                   <span className="font-bold text-base leading-none ml-0.5">&gt;</span>
@@ -185,13 +185,6 @@ const LandingPage = () => {
                 Keunggulan
               </a>
               <a
-                href="#harga"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-1 hover:text-[#0284c7]"
-              >
-                Paket
-              </a>
-              <a
                 href="#faq"
                 onClick={() => setMobileMenuOpen(false)}
                 className="py-1 hover:text-[#0284c7]"
@@ -215,7 +208,7 @@ const LandingPage = () => {
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 rounded-full font-bold text-center text-[#0284c7] border-2 border-[#0284c7] hover:bg-[#0284c7] hover:text-white transition-all"
+                    className="w-full py-2.5 rounded-full font-bold text-center text-[#ff8a1f] border-2 border-[#ff8a1f] hover:bg-[#ff8a1f] hover:text-white hover:border-[#ff8a1f] transition-all"
                   >
                     Masuk
                   </Link>
@@ -235,7 +228,7 @@ const LandingPage = () => {
       </nav>
 
       {/* -------------------- HERO SECTION -------------------- */}
-      <header className="relative overflow-hidden bg-[#1e40af] text-white pt-8 sm:pt-12 pb-0">
+      <header className="relative overflow-hidden bg-[#1e40af] text-white pt-7 sm:pt-10 pb-0 rounded-b-[32px] sm:rounded-b-[48px]">
         {/* Background Image: classroom (background_back.png) with clearly visible opacity */}
         <div
           className="absolute inset-0 bg-cover bg-center opacity-65 pointer-events-none scale-105"
@@ -248,74 +241,74 @@ const LandingPage = () => {
         {/* Mint-Green Organic Accent Shape in Top-Right */}
         <div className="absolute -top-16 -right-16 w-80 sm:w-[420px] h-52 sm:h-72 bg-[#00e5a3]/40 rounded-bl-[140px] rounded-br-[40px] blur-2xl pointer-events-none" />
 
-        {/* Subtle Decorative Floating Math Watermark Elements */}
-        <span className="absolute top-16 left-8 text-white/15 text-3xl sm:text-4xl font-mono select-none pointer-events-none font-bold">
-          ∑
-        </span>
-        <span className="absolute bottom-16 left-1/4 text-white/15 text-2xl sm:text-3xl font-mono select-none pointer-events-none font-bold">
-          √x
-        </span>
-        <span className="absolute top-24 right-1/3 text-white/15 text-3xl font-mono select-none pointer-events-none font-bold">
-          π
-        </span>
-        <span className="absolute bottom-28 right-8 text-white/15 text-2xl font-mono select-none pointer-events-none font-bold">
-          f(x)
-        </span>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-end">
-            {/* Left Hero Content */}
-            <div className="lg:col-span-6 space-y-6 text-center lg:text-left pt-6 pb-12 lg:pb-20">
-              {/* Subtle Math Formula Chip */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-xs text-white/90 font-mono tracking-wide select-none">
-                <span className="text-[#ffd08a] font-bold">∫</span> f(x) dx · π ≈ 3.14 · a² + b² = c²
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start lg:items-center">
+            {/* Left Hero Content - elevated higher, z-20 */}
+            <div className="-translate-y-8 lg:col-span-7 space-y-3 sm:space-y-3.5 text-center lg:text-left pt-0 sm:pt-1 pb-4 sm:pb-6 lg:pb-10 relative z-20">
+              {/* Main Headline Container with Piala hovering right above 'Nilai' and 'Kamu' */}
+              <div className="relative inline-block max-w-lg">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.35rem] xl:text-[2.75rem] font-semibold leading-[1.2] tracking-tight text-white drop-shadow-md">
+                  Tingkatkan Nilai Matematika Kamu dengan Latihan Soal untuk SD, SMP, &amp; SMA
+                </h1>
+                {/* Piala-komponenTambahan10.png digeser tepat di dekat kata 'Nilai' dan 'Kamu' */}
+                {/* Piala-komponenTambahan10.png: Atur posisi langsung dengan pixel di style (top & right) */}
+                <img
+                  src={pialaIcon}
+                  alt="Piala Prestasi"
+                  style={{ top: "-15px", right: "20px" }}
+                  className="hidden sm:block absolute w-14 sm:w-16 lg:w-20 h-auto drop-shadow-[0_12px_24px_rgba(0,0,0,0.4)] animate-float-slow select-none pointer-events-none z-30"
+                />
               </div>
 
-              {/* Main Headline (Poppins font-semibold for reduced thickness) */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[2.75rem] xl:text-[3.15rem] font-semibold leading-[1.2] tracking-tight text-white drop-shadow-md">
-                Tingkatkan Nilai Matematika Kamu dengan Latihan Soal Pribadi untuk SD, SMP, &amp; SMA
-              </h1>
-
               {/* Description */}
-              <p className="text-white/95 text-base sm:text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 drop-shadow-sm font-medium">
-                Bersiaplah meraih prestasi tertinggi kamu bersama platform latihan
+              <p className="text-white/95 text-sm sm:text-base leading-relaxed max-w-lg mx-auto lg:mx-0 drop-shadow-sm font-medium">
+                Bersiaplah meraih prestasi kamu bersama platform latihan
                 matematika adaptif terpercaya. Ribuan variasi soal yang tak pernah
                 berulang, mengasah logika dan pemahaman konsep secara bertahap.
               </p>
 
-              {/* 2 CTA Buttons with Glowing Hover Effects */}
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                {/* Mulai Drill Gratis (Blue with blue/cyan neon glow on hover and '>' icon) */}
+              {/* 2 CTA Buttons (slimmer height: py-1.5 sm:py-2, compact & elegant) */}
+              <div className="pt-0.5 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
+                {/* Mulai Drill Gratis */}
                 <Link
                   to="/register"
-                  className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-base bg-[#009bf2] text-white shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:bg-[#0086d4] hover:shadow-[0_0_30px_rgba(0,155,242,0.85)] border-2 border-transparent text-center flex items-center justify-center gap-2 group cursor-pointer"
+                  className="w-full sm:w-auto px-5 sm:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm bg-[#009bf2] text-white shadow-md transition-all duration-300 transform hover:-translate-y-0.5 hover:bg-[#1e3a8a] hover:border-[#38bdf8]/60 hover:shadow-[0_0_25px_rgba(56,189,248,0.9)] border-2 border-transparent text-center flex items-center justify-center gap-1.5 group cursor-pointer"
                 >
                   <span>Mulai Drill Gratis</span>
-                  <span className="font-bold text-lg leading-none ml-0.5 group-hover:translate-x-1 transition-transform">
+                  <span className="font-bold text-sm leading-none ml-0.5 group-hover:translate-x-1 transition-transform">
                     &gt;
                   </span>
                 </Link>
 
-                {/* Lihat Cara Kerja (White turning Orange with bright orange glow on hover) */}
+                {/* Lihat Cara Kerja */}
                 <a
                   href="#cara"
-                  className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-base bg-white text-slate-800 shadow-md transition-all duration-300 transform hover:-translate-y-1 hover:bg-[#ff8a1f] hover:text-white hover:border-[#ff8a1f] hover:shadow-[0_0_30px_rgba(255,138,31,0.85)] border-2 border-transparent text-center flex items-center justify-center cursor-pointer"
+                  className="w-full sm:w-auto px-5 sm:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm bg-white text-slate-800 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:bg-[#ff8a1f] hover:text-white hover:border-[#ff8a1f] hover:shadow-[0_0_25px_rgba(255,138,31,0.85)] border-2 border-transparent text-center flex items-center justify-center cursor-pointer"
                 >
                   Lihat Cara Kerja
                 </a>
               </div>
             </div>
 
-            {/* Right Side: Students Photo - reduced by 1/3 and shifted slightly to the right */}
-            <div className="lg:col-span-6 flex items-end justify-center lg:justify-end self-end h-full relative">
+            {/* Right Side: Students Photo (col-span-5, cleanly separated without overlapping text) */}
+            <div className="lg:col-span-5 flex items-end justify-center lg:justify-end self-end h-full relative z-10 pointer-events-none">
               <img
                 src={siswaHero}
                 alt="Siswa Siswi SD, SMP, SMA Nolla"
-                className="w-auto h-[320px] sm:h-[380px] md:h-[420px] lg:h-[430px] xl:h-[480px] 2xl:h-[520px] max-w-full lg:max-w-none object-contain object-bottom align-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.5)] select-none pointer-events-none block -mb-0.5 translate-x-2 sm:translate-x-4 lg:translate-x-6 xl:translate-x-8"
+                className="translate-x-11 w-auto h-[380px] sm:h-[430px] md:h-[460px] lg:h-[480px] xl:h-[530px] 2xl:h-[580px] max-w-full lg:max-w-none object-contain object-bottom align-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.5)] select-none pointer-events-none block -mb-0.5"
               />
             </div>
           </div>
         </div>
+
+        {/* Gradien dari ujung kiri hingga kanan, tingginya setinggi bendera siswi SD */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-20 sm:h-24 md:h-28 lg:h-32 pointer-events-none z-15"
+          style={{
+            background:
+              "linear-gradient(to top, #0a183d 0%, rgba(29, 78, 216, 0.75) 50%, transparent 100%)",
+          }}
+        />
       </header>
 
       {/* -------------------- STATS BAR -------------------- */}
@@ -361,18 +354,7 @@ const LandingPage = () => {
 
       {/* -------------------- SECTION 1: MASALAH -------------------- */}
       <section id="masalah" className="py-20 lg:py-24 relative overflow-hidden">
-        {/* Subtle background math elements */}
-        <span className="absolute top-10 right-10 text-slate-100 text-6xl font-mono select-none pointer-events-none font-bold">
-          ±
-        </span>
-        <span className="absolute bottom-10 left-10 text-slate-100 text-6xl font-mono select-none pointer-events-none font-bold">
-          ÷
-        </span>
-
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
-          <span className="text-xs font-bold text-[#ff8a1f] tracking-widest uppercase mb-2 block">
-            Masalahnya
-          </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1b1f3b] mb-4">
             Kenapa matematika terasa menakutkan?
           </h2>
@@ -381,15 +363,10 @@ const LandingPage = () => {
             beragam itu susah. Akhirnya siswa merasa terjebak dan menghindar.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-left">
-            <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow group">
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                  😨
-                </div>
-                <span className="text-[11px] font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  Mindset
-                </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
+            <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow group flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+                😨
               </div>
               <h3 className="text-xl font-bold text-[#1b1f3b] mb-2">
                 Mindset takut
@@ -400,14 +377,9 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow group">
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                  🔍
-                </div>
-                <span className="text-[11px] font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                  Bank Soal
-                </span>
+            <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow group flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+                🔍
               </div>
               <h3 className="text-xl font-bold text-[#1b1f3b] mb-2">
                 Soal susah dicari
@@ -418,14 +390,9 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow group">
-              <div className="flex items-center justify-between mb-5">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                  🎯
-                </div>
-                <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Adaptif
-                </span>
+            <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow group flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+                🎯
               </div>
               <h3 className="text-xl font-bold text-[#1b1f3b] mb-2">
                 Nolla hadir
@@ -441,18 +408,7 @@ const LandingPage = () => {
 
       {/* -------------------- SECTION 2: CARA KERJA -------------------- */}
       <section id="cara" className="py-20 lg:py-24 bg-[#f4f6ff] relative overflow-hidden">
-        {/* Subtle background math elements */}
-        <span className="absolute top-12 left-10 text-slate-200/80 text-5xl font-mono select-none pointer-events-none font-bold">
-          log
-        </span>
-        <span className="absolute bottom-12 right-10 text-slate-200/80 text-5xl font-mono select-none pointer-events-none font-bold">
-          ∞
-        </span>
-
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
-          <span className="text-xs font-bold text-[#ff8a1f] tracking-widest uppercase mb-2 block">
-            Cara Kerja
-          </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1b1f3b] mb-4">
             3 langkah menuju jago
           </h2>
@@ -461,15 +417,10 @@ const LandingPage = () => {
             yang melekat.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-left">
-            <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-all relative overflow-hidden">
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-12 h-12 rounded-xl bg-[#2b3fd6]/10 text-[#2b3fd6] flex items-center justify-center font-black text-xl">
-                  1️⃣
-                </div>
-                <span className="text-[11px] font-mono text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
-                  SD · SMP · SMA
-                </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
+            <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-xl bg-[#2b3fd6]/10 text-[#2b3fd6] flex items-center justify-center font-black text-xl mb-6">
+                1️⃣
               </div>
               <h3 className="text-xl font-bold text-[#1b1f3b] mb-3">
                 Pilih jenjang &amp; topik
@@ -480,14 +431,9 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-all relative overflow-hidden">
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-12 h-12 rounded-xl bg-[#ff8a1f]/15 text-[#ff8a1f] flex items-center justify-center font-black text-xl">
-                  2️⃣
-                </div>
-                <span className="text-[11px] font-mono text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
-                  θ Ability Score
-                </span>
+            <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-xl bg-[#ff8a1f]/15 text-[#ff8a1f] flex items-center justify-center font-black text-xl mb-6">
+                2️⃣
               </div>
               <h3 className="text-xl font-bold text-[#1b1f3b] mb-3">
                 Drill soal adaptif
@@ -498,14 +444,9 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-all relative overflow-hidden">
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center font-black text-xl">
-                  3️⃣
-                </div>
-                <span className="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                  +15 XP · Streak
-                </span>
+            <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center font-black text-xl mb-6">
+                3️⃣
               </div>
               <h3 className="text-xl font-bold text-[#1b1f3b] mb-3">
                 Naik level &amp; pantau
@@ -522,9 +463,6 @@ const LandingPage = () => {
       {/* -------------------- SECTION 3: JENJANG -------------------- */}
       <section id="jenjang" className="py-20 lg:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <span className="text-xs font-bold text-[#ff8a1f] tracking-widest uppercase mb-2 block">
-            Jenjang
-          </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1b1f3b] mb-4">
             Untuk semua tahap belajar
           </h2>
@@ -533,23 +471,18 @@ const LandingPage = () => {
             tahap perkembangan kognitif siswa.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {/* SD */}
-            <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center overflow-hidden p-2 group-hover:scale-105 transition-transform">
-                    <img
-                      src={sdIcon}
-                      alt="Jenjang SD"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="text-[11px] font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                    ¼ + ½ = ¾
-                  </span>
+            <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 transition-all flex flex-col justify-between items-center text-center group">
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center overflow-hidden p-2 group-hover:scale-105 transition-transform mx-auto mb-5">
+                  <img
+                    src={sdIcon}
+                    alt="Jenjang SD"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-                <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100/70 text-amber-800 mb-3">
+                <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100/70 text-amber-800 mb-3 mx-auto">
                   Kelas 1 - 6
                 </div>
                 <h3 className="text-2xl font-bold text-[#1b1f3b] mb-2">
@@ -562,7 +495,7 @@ const LandingPage = () => {
               </div>
               <Link
                 to={isAuthenticated ? "/topik" : "/register"}
-                className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white transition-all text-center"
+                className="w-full max-w-xs inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white transition-all text-center"
               >
                 <span>Lihat Topik SD</span>
                 <span className="font-bold text-base leading-none">&gt;</span>
@@ -570,21 +503,16 @@ const LandingPage = () => {
             </div>
 
             {/* SMP */}
-            <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden p-2 group-hover:scale-105 transition-transform">
-                    <img
-                      src={smpIcon}
-                      alt="Jenjang SMP"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="text-[11px] font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                    a² + b² = c²
-                  </span>
+            <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 transition-all flex flex-col justify-between items-center text-center group">
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden p-2 group-hover:scale-105 transition-transform mx-auto mb-5">
+                  <img
+                    src={smpIcon}
+                    alt="Jenjang SMP"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-                <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-100/70 text-blue-800 mb-3">
+                <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-100/70 text-blue-800 mb-3 mx-auto">
                   Kelas 7 - 9
                 </div>
                 <h3 className="text-2xl font-bold text-[#1b1f3b] mb-2">
@@ -597,7 +525,7 @@ const LandingPage = () => {
               </div>
               <Link
                 to={isAuthenticated ? "/topik" : "/register"}
-                className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white transition-all text-center"
+                className="w-full max-w-xs inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white transition-all text-center"
               >
                 <span>Lihat Topik SMP</span>
                 <span className="font-bold text-base leading-none">&gt;</span>
@@ -605,21 +533,16 @@ const LandingPage = () => {
             </div>
 
             {/* SMA */}
-            <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="flex items-start justify-between mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center overflow-hidden p-2 group-hover:scale-105 transition-transform">
-                    <img
-                      src={smaIcon}
-                      alt="Jenjang SMA"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="text-[11px] font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
-                    ∫ f(x) dx
-                  </span>
+            <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 transition-all flex flex-col justify-between items-center text-center group">
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center overflow-hidden p-2 group-hover:scale-105 transition-transform mx-auto mb-5">
+                  <img
+                    src={smaIcon}
+                    alt="Jenjang SMA"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-                <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-100/70 text-indigo-800 mb-3">
+                <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-100/70 text-indigo-800 mb-3 mx-auto">
                   Kelas 10 - 12
                 </div>
                 <h3 className="text-2xl font-bold text-[#1b1f3b] mb-2">
@@ -632,7 +555,7 @@ const LandingPage = () => {
               </div>
               <Link
                 to={isAuthenticated ? "/topik" : "/register"}
-                className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white transition-all text-center"
+                className="w-full max-w-xs inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white transition-all text-center"
               >
                 <span>Lihat Topik SMA</span>
                 <span className="font-bold text-base leading-none">&gt;</span>
@@ -644,19 +567,8 @@ const LandingPage = () => {
 
       {/* -------------------- SECTION 4: KEUNGGULAN -------------------- */}
       <section id="fitur" className="py-20 lg:py-24 bg-[#f4f6ff] relative overflow-hidden">
-        {/* Subtle background math elements */}
-        <span className="absolute top-12 right-12 text-slate-200/80 text-5xl font-mono select-none pointer-events-none font-bold">
-          Δ
-        </span>
-        <span className="absolute bottom-12 left-12 text-slate-200/80 text-4xl font-mono select-none pointer-events-none font-bold">
-          α + β
-        </span>
-
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="text-center mb-16">
-            <span className="text-xs font-bold text-[#ff8a1f] tracking-widest uppercase mb-2 block">
-              Keunggulan
-            </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1b1f3b] mb-4">
               Skill drill, bukan sekadar ujian
             </h2>
@@ -668,7 +580,7 @@ const LandingPage = () => {
 
           {/* 4 Cards Grid (Tabel Perbandingan telah dihapus sesuai permintaan) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
               <div className="text-3xl mb-4">🎚️</div>
               <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5">Adaptif</h3>
               <p className="text-xs sm:text-sm text-[#5b6088] leading-relaxed">
@@ -677,7 +589,7 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
               <div className="text-3xl mb-4">♾️</div>
               <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5">
                 Soal tak berulang
@@ -688,7 +600,7 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
               <div className="text-3xl mb-4">🏆</div>
               <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5">
                 Gamifikasi
@@ -699,7 +611,7 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
               <div className="text-3xl mb-4">🧠</div>
               <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5">
                 Soal tervalidasi AI
@@ -714,15 +626,12 @@ const LandingPage = () => {
       </section>
 
       {/* -------------------- SECTION 5: TESTIMONI -------------------- */}
-      <section className="py-20 lg:py-24">
+      <section className="pt-16 sm:pt-20 lg:pt-20 pb-6 sm:pb-8 lg:pb-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <span className="text-xs font-bold text-[#ff8a1f] tracking-widest uppercase mb-2 block">
-            Testimoni
-          </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] mb-4">
             Kata mereka
           </h2>
-          <p className="text-base text-[#5b6088] max-w-xl mx-auto mb-14">
+          <p className="text-base text-[#5b6088] max-w-xl mx-auto mb-8 sm:mb-10">
             Cerita pengalaman nyata dari para siswa, orang tua, dan pendidik yang
             menggunakan Nolla.
           </p>
@@ -794,231 +703,143 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* -------------------- SECTION 6: PAKET HARGA -------------------- */}
-      <section id="harga" className="py-20 lg:py-24 bg-[#f4f6ff]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <span className="text-xs font-bold text-[#ff8a1f] tracking-widest uppercase mb-2 block">
-            Paket
-          </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] mb-4">
-            Pilih yang cocok
-          </h2>
-          <p className="text-base text-[#5b6088] max-w-xl mx-auto mb-14">
-            Mulai dari paket gratis selamanya atau upgrade untuk akses tanpa batas.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left items-stretch">
-            {/* Free */}
-            <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-[#1b1f3b] mb-2">Gratis</h3>
-                <div className="text-3xl sm:text-4xl font-black text-[#2b3fd6] mb-3">
-                  Rp0
-                </div>
-                <p className="text-sm text-[#5b6088] mb-6">
-                  Cocok untuk mencoba drill dasar harian matematika.
+      {/* -------------------- SECTION 6: FAQ -------------------- */}
+      <section id="faq" className="pt-0 sm:pt-2 pb-0 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end">
+            {/* Left: Title & FAQ Accordion (diatas list pertanyaan seperti semula) */}
+            <div className="lg:col-span-8 pb-10 sm:pb-12 lg:pb-14">
+              <div className="text-center lg:text-left mb-6 sm:mb-7">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] mb-3">
+                  Pertanyaan umum
+                </h2>
+                <p className="text-base text-[#5b6088]">
+                  Semua hal yang perlu kamu ketahui tentang cara belajar di Nolla.
                 </p>
-                <ul className="space-y-3 text-sm text-slate-700 mb-8">
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    10 Soal drill adaptif per hari
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Pilihan jenjang SD, SMP, SMA
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Streak harian &amp; poin XP
-                  </li>
-                </ul>
               </div>
-              <Link
-                to="/register"
-                className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white transition-all text-center block"
-              >
-                Mulai Gratis
-              </Link>
-            </div>
 
-            {/* Popular: Pelajar */}
-            <div className="bg-white rounded-3xl p-8 border-2 border-[#ff8a1f] shadow-xl relative flex flex-col justify-between transform md:-translate-y-2">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#ff8a1f] text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-md">
-                Paling Diminati
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-[#1b1f3b] mb-2">Pelajar</h3>
-                <div className="flex items-baseline gap-1 mb-3">
-                  <span className="text-3xl sm:text-4xl font-black text-[#2b3fd6]">
-                    Rp29.000
-                  </span>
-                  <span className="text-xs text-[#5b6088] font-bold">/ bulan</span>
-                </div>
-                <p className="text-sm text-[#5b6088] mb-6">
-                  Akses penuh tanpa batas ke semua topik adaptif dan laporan
-                  kemampuan.
-                </p>
-                <ul className="space-y-3 text-sm text-slate-700 mb-8">
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Latihan soal tanpa batas harian
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Algoritma adaptif AI penuh (IRT)
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Laporan analisis kelemahan &amp; grafik progres
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Review pembahasan lengkap langkah demi langkah
-                  </li>
-                </ul>
-              </div>
-              <Link
-                to="/register"
-                className="w-full py-3 px-6 rounded-full font-bold text-sm bg-[#ff8a1f] hover:bg-[#ea7810] text-white shadow-md shadow-[#ff8a1f]/30 hover:shadow-lg transition-all text-center block"
-              >
-                Pilih Paket Pelajar
-              </Link>
-            </div>
-
-            {/* Sekolah */}
-            <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-[#1b1f3b] mb-2">Sekolah</h3>
-                <div className="text-2xl sm:text-3xl font-black text-[#2b3fd6] mb-3">
-                  Hubungi Kami
-                </div>
-                <p className="text-sm text-[#5b6088] mb-6">
-                  Solusi digital untuk guru, sekolah, dan bimbingan belajar.
-                </p>
-                <ul className="space-y-3 text-sm text-slate-700 mb-8">
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Dashboard analitik guru &amp; wali kelas
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Manajemen akun siswa per kelas
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check size={16} className="text-emerald-500 shrink-0" />
-                    Tugas &amp; drill terjadwal otomatis
-                  </li>
-                </ul>
-              </div>
-              <a
-                href="#cta"
-                className="w-full py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white transition-all text-center block"
-              >
-                Kontak Kemitraan
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* -------------------- SECTION 7: FAQ -------------------- */}
-      <section id="faq" className="py-20 lg:py-24">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <span className="text-xs font-bold text-[#ff8a1f] tracking-widest uppercase mb-2 block">
-              FAQ
-            </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] mb-4">
-              Pertanyaan umum
-            </h2>
-            <p className="text-base text-[#5b6088]">
-              Semua hal yang perlu kamu ketahui tentang cara belajar di Nolla.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {faqList.map((item, index) => {
-              const isOpen = openFaq === index;
-              return (
-                <div
-                  key={index}
-                  className="bg-white border border-[#e3e6f8] rounded-2xl overflow-hidden transition-colors"
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleFaq(index)}
-                    className="w-full py-5 px-6 text-left flex items-center justify-between gap-4 font-bold text-base text-[#1b1f3b] hover:text-[#2b3fd6] transition-colors"
-                  >
-                    <span>{item.q}</span>
-                    <ChevronDown
-                      size={20}
-                      className={`shrink-0 text-[#5b6088] transition-transform duration-300 ${
-                        isOpen ? "rotate-180 text-[#2b3fd6]" : ""
-                      }`}
-                    />
-                  </button>
-                  {isOpen && (
-                    <div className="px-6 pb-5 text-sm text-[#5b6088] leading-relaxed border-t border-slate-50 pt-3">
-                      {item.a}
+              <div className="space-y-4">
+                {faqList.map((item, index) => {
+                  const isOpen = openFaq === index;
+                  return (
+                    <div
+                      key={index}
+                      className="bg-white border border-[#e3e6f8] rounded-2xl overflow-hidden transition-colors"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleFaq(index)}
+                        className="w-full py-5 px-6 text-left flex items-center justify-between gap-4 font-bold text-base text-[#1b1f3b] hover:text-[#2b3fd6] transition-colors"
+                      >
+                        <span>{item.q}</span>
+                        <ChevronDown
+                          size={20}
+                          className={`shrink-0 text-[#5b6088] transition-transform duration-300 ${isOpen ? "rotate-180 text-[#2b3fd6]" : ""
+                            }`}
+                        />
+                      </button>
+                      {isOpen && (
+                        <div className="px-6 pb-5 text-sm text-[#5b6088] leading-relaxed border-t border-slate-50 pt-3">
+                          {item.a}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right: Siswa Menunjuk touching the start of CTA orange frame & larger size */}
+            <div className="lg:col-span-4 hidden lg:flex items-end justify-center lg:justify-end self-end -mb-1">
+              <img
+                src={siswaMenunjuk}
+                alt="Siswa Menunjuk FAQ"
+                className="w-auto h-[530px] xl:h-[590px] object-contain object-bottom align-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] select-none pointer-events-none block -mb-1"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* -------------------- SECTION 8: CTA SECTION -------------------- */}
+      {/* -------------------- SECTION 7: CTA SECTION -------------------- */}
       <section
         id="cta"
-        className="py-20 lg:py-24 bg-gradient-to-r from-[#ff8a1f] to-[#ff5d5d] text-white text-center relative overflow-hidden"
+        className="relative py-16 sm:py-20 lg:py-20 bg-gradient-to-r from-[#ff8a1f] to-[#ff5d5d] text-white overflow-visible"
       >
-        {/* Subtle background math elements */}
-        <span className="absolute top-8 left-12 text-white/15 text-5xl font-mono select-none pointer-events-none font-bold">
-          +
-        </span>
-        <span className="absolute bottom-8 right-14 text-white/15 text-5xl font-mono select-none pointer-events-none font-bold">
-          ×
-        </span>
-        <span className="absolute top-1/2 left-10 text-white/10 text-4xl font-mono select-none pointer-events-none font-bold">
-          =
-        </span>
-        <span className="absolute top-12 right-20 text-white/15 text-3xl font-mono select-none pointer-events-none font-bold">
-          √
-        </span>
+        {/* Floating 3D Math Elements in Background */}
+        <img
+          src={mathPi}
+          alt="Pi"
+          className="absolute top-4 right-20 sm:right-28 w-14 sm:w-16 h-auto opacity-30 animate-float-slow select-none pointer-events-none drop-shadow-md"
+        />
+        <img
+          src={mathSigma}
+          alt="Sigma"
+          className="absolute bottom-4 right-10 sm:right-16 w-14 sm:w-16 h-auto opacity-30 animate-float-reverse select-none pointer-events-none drop-shadow-md"
+        />
+        <img
+          src={mathOperators}
+          alt="Operasi"
+          className="absolute top-1/2 -translate-y-1/2 right-1/3 w-12 sm:w-14 h-auto opacity-20 select-none pointer-events-none"
+        />
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4">
-            Siap ubah “takut” jadi “bisa”?
-          </h2>
-          <p className="text-base sm:text-xl text-white/90 max-w-xl mx-auto mb-8">
-            Daftar gratis sekarang dan mulai sesi drill pertamamu dalam hitungan detik.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              to="/register"
-              className="w-full sm:w-auto px-9 py-4 rounded-full font-black text-base bg-white text-[#ff8a1f] hover:bg-slate-100 shadow-xl shadow-black/15 hover:shadow-2xl transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-2 group"
-            >
-              <span>Daftar Sekarang — Gratis</span>
-              <span className="font-bold text-base leading-none group-hover:translate-x-1 transition-transform">
-                &gt;
-              </span>
-            </Link>
-            <Link
-              to="/login"
-              className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-base bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 hover:border-white transition-all text-center"
-            >
-              Sudah Punya Akun? Masuk
-            </Link>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
+          {/* Siswa SD Overlay: Tidak di-grup dengan tinggi section (overlay menembus ke atas frame) */}
+          <div className="hidden lg:block absolute -bottom-16 sm:-bottom-20 left-0 xl:left-2 z-20 pointer-events-none select-none">
+            <img
+              src={siswaSd}
+              alt="Siswa SD Nolla"
+              className="w-auto h-[450px] xl:h-[490px] object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.35)]"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            {/* Mobile-only avatar preview so mobile still gets the student illustration */}
+            <div className="lg:hidden flex justify-center -mt-24 mb-2 relative z-20">
+              <img
+                src={siswaSd}
+                alt="Siswa SD Nolla"
+                className="w-auto h-[230px] sm:h-[270px] object-contain drop-shadow-[0_20px_25px_rgba(0,0,0,0.3)] select-none pointer-events-none"
+              />
+            </div>
+
+            {/* Desktop spacer for siswa-sd */}
+            <div className="hidden lg:block lg:col-span-4" />
+
+            {/* Right: Text Content & Action Buttons - shifted left, wide & spacious */}
+            <div className="lg:col-span-8 text-center lg:text-left relative z-20 lg:pl-3 xl:pl-5">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4 max-w-2xl">
+                Siap ubah “takut” jadi “bisa”?
+              </h2>
+              <p className="text-base sm:text-xl text-white/95 max-w-2xl mx-auto lg:mx-0 mb-8 font-medium">
+                Daftar gratis sekarang dan mulai sesi drill pertamamu dalam hitungan detik.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <Link
+                  to="/register"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-full font-black text-base bg-white text-[#ff8a1f] hover:bg-slate-100 shadow-xl shadow-black/15 hover:shadow-2xl transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-2 group cursor-pointer"
+                >
+                  <span>Daftar Sekarang — Gratis</span>
+                  <span className="font-bold text-base leading-none group-hover:translate-x-1 transition-transform">
+                    &gt;
+                  </span>
+                </Link>
+                <Link
+                  to="/login"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-full font-bold text-base bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 hover:border-white transition-all text-center cursor-pointer"
+                >
+                  Sudah Punya Akun? Masuk
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* -------------------- FOOTER -------------------- */}
-      <footer className="bg-[#0b1739] text-slate-300 py-16 text-sm border-t border-[#1e2e5c]">
+      <footer className="bg-[#0b1739] text-slate-300 pt-10 sm:pt-12 pb-0 text-sm border-t border-[#1e2e5c]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 sm:gap-10 mb-8 sm:mb-9">
             <div>
               <div className="inline-block bg-white px-3 py-1.5 rounded-xl shadow-sm mb-4">
                 <img src={logoNolla} alt="NOLLA" className="h-7 w-auto object-contain" />
@@ -1042,11 +863,6 @@ const LandingPage = () => {
                 <li>
                   <a href="#jenjang" className="hover:text-white transition-colors">
                     Jenjang SD–SMA
-                  </a>
-                </li>
-                <li>
-                  <a href="#harga" className="hover:text-white transition-colors">
-                    Paket Belajar
                   </a>
                 </li>
                 <li>
@@ -1100,7 +916,7 @@ const LandingPage = () => {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-[#1e2e5c] text-center text-xs text-slate-400/80">
+          <div className="border-t border-[#1e2e5c] py-2 sm:py-2.5 text-center text-xs text-slate-400/80 leading-tight">
             © 2026 NOLLA. Proyek Big Data 2026. Hak cipta dilindungi.
           </div>
         </div>
