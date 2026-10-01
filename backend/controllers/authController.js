@@ -47,12 +47,12 @@ const sendOtpError = (res, error) => {
  * menyimpan hash-nya ke database,
  * lalu mengembalikan raw refresh token.
  */
-const createRefreshToken = async (user) => {
+const createRefreshToken = async (user, options = {}) => {
   const rawRefreshToken = generateRefreshToken();
 
   const tokenHash = hashRefreshToken(rawRefreshToken);
 
-  const refreshTokenDuration = ms(process.env.REFRESH_TOKEN_EXPIRES_IN || "7d");
+  const refreshTokenDuration = ms(process.env.REFRESH_TOKEN_EXPIRES_IN || "1d");
 
   if (!refreshTokenDuration) {
     throw new Error("REFRESH_TOKEN_EXPIRES_IN tidak valid");
@@ -61,10 +61,26 @@ const createRefreshToken = async (user) => {
   await RefreshToken.create({
     userId: user._id,
     tokenHash,
-    expiresAt: new Date(Date.now() + refreshTokenDuration),
+    expiresAt: options.expiresAt || new Date(Date.now() + refreshTokenDuration),
+    rememberMe: options.rememberMe || false,
   });
 
   return rawRefreshToken;
+};
+
+const getAccessTokenExpiresIn = (expiresAt) => {
+  const configuredDuration = ms(process.env.ACCESS_TOKEN_EXPIRES_IN || "15m");
+  const remainingSessionSeconds =
+    Math.floor(expiresAt.getTime() / 1000) - Math.floor(Date.now() / 1000);
+
+  if (!configuredDuration || remainingSessionSeconds < 1) {
+    throw new Error("Masa berlaku token tidak valid");
+  }
+
+  return Math.min(
+    Math.floor(configuredDuration / 1000),
+    remainingSessionSeconds,
+  );
 };
 
 // ========================================
@@ -253,7 +269,7 @@ const verifyEmail = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
     // Validasi input
     if (!email || !password) {
@@ -308,11 +324,29 @@ const login = async (req, res) => {
       });
     }
 
+    const rememberSession = rememberMe === true;
+    const durationConfig = rememberSession
+      ? process.env.REMEMBER_ME_EXPIRES_IN || "30d"
+      : process.env.REFRESH_TOKEN_EXPIRES_IN || "1d";
+    const sessionDuration = ms(durationConfig);
+
+    if (!sessionDuration) {
+      throw new Error("Durasi sesi login tidak valid");
+    }
+
+    const sessionExpiresAt = new Date(Date.now() + sessionDuration);
+
     // Generate Access Token
-    const accessToken = generateAccessToken(user);
+    const accessToken = generateAccessToken(
+      user,
+      getAccessTokenExpiresIn(sessionExpiresAt),
+    );
 
     // Generate Refresh Token
-    const refreshToken = await createRefreshToken(user);
+    const refreshToken = await createRefreshToken(user, {
+      expiresAt: sessionExpiresAt,
+      rememberMe: rememberSession,
+    });
 
     return res.status(200).json({
       statusCode: 200,
@@ -862,10 +896,16 @@ const refreshAccessToken = async (req, res) => {
     await storedToken.save();
 
     // Buat Access Token baru
-    const newAccessToken = generateAccessToken(user);
+    const newAccessToken = generateAccessToken(
+      user,
+      getAccessTokenExpiresIn(storedToken.expiresAt),
+    );
 
     // Buat Refresh Token baru
-    const newRefreshToken = await createRefreshToken(user);
+    const newRefreshToken = await createRefreshToken(user, {
+      expiresAt: storedToken.expiresAt,
+      rememberMe: storedToken.rememberMe,
+    });
 
     return res.status(200).json({
       statusCode: 200,
