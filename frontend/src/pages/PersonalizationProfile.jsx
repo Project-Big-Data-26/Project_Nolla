@@ -18,6 +18,7 @@ import {
   KeyRound,
   Pencil,
 } from "lucide-react";
+import defaultAvatar from "../assets/avatar/avatar-deafult.png";
 
 const user = {
   name: "Pelajar Tamu",
@@ -130,17 +131,13 @@ export default function PersonalizationProfile() {
             {/* Bagian Atas Card: Foto Profil, Label Info & Tombol Edit */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5 pb-6 border-b border-neutral-border">
               <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                {/* Foto Profil: jika ada tampilkan gambar, jika tidak tampilkan icon user lucide dengan background abu-abu */}
-                <div className="relative h-20 w-20 rounded-full overflow-hidden bg-slate-200 border-2 border-slate-300 shadow-2xs flex items-center justify-center shrink-0">
-                  {userPhoto ? (
-                    <img
-                      src={userPhoto}
-                      alt="Foto Profil"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <UserIcon className="h-10 w-10 text-slate-400" />
-                  )}
+                {/* Foto Profil: jika ada tampilkan gambar, jika belum ada gunakan default avatar */}
+                <div className="relative h-20 w-20 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-300 shadow-2xs flex items-center justify-center shrink-0">
+                  <img
+                    src={userPhoto || defaultAvatar}
+                    alt="Foto Profil"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
 
                 <div>

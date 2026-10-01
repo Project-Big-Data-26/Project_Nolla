@@ -101,19 +101,22 @@ describe("EditProfile Component", () => {
     expect(await screen.findByText("Nama tidak boleh kosong.")).toBeInTheDocument();
   });
 
-  it("menampilkan pesan error saat format email tidak valid", async () => {
+  it("menetapkan email sebagai view-only (readOnly) dan tidak dapat diedit", () => {
     renderWithRouter(<EditProfile />);
-    const emailInput = screen.getByPlaceholderText(/nama@email.com/i);
+    const emailInput = document.getElementById("email-input");
+    expect(emailInput).toHaveAttribute("readonly");
+    expect(emailInput).toHaveClass("cursor-not-allowed");
+    expect(emailInput).toHaveAttribute("title", "Email akun bersifat permanen dan tidak dapat diubah");
+  });
 
-    fireEvent.change(emailInput, { target: { value: "invalid-email" } });
-    const submitBtn = screen.getByRole("button", { name: /Simpan Perubahan/i });
-    fireEvent.click(submitBtn);
+  it("dapat memilih avatar yang disediakan dari preset", () => {
+    renderWithRouter(<EditProfile />);
+    expect(screen.getByText("Pilih Avatar Karakter")).toBeInTheDocument();
+    const avatar1Btn = screen.getByTitle("Gunakan Avatar 1");
+    fireEvent.click(avatar1Btn);
 
-    expect(
-      await screen.findByText(
-        "Format email tidak valid (harus mengandung '@' dan domain yang valid)."
-      )
-    ).toBeInTheDocument();
+    // Memunculkan tombol Simpan Perubahan karena foto berubah
+    expect(screen.getByRole("button", { name: /Simpan Perubahan/i })).toBeInTheDocument();
   });
 
   it("menolak file foto dengan format tidak valid atau ukuran lebih dari 2MB", () => {
@@ -136,11 +139,9 @@ describe("EditProfile Component", () => {
   it("menyimpan perubahan profil dan mengarahkan kembali ke /profile", async () => {
     renderWithRouter(<EditProfile />);
     const nameInput = screen.getByPlaceholderText(/Contoh: MD Rafi Islam/i);
-    const emailInput = screen.getByPlaceholderText(/nama@email.com/i);
     const selectEl = screen.getByLabelText("Jenjang Belajar");
 
     fireEvent.change(nameInput, { target: { value: "Budi Santoso" } });
-    fireEvent.change(emailInput, { target: { value: "budi@santoso.com" } });
     fireEvent.change(selectEl, { target: { value: "SMP" } });
 
     const submitBtn = screen.getByRole("button", { name: /Simpan Perubahan/i });
@@ -156,7 +157,6 @@ describe("EditProfile Component", () => {
     );
 
     expect(localStorage.getItem("user_name")).toBe("Budi Santoso");
-    expect(localStorage.getItem("user_email")).toBe("budi@santoso.com");
     expect(localStorage.getItem("user_education_level")).toBe("SMP");
   });
 });

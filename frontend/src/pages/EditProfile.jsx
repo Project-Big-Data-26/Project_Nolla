@@ -14,28 +14,41 @@ import {
   Trash2,
   Upload,
   Sparkles,
+  Check,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+
+// Aset Avatar Preset & Default
+import defaultAvatar from "../assets/avatar/avatar-deafult.png";
+import avatar1 from "../assets/avatar/avatar1.png";
+import avatar2 from "../assets/avatar/avatar2.png";
+import avatar3 from "../assets/avatar/avatar3.png";
+import avatar4 from "../assets/avatar/avatar4.png";
 
 const MAX_PHOTO_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png"];
 
+const presetAvatars = [
+  { id: "default", label: "Default", src: defaultAvatar },
+  { id: "avatar1", label: "Avatar 1", src: avatar1 },
+  { id: "avatar2", label: "Avatar 2", src: avatar2 },
+  { id: "avatar3", label: "Avatar 3", src: avatar3 },
+  { id: "avatar4", label: "Avatar 4", src: avatar4 },
+];
+
 const jenjangOptions = [
-  { value: "", label: "Belum Dipilih" },
   { value: "Semua", label: "Semua" },
   { value: "SD", label: "SD" },
   { value: "SMP", label: "SMP" },
   { value: "SMA", label: "SMA" },
 ];
 
-function isValidEmail(value) {
-  if (!value) return false;
-  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value.trim());
-}
-
 export default function EditProfile() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+
+  const savedPhoto =
+    (typeof window !== "undefined" && localStorage.getItem("user_photo")) || null;
 
   // Nilai awal dari localStorage untuk deteksi perubahan
   const initialDataRef = useRef({
@@ -49,14 +62,12 @@ export default function EditProfile() {
       (typeof window !== "undefined" &&
         (localStorage.getItem("user_education_level") ||
           localStorage.getItem("user_jenjang"))) ||
-      "",
-    photo:
-      (typeof window !== "undefined" && localStorage.getItem("user_photo")) ||
-      null,
+      "Semua",
+    photo: savedPhoto || defaultAvatar,
   });
 
   const [name, setName] = useState(initialDataRef.current.name);
-  const [email, setEmail] = useState(initialDataRef.current.email);
+  const [email] = useState(initialDataRef.current.email); // Read-only / view only
   const [jenjang, setJenjang] = useState(initialDataRef.current.jenjang);
   const [photoPreview, setPhotoPreview] = useState(initialDataRef.current.photo);
   const [lastUpdated, setLastUpdated] = useState(() => {
@@ -76,17 +87,15 @@ export default function EditProfile() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  // Deteksi perubahan data
+  // Deteksi perubahan data (email tidak bisa diedit)
   const isNameChanged = name.trim() !== initialDataRef.current.name.trim();
-  const isEmailChanged = email.trim() !== initialDataRef.current.email.trim();
   const isJenjangChanged = jenjang !== initialDataRef.current.jenjang;
   const isPhotoChanged = photoPreview !== initialDataRef.current.photo;
 
   // Tombol Simpan Perubahan hanya akan muncul jika ada perubahan pada salah satu field/foto
-  const hasChanges =
-    isNameChanged || isEmailChanged || isJenjangChanged || isPhotoChanged;
+  const hasChanges = isNameChanged || isJenjangChanged || isPhotoChanged;
 
-  // Handle upload foto profil dengan pratinjau langsung sebelum disimpan
+  // Handle upload foto profil dari galeri / perangkat
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -98,6 +107,7 @@ export default function EditProfile() {
       }));
       return;
     }
+
     if (file.size > MAX_PHOTO_SIZE) {
       setErrors((prev) => ({
         ...prev,
@@ -108,7 +118,7 @@ export default function EditProfile() {
 
     setErrors((prev) => ({ ...prev, photo: undefined }));
 
-    // Pratinjau foto baru langsung ditampilkan pada form sebelum disimpan ke storage/database
+    // Pratinjau foto baru langsung ditampilkan pada form sebelum disimpan
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
       setPhotoPreview(uploadEvent.target.result);
@@ -118,7 +128,7 @@ export default function EditProfile() {
   };
 
   const handleRemovePhoto = () => {
-    setPhotoPreview(null);
+    setPhotoPreview(defaultAvatar);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -131,12 +141,6 @@ export default function EditProfile() {
     const nextErrors = {};
     if (!name || !name.trim()) {
       nextErrors.name = "Nama tidak boleh kosong.";
-    }
-    if (!email || !email.trim()) {
-      nextErrors.email = "Email tidak boleh kosong.";
-    } else if (!isValidEmail(email)) {
-      nextErrors.email =
-        "Format email tidak valid (harus mengandung '@' dan domain yang valid).";
     }
 
     setErrors(nextErrors);
@@ -165,7 +169,6 @@ export default function EditProfile() {
       });
 
       localStorage.setItem("user_name", name.trim());
-      localStorage.setItem("user_email", email.trim());
       localStorage.setItem("user_education_level", jenjang);
       localStorage.setItem("user_jenjang", jenjang);
       localStorage.setItem("user_profile_updated_at", currentDate);
@@ -173,7 +176,7 @@ export default function EditProfile() {
       if (photoPreview) {
         localStorage.setItem("user_photo", photoPreview);
       } else {
-        localStorage.removeItem("user_photo");
+        localStorage.setItem("user_photo", defaultAvatar);
       }
 
       setLastUpdated(currentDate);
@@ -304,7 +307,7 @@ export default function EditProfile() {
                     )}
                   </div>
 
-                  {/* Input Email */}
+                  {/* Input Email (View Only dengan kursor 🚫 not-allowed) */}
                   <div>
                     <label
                       htmlFor="email-input"
@@ -312,35 +315,24 @@ export default function EditProfile() {
                     >
                       Email
                     </label>
-                    <div className="relative flex items-center">
+                    <div
+                      className="relative flex items-center cursor-not-allowed"
+                      title="Email akun bersifat permanen dan tidak dapat diubah"
+                    >
                       <Mail className="absolute left-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
                       <input
                         id="email-input"
                         type="text"
                         value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          if (errors.email) {
-                            setErrors((prev) => ({
-                              ...prev,
-                              email: undefined,
-                            }));
-                          }
-                        }}
-                        placeholder="nama@email.com"
-                        className={`w-full rounded-xl border bg-white pl-10 pr-4 py-2.5 text-sm text-neutral-text transition-all outline-none focus:ring-2 focus:ring-primary/10 ${
-                          errors.email
-                            ? "border-danger focus:border-danger ring-danger/10"
-                            : "border-neutral-border focus:border-primary"
-                        }`}
+                        readOnly
+                        tabIndex={-1}
+                        title="Email akun bersifat permanen dan tidak dapat diubah"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-100/80 pl-10 pr-4 py-2.5 text-sm text-slate-500 font-medium cursor-not-allowed select-none outline-none focus:outline-none focus:ring-0 focus:border-slate-200 shadow-inner/10"
                       />
                     </div>
-                    {errors.email && (
-                      <p className="mt-1.5 flex items-center gap-1 text-xs text-danger">
-                        <AlertCircle className="h-3.5 w-3.5" />
-                        {errors.email}
-                      </p>
-                    )}
+                    <p className="mt-1.5 text-[11px] text-slate-400 flex items-center gap-1">
+                      Email akun bersifat permanen untuk keamanan data autentikasi.
+                    </p>
                   </div>
 
                   {/* Input Jenjang Belajar */}
@@ -367,15 +359,15 @@ export default function EditProfile() {
                       </select>
                     </div>
                     <p className="mt-1.5 text-[11px] text-neutral-muted">
-                      Khusus jenjang bersifat opsional dan dapat dikosongkan kapan saja.
+                      Pilih jenjang belajar Anda saat ini atau pilih 'Semua'.
                     </p>
                   </div>
                 </div>
 
-                {/* Kolom Kanan: Pratinjau Foto Profil Baru pada Form Sebelum Disimpan */}
-                <div className="md:col-span-5 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l md:border-dashed border-neutral-border pt-6 md:pt-0 md:pl-8">
-                  {/* Bulatan Foto Profil */}
-                  <div className="relative mb-2 group">
+                {/* Kolom Kanan: Pratinjau & Pilihan Avatar / Upload Foto */}
+                <div className="md:col-span-5 flex flex-col items-center border-t md:border-t-0 md:border-l md:border-dashed border-neutral-border pt-6 md:pt-0 md:pl-8">
+                  {/* Bulatan Foto Profil Utama */}
+                  <div className="relative mb-3 group">
                     <div
                       onClick={() => {
                         if (photoPreview) {
@@ -385,39 +377,27 @@ export default function EditProfile() {
                         }
                       }}
                       className="h-28 w-28 rounded-full overflow-hidden border-2 border-slate-200 shadow-sm cursor-pointer relative bg-slate-100 flex items-center justify-center transition-all hover:ring-4 hover:ring-primary/15"
-                      title={
-                        photoPreview
-                          ? "Klik untuk opsi foto (Lihat Full, Ganti, atau Hapus)"
-                          : "Klik untuk memilih foto profil"
-                      }
+                      title="Klik untuk opsi foto (Lihat Full, Ganti, atau Hapus)"
                       id="avatar-container"
                     >
-                      {photoPreview ? (
-                        <img
-                          src={photoPreview}
-                          alt="Pratinjau Foto Profil"
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center bg-slate-200 text-slate-500">
-                          <UserIcon className="h-12 w-12 text-slate-400" />
-                        </div>
-                      )}
+                      <img
+                        src={photoPreview || defaultAvatar}
+                        alt="Pratinjau Foto Profil"
+                        className="h-full w-full object-cover"
+                      />
 
-                      {/* Hover Overlay Desktop: Jika ada foto, muncul ikon hapus cepat */}
-                      {photoPreview && (
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemovePhoto();
-                          }}
-                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white"
-                          title="Hapus foto ini"
-                        >
-                          <Trash2 className="h-6 w-6 text-red-300 hover:text-red-100 transition-colors" />
-                          <span className="text-[10px] font-semibold mt-1">Hapus</span>
-                        </div>
-                      )}
+                      {/* Hover Overlay: Opsi Lihat Foto Penuh */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowFullPhotoModal(true);
+                        }}
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white"
+                        title="Klik untuk memperbesar foto"
+                      >
+                        <Eye className="h-6 w-6 text-white drop-shadow" />
+                        <span className="text-[10px] font-semibold mt-1">Lihat Penuh</span>
+                      </div>
                     </div>
 
                     {/* Tombol Edit Pensil di Pojok Kanan Bawah */}
@@ -428,14 +408,14 @@ export default function EditProfile() {
                         fileInputRef.current?.click();
                       }}
                       className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-md hover:bg-primary-hover transition-colors cursor-pointer border-2 border-white"
-                      title="Ganti foto profil"
+                      title="Unggah foto profil baru dari galeri/perangkat"
                       id="btn-change-photo"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
 
                     {/* Menu Opsi Saat Foto Diklik */}
-                    {showPhotoMenu && photoPreview && (
+                    {showPhotoMenu && (
                       <div className="absolute z-20 top-full mt-2 w-48 rounded-xl bg-white border border-slate-200 shadow-lg py-1.5 text-xs text-slate-700 animate-in fade-in slide-in-from-top-2">
                         <button
                           type="button"
@@ -457,43 +437,99 @@ export default function EditProfile() {
                           className="w-full flex items-center gap-2 px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium transition cursor-pointer"
                         >
                           <Upload className="h-4 w-4 text-emerald-600" />
-                          <span>Ganti Foto</span>
+                          <span>Unggah dari Galeri</span>
                         </button>
-                        <div className="my-1 border-t border-slate-100"></div>
-                        <button
-                          type="button"
-                          onClick={handleRemovePhoto}
-                          className="w-full flex items-center gap-2 px-3.5 py-2 hover:bg-red-50 text-danger font-medium transition cursor-pointer"
-                        >
-                          <Trash2 className="h-4 w-4 text-danger" />
-                          <span>Hapus Foto</span>
-                        </button>
+                        {photoPreview !== defaultAvatar && (
+                          <>
+                            <div className="my-1 border-t border-slate-100"></div>
+                            <button
+                              type="button"
+                              onClick={handleRemovePhoto}
+                              className="w-full flex items-center gap-2 px-3.5 py-2 hover:bg-red-50 text-danger font-medium transition cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4 text-danger" />
+                              <span>Reset ke Default</span>
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
 
                   {/* Indikator Pratinjau Foto Baru (Belum Tersimpan) */}
                   {isPhotoChanged && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 mb-1 animate-in fade-in">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 mb-3 animate-in fade-in">
                       <Sparkles className="h-3 w-3 text-amber-500" />
                       Foto baru (belum tersimpan)
                     </span>
                   )}
 
+                  {/* SECTION PILIH AVATAR BAWAAN */}
+                  <div className="w-full mt-1 mb-4 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-xs font-semibold text-slate-700">
+                        Pilih Avatar Karakter
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        5 Pilihan
+                      </span>
+                    </div>
+
+                    {/* Deretan Avatar Thumbnails */}
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      {presetAvatars.map((item) => {
+                        const isSelected = photoPreview === item.src;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setPhotoPreview(item.src);
+                              setErrors((prev) => ({ ...prev, photo: undefined }));
+                            }}
+                            className={`relative h-11 w-11 rounded-full overflow-hidden border-2 transition-all cursor-pointer group ${
+                              isSelected
+                                ? "border-primary ring-2 ring-primary/30 scale-105 shadow-xs"
+                                : "border-slate-200 hover:border-primary/50 hover:scale-105 opacity-80 hover:opacity-100 bg-white"
+                            }`}
+                            title={`Gunakan ${item.label}`}
+                          >
+                            <img
+                              src={item.src}
+                              alt={item.label}
+                              className="h-full w-full object-cover"
+                            />
+                            {isSelected && (
+                              <div className="absolute inset-0 bg-primary/30 flex items-center justify-center">
+                                <Check className="h-4 w-4 text-white drop-shadow stroke-[3]" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Tombol Unggah Foto dari Perangkat Sendiri */}
+                    <div className="mt-3 pt-2.5 border-t border-slate-200/70">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <Upload className="h-3.5 w-3.5 text-primary" />
+                        <span>Unggah dari Galeri / Device</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Info User di Bawah Avatar */}
-                  <div className="mt-2 text-center w-full px-2">
+                  <div className="text-center w-full px-2">
                     <h3 className="font-heading text-base font-bold text-neutral-text truncate">
                       {name.trim() || "Nama Pengguna"}
                     </h3>
                     <p className="text-xs text-neutral-muted mt-0.5 truncate">
                       {getJenjangLabel(jenjang)}
                     </p>
-                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 max-w-full truncate">
-                      <Mail className="h-3 w-3 shrink-0 text-slate-400" />
-                      <span className="truncate">
-                        {email.trim() || "nama@email.com"}
-                      </span>
-                    </div>
                   </div>
                 </div>
               </div>
