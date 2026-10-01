@@ -1,12 +1,21 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
+import { AuthProvider } from "../../context/AuthContext";
 import Login from "./Login";
 
 function renderWithRouter(ui) {
-    return render(<MemoryRouter>{ui}</MemoryRouter>);
+    return render(
+        <MemoryRouter>
+            <AuthProvider>{ui}</AuthProvider>
+        </MemoryRouter>
+    );
 }
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+});
 
 describe("Login", () => {
     it("merender tanpa crash", () => {
@@ -64,27 +73,27 @@ describe("Login", () => {
         expect(checkbox).toBeChecked();
     });
 
-    it("memanggil handler submit dengan data form saat form disubmit", () => {
-        const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => { });
+    it("mengirim pilihan ingat saya saat login", async () => {
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: false,
+            json: async () => ({ status: "error", message: "Login gagal" }),
+        });
+        vi.stubGlobal("fetch", fetchMock);
         renderWithRouter(<Login />);
 
         const emailInput = screen.getByPlaceholderText("Alamat Email");
         const passwordInput = screen.getByPlaceholderText("Kata Sandi");
         fireEvent.change(emailInput, { target: { value: "user@example.com" } });
         fireEvent.change(passwordInput, { target: { value: "rahasia123" } });
+        fireEvent.click(screen.getByRole("checkbox"));
+        fireEvent.click(screen.getByRole("button", { name: "Masuk" }));
 
-        const submitButton = screen.getByRole("button", { name: "Masuk" });
-        fireEvent.click(submitButton);
-
-        expect(consoleSpy).toHaveBeenCalledWith(
-            "Login Data:",
-            expect.objectContaining({
+        await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+        expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
                 email: "user@example.com",
                 password: "rahasia123",
-            })
-        );
-
-        consoleSpy.mockRestore();
+                rememberMe: true,
+            });
     });
 
     it("menampilkan link menuju halaman register", () => {

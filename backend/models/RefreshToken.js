@@ -19,6 +19,11 @@ const refreshTokenSchema = new mongoose.Schema(
       required: true,
     },
 
+    rememberMe: {
+      type: Boolean,
+      default: false,
+    },
+
     revokedAt: {
       type: Date,
       default: null,

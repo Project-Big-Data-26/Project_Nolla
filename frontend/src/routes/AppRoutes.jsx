@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
+import GuestRoute from "./GuestRoute";
 
 // Import Pages
 import Login from "../pages/Auth/Login";
@@ -28,7 +29,9 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Auth Routes */}
-      <Route path="/login" element={<Login />} />
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<Login />} />
+      </Route>
       <Route path="/register" element={<Register />} />
       <Route path="/verify" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
