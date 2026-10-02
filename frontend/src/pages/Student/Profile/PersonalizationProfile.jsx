@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast, Toaster } from "sonner";
+import API from "../../../api/axios";
+import { useAuth } from "../../../context/AuthContext";
 import Navbar from "../../../components/Navbar";
 import SectionCard from "../../../components/SectionCard";
+import LogoutConfirmModal from "../../../components/LogoutConfirmModal";
 import {
   Target,
   TrendingUp,
@@ -10,11 +14,12 @@ import {
   Award,
   ChevronRight,
   BookOpen,
-  CheckCircle2,
   User as UserIcon,
   Mail,
   GraduationCap,
   KeyRound,
+  LogOut,
+  Loader2,
   Pencil,
 } from "lucide-react";
 import defaultAvatar from "../../../assets/avatar/avatar-deafult.png";
@@ -71,17 +76,31 @@ const badges = [
 ];
 
 export default function PersonalizationProfile() {
-  const location = useLocation();
-  const [showSuccessToast, setShowSuccessToast] = useState(() =>
-    Boolean(location?.state?.profileUpdated),
-  );
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   useEffect(() => {
-    if (showSuccessToast) {
-      const timer = setTimeout(() => setShowSuccessToast(false), 4000);
-      return () => clearTimeout(timer);
+    const toastMessage = sessionStorage.getItem("profileRedirectToastMessage");
+    if (!toastMessage) return;
+
+    sessionStorage.removeItem("profileRedirectToastMessage");
+    toast.success(toastMessage);
+  }, []);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (refreshToken) await API.post("/auth/logout", { refreshToken });
+    } catch (error) {
+      console.error("Gagal menghubungi server saat logout:", error);
+    } finally {
+      logout();
+      navigate("/login", { replace: true });
     }
-  }, [showSuccessToast]);
+  };
 
   const userName =
     (typeof window !== "undefined" && localStorage.getItem("user_name")) ||
@@ -101,6 +120,7 @@ export default function PersonalizationProfile() {
 
   return (
     <div className="flex min-h-screen bg-neutral-bg font-sans text-neutral-text">
+      <Toaster position="top-center" richColors closeButton />
       {/* Sidebar Navigation */}
       <Navbar activePage="Profil" />
 
@@ -108,16 +128,6 @@ export default function PersonalizationProfile() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Area Konten: padding dan batas lebar sejajar persis dengan halaman Topik */}
         <main className="mt-10 flex-1 max-w-6xl px-5 sm:px-8 lg:px-10 mx-auto w-full pb-24 md:pb-8">
-          {/* NOTIFIKASI SUKSES UPDATE PROFIL */}
-          {showSuccessToast && (
-            <div className="mb-6 flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-2xs">
-              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-              <span className="font-medium">
-                Profil Anda berhasil diperbarui!
-              </span>
-            </div>
-          )}
-
           {/* CARD 1: PERSONAL INFO (Foto Profil menyatu rapi di dalam card, tanpa header biru yang bentrok) */}
           <SectionCard className="mb-5 p-6 sm:p-8">
             {/* Bagian Atas Card: Foto Profil, Label Info & Tombol Edit */}
@@ -203,7 +213,7 @@ export default function PersonalizationProfile() {
                     </p>
                     <p className="text-sm font-semibold text-neutral-text">
                       {userEducationLevel
-                        ? `Siswa ${userEducationLevel}`
+                        ? `${userEducationLevel}`
                         : "Belum Dipilih"}
                     </p>
                   </div>
@@ -221,7 +231,7 @@ export default function PersonalizationProfile() {
               <div className="h-px flex-1 bg-slate-200"></div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2">
+            <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/50 p-2">
               <Link
                 to="/profile/ganti-password"
                 className="flex items-center justify-between p-3 rounded-lg bg-white border border-slate-100 hover:border-primary/40 transition group cursor-pointer shadow-2xs"
@@ -242,6 +252,44 @@ export default function PersonalizationProfile() {
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-primary group-hover:translate-x-0.5 transition" />
               </Link>
+            </div>
+          </SectionCard>
+
+          <SectionCard className="mb-5 p-6 sm:p-8">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Akun
+              </span>
+              <div className="h-px flex-1 bg-slate-200"></div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2">
+              <button
+                type="button"
+                onClick={() => setIsLogoutConfirmOpen(true)}
+                disabled={isLoggingOut}
+                className="flex w-full items-center justify-between rounded-lg border border-slate-100 bg-white p-3 text-left shadow-2xs transition group cursor-pointer hover:border-red-200 disabled:cursor-wait disabled:opacity-60"
+                id="btn-profile-logout"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600">
+                    {isLoggingOut ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <LogOut className="h-4 w-4" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-neutral-text transition-colors group-hover:text-red-600">
+                      {isLoggingOut ? "Keluar..." : "Keluar"}
+                    </p>
+                    <p className="text-[11px] text-neutral-muted">
+                      Keluar dari akun ini
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-red-600" />
+              </button>
             </div>
           </SectionCard>
 
@@ -334,6 +382,12 @@ export default function PersonalizationProfile() {
           </div> */}
         </main>
       </div>
+      <LogoutConfirmModal
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        isLoading={isLoggingOut}
+      />
     </div>
   );
 }

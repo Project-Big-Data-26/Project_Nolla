@@ -277,7 +277,7 @@ const login = async (req, res) => {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Email dan password wajib diisi",
+        message: "Email dan kata sandi wajib diisi",
       });
     }
 
@@ -292,7 +292,7 @@ const login = async (req, res) => {
       return res.status(401).json({
         statusCode: 401,
         status: "error",
-        message: "Email atau password salah",
+        message: "Email atau kata sandi salah",
       });
     }
 
@@ -301,7 +301,7 @@ const login = async (req, res) => {
       return res.status(401).json({
         statusCode: 401,
         status: "error",
-        message: "Email atau password salah",
+        message: "Email atau kata sandi salah",
       });
     }
 
@@ -312,7 +312,7 @@ const login = async (req, res) => {
       return res.status(401).json({
         statusCode: 401,
         status: "error",
-        message: "Email atau password salah",
+        message: "Email atau kata sandi salah",
       });
     }
 
@@ -737,6 +737,103 @@ const changePassword = async (req, res) => {
   }
 };
 
+// ========================================
+// UPDATE OWN PASSWORD
+// PATCH /api/auth/password
+// ========================================
+
+const updateOwnPassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: "error",
+        message: "User tidak ditemukan",
+      });
+    }
+
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Password baru dan konfirmasi password wajib diisi",
+      });
+    }
+
+    if (user.password && !currentPassword) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Password lama wajib diisi",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Konfirmasi password tidak cocok",
+      });
+    }
+
+    if (!passwordIsValid(newPassword)) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message:
+          "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
+      });
+    }
+
+    if (user.password) {
+      const isPasswordMatch = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
+
+      if (!isPasswordMatch) {
+        return res.status(400).json({
+          statusCode: 400,
+          status: "error",
+          message: "Password lama salah",
+        });
+      }
+
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({
+          statusCode: 400,
+          status: "error",
+          message: "Password baru harus berbeda dari password saat ini",
+        });
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      message: "Password berhasil diubah",
+    });
+  } catch (error) {
+    console.error("Update own password error:", error);
+
+    return res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Terjadi kesalahan pada server",
+    });
+  }
+};
+
 const resendOTP = async (req, res) => {
   try {
     const { email, type } = req.body;
@@ -1057,6 +1154,7 @@ module.exports = {
   forgotPassword,
   verifyResetOTP,
   changePassword,
+  updateOwnPassword,
   resendOTP,
   getMe,
   refreshAccessToken,

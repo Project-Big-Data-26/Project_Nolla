@@ -9,6 +9,7 @@ const {
   forgotPassword,
   verifyResetOTP,
   changePassword,
+  updateOwnPassword,
   resendOTP,
   getMe,
   refreshAccessToken,
@@ -253,6 +254,49 @@ router.post("/verify-otp", verifyResetOTP);
  *         description: Server error
  */
 router.post("/change-password", changePassword);
+
+/**
+ * @swagger
+ * /api/auth/password:
+ *   patch:
+ *     summary: Mengganti password user yang sedang login
+ *     description: Mengganti password akun. Password lama wajib untuk akun yang sudah memiliki password; opsional untuk akun tanpa password.
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 example: Bigdata2026
+ *               newPassword:
+ *                 type: string
+ *                 example: Nolla2026
+ *               confirmPassword:
+ *                 type: string
+ *                 example: Nolla2026
+ *     responses:
+ *       200:
+ *         description: Password berhasil diubah
+ *       400:
+ *         description: Input tidak valid atau password lama salah
+ *       401:
+ *         description: Access token tidak valid atau tidak ditemukan
+ *       404:
+ *         description: User tidak ditemukan
+ *       500:
+ *         description: Terjadi kesalahan pada server
+ */
+router.patch("/password", authMiddleware, updateOwnPassword);
 
 /**
  * @swagger

@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
+import { toast, Toaster } from "sonner";
+import API from "../../../api/axios";
+import { useAuth } from "../../../context/AuthContext";
 import {
   ArrowLeft,
   Loader2,
   X,
   Mail,
   User as UserIcon,
-  CheckCircle2,
   AlertCircle,
   Eye,
   Sparkles,
@@ -16,8 +18,7 @@ import {
 } from "lucide-react";
 import Navbar from "../../../components/Navbar";
 
-// Aset Avatar Preset & Default
-import defaultAvatar from "../../../assets/avatar/avatar-deafult.png";
+// Aset avatar preset
 import avatar1 from "../../../assets/avatar/avatar1.svg";
 import avatar2 from "../../../assets/avatar/avatar2.svg";
 import avatar3 from "../../../assets/avatar/avatar3.svg";
@@ -28,16 +29,31 @@ import avatar7 from "../../../assets/avatar/avatar7.svg";
 import avatar8 from "../../../assets/avatar/avatar8.svg";
 
 const presetAvatars = [
-  { id: "default", label: "Default", src: defaultAvatar },
-  { id: "avatar1", label: "Avatar 1", src: avatar1 },
-  { id: "avatar2", label: "Avatar 2", src: avatar2 },
-  { id: "avatar3", label: "Avatar 3", src: avatar3 },
-  { id: "avatar4", label: "Avatar 4", src: avatar4 },
-  { id: "avatar5", label: "Avatar 5", src: avatar5 },
-  { id: "avatar6", label: "Avatar 6", src: avatar6 },
-  { id: "avatar7", label: "Avatar 7", src: avatar7 },
-  { id: "avatar8", label: "Avatar 8", src: avatar8 },
+  { id: "avatar_1", label: "Avatar 1", src: avatar1 },
+  { id: "avatar_2", label: "Avatar 2", src: avatar2 },
+  { id: "avatar_3", label: "Avatar 3", src: avatar3 },
+  { id: "avatar_4", label: "Avatar 4", src: avatar4 },
+  { id: "avatar_5", label: "Avatar 5", src: avatar5 },
+  { id: "avatar_6", label: "Avatar 6", src: avatar6 },
+  { id: "avatar_7", label: "Avatar 7", src: avatar7 },
+  { id: "avatar_8", label: "Avatar 8", src: avatar8 },
 ];
+
+const defaultAvatar = avatar1;
+
+const formatUpdatedAt = (updatedAt) => {
+  if (!updatedAt) return "Belum tersedia";
+  const date = new Date(updatedAt);
+  if (Number.isNaN(date.getTime())) return "Belum tersedia";
+  return date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const getAvatarSource = (avatarId) =>
+  presetAvatars.find((item) => item.id === avatarId)?.src || defaultAvatar;
 
 const jenjangOptions = [
   { value: "Semua", label: "Semua" },
@@ -71,6 +87,7 @@ const getPopoverPosition = (anchor, preferredWidth, preferredHeight) => {
 
 export default function EditProfile() {
   const navigate = useNavigate();
+  const { updateUser } = useAuth();
   const jenjangDropdownRef = useRef(null);
   const jenjangPopoverRef = useRef(null);
   const avatarPickerRef = useRef(null);
@@ -97,19 +114,13 @@ export default function EditProfile() {
   });
 
   const [name, setName] = useState(initialDataRef.current.name);
-  const [email] = useState(initialDataRef.current.email); // Read-only / view only
+  const [email, setEmail] = useState(initialDataRef.current.email); // Read-only / view only
   const [jenjang, setJenjang] = useState(initialDataRef.current.jenjang);
   const [photoPreview, setPhotoPreview] = useState(
     initialDataRef.current.photo,
   );
   const [avatarDraft, setAvatarDraft] = useState(initialDataRef.current.photo);
-  const [lastUpdated, setLastUpdated] = useState(() => {
-    return (
-      (typeof window !== "undefined" &&
-        localStorage.getItem("user_profile_updated_at")) ||
-      "27 Sep 2026"
-    );
-  });
+  const [lastUpdated, setLastUpdated] = useState("");
 
   // State dropdown jenjang dan preview foto penuh
   const [isJenjangOpen, setIsJenjangOpen] = useState(false);
@@ -120,8 +131,52 @@ export default function EditProfile() {
 
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    API.get("/profile")
+      .then(({ data }) => {
+        if (!isActive) return;
+
+        const profile = data.data;
+        const nextJenjang = profile.allJenjang
+          ? "Semua"
+          : profile.jenjang_id?.name || "Semua";
+        const nextPhoto = getAvatarSource(profile.avatar);
+        const nextData = {
+          name: profile.name || "",
+          email: profile.email || "",
+          jenjang: nextJenjang,
+          photo: nextPhoto,
+        };
+
+        initialDataRef.current = nextData;
+        setName(nextData.name);
+        setEmail(nextData.email);
+        setJenjang(nextData.jenjang);
+        setPhotoPreview(nextData.photo);
+        setAvatarDraft(nextData.photo);
+        setLastUpdated(formatUpdatedAt(profile.updatedAt));
+
+        localStorage.setItem("user_name", nextData.name);
+        localStorage.setItem("user_email", nextData.email);
+        localStorage.setItem("user_education_level", nextData.jenjang);
+        localStorage.setItem("user_jenjang", nextData.jenjang);
+        localStorage.setItem("user_photo", nextData.photo);
+      })
+      .catch((error) => {
+        if (isActive) {
+          toast.error(
+            error.response?.data?.message || "Profil gagal dimuat dari server.",
+          );
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   // Deteksi perubahan data (email tidak bisa diedit)
   const isNameChanged = name.trim() !== initialDataRef.current.name.trim();
@@ -205,39 +260,60 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    setSaveError("");
 
     if (!validate()) return;
 
     setSaving(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const avatar =
+        presetAvatars.find((item) => item.src === photoPreview)?.id ||
+        "avatar_1";
+      const payload = {
+        name: name.trim(),
+        allJenjang: jenjang === "Semua",
+        avatar,
+        ...(jenjang === "Semua" ? {} : { jenjang_id: jenjang }),
+      };
+      const { data } = await API.patch("/profile", payload);
+      const profile = data.data;
+      const savedJenjang = profile.allJenjang
+        ? "Semua"
+        : profile.jenjang_id?.name || jenjang;
+      const savedPhoto = getAvatarSource(profile.avatar);
 
-      const currentDate = new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
+      initialDataRef.current = {
+        name: profile.name,
+        email: profile.email,
+        jenjang: savedJenjang,
+        photo: savedPhoto,
+      };
+      setName(profile.name);
+      setEmail(profile.email);
+      setJenjang(savedJenjang);
+      setPhotoPreview(savedPhoto);
+      setAvatarDraft(savedPhoto);
+      setLastUpdated(formatUpdatedAt(profile.updatedAt));
 
-      localStorage.setItem("user_name", name.trim());
-      localStorage.setItem("user_education_level", jenjang);
-      localStorage.setItem("user_jenjang", jenjang);
-      localStorage.setItem("user_profile_updated_at", currentDate);
-
-      if (photoPreview) {
-        localStorage.setItem("user_photo", photoPreview);
-      } else {
-        localStorage.setItem("user_photo", defaultAvatar);
-      }
-
-      setLastUpdated(currentDate);
-      setSaveSuccess(true);
-
+      localStorage.setItem("user_name", profile.name);
+      localStorage.setItem("user_email", profile.email);
+      localStorage.setItem("user_education_level", savedJenjang);
+      localStorage.setItem("user_jenjang", savedJenjang);
+      localStorage.setItem("user_photo", savedPhoto);
+      updateUser(profile);
+      const editToastId = toast.success("Profil berhasil diperbarui!");
       setTimeout(() => {
-        navigate("/profile", { state: { profileUpdated: true } });
-      }, 700);
+        toast.dismiss(editToastId);
+        sessionStorage.setItem(
+          "profileRedirectToastMessage",
+          "Profil berhasil diperbarui!",
+        );
+        navigate("/profile");
+      }, 1000);
     } catch (err) {
-      setSaveError("Gagal menyimpan perubahan. Silakan coba lagi.");
+      toast.error(
+        err.response?.data?.message ||
+          "Gagal menyimpan perubahan. Silakan coba lagi.",
+      );
     } finally {
       setSaving(false);
     }
@@ -251,30 +327,13 @@ export default function EditProfile() {
 
   return (
     <div className="flex min-h-screen bg-neutral-bg font-sans text-neutral-text">
+      <Toaster position="top-center" richColors closeButton />
       {/* Sidebar Navigation */}
       <Navbar activePage="Profil" />
 
       {/* Main Content Column: Batasan persis sejajar dengan halaman Topik & Profil */}
       <div className="flex-1 flex flex-col min-w-0">
         <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10 w-full flex-1 pb-24 md:pb-8">
-          {/* Notifikasi Sukses */}
-          {saveSuccess && (
-            <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-2xs">
-              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-              <span className="font-medium">
-                Profil berhasil diperbarui! Mengalihkan ke halaman profil...
-              </span>
-            </div>
-          )}
-
-          {/* Notifikasi Error Global */}
-          {saveError && (
-            <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 shadow-2xs">
-              <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
-              <span className="font-medium">{saveError}</span>
-            </div>
-          )}
-
           {/* CARD UTAMA: Panah Kembali + 'Edit Profil' masuk ke dalam card informasi pengguna */}
           <div className="rounded-2xl border border-neutral-border bg-neutral-card shadow-xs overflow-hidden">
             {/* Header di dalam Card: Tombol Panah Kembali + Edit Profil / Informasi Pengguna */}
@@ -605,7 +664,7 @@ export default function EditProfile() {
 
                 {/* HANYA MUNCUL KETIKA ADA PERUBAHAN */}
                 <div className="flex items-center gap-3 w-full sm:w-auto order-1 sm:order-2 justify-end">
-                  {hasChanges ? (
+                  {hasChanges && (
                     <button
                       type="submit"
                       disabled={saving}
@@ -615,10 +674,6 @@ export default function EditProfile() {
                       {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                       <span>Simpan Perubahan</span>
                     </button>
-                  ) : (
-                    <span className="text-xs text-slate-400 italic">
-                      Tidak ada perubahan data
-                    </span>
                   )}
                 </div>
               </div>

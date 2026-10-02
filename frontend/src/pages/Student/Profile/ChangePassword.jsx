@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../../../api/axios";
 import Navbar from "../../../components/Navbar";
-import { ArrowLeft, Check, Eye, EyeOff, Lock, X } from "lucide-react";
+import { ArrowLeft, Check, Eye, EyeOff, Loader2, X } from "lucide-react";
 
 function RuleItem({ valid, children }) {
   return (
@@ -73,50 +74,96 @@ export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [hasPassword, setHasPassword] = useState(null);
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
+  const [saving, setSaving] = useState(false);
   const [showPasswordRequirements, setShowPasswordRequirements] =
     useState(false);
 
+  useEffect(() => {
+    API.get("/profile")
+      .then(({ data }) => setHasPassword(Boolean(data.data.hasPassword)))
+      .catch((error) => {
+        setHasPassword(true);
+        setMessage(
+          error.response?.data?.message ||
+            "Status password akun gagal diperiksa. Masukkan password saat ini.",
+        );
+        setMessageType("error");
+      });
+  }, []);
+
   const passwordRules = {
     minLength: newPassword.length >= 8,
-    hasLetter: /[A-Za-z]/.test(newPassword),
+    hasLowercase: /[a-z]/.test(newPassword),
+    hasUppercase: /[A-Z]/.test(newPassword),
     hasNumber: /\d/.test(newPassword),
-    differentFromCurrent:
-      currentPassword.length > 0 && newPassword !== currentPassword,
+    ...(hasPassword === false
+      ? {}
+      : {
+          differentFromCurrent:
+            currentPassword.length > 0 && newPassword !== currentPassword,
+        }),
   };
 
-  const isPasswordValid =
-    passwordRules.minLength &&
-    passwordRules.hasLetter &&
-    passwordRules.hasNumber &&
-    passwordRules.differentFromCurrent;
+  const isPasswordValid = Object.values(passwordRules).every(Boolean);
   const passwordRuleProgress =
     Object.values(passwordRules).filter(Boolean).length;
 
   const isConfirmationValid =
     confirmPassword.length > 0 && newPassword === confirmPassword;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     setMessage("");
+    setMessageType("");
+
+    if (hasPassword === null) {
+      setMessage("Status password akun sedang diperiksa. Coba lagi sebentar.");
+      setMessageType("error");
+      return;
+    }
 
     if (!isPasswordValid) {
       setMessage("Password baru belum memenuhi ketentuan.");
+      setMessageType("error");
       return;
     }
 
     if (!isConfirmationValid) {
       setMessage("Konfirmasi password tidak sesuai.");
+      setMessageType("error");
       return;
     }
 
-    setMessage("Password berhasil diperbarui.");
+    setSaving(true);
+    try {
+      const { data } = await API.patch("/auth/password", {
+        ...(hasPassword ? { currentPassword } : {}),
+        newPassword,
+        confirmPassword,
+      });
+      sessionStorage.setItem(
+        "profileRedirectToastMessage",
+        data.message || "Password berhasil diubah.",
+      );
+      navigate("/profile");
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message ||
+          "Password gagal diperbarui. Silakan coba lagi.",
+      );
+      setMessageType("error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -124,6 +171,7 @@ export default function ChangePassword() {
     setNewPassword("");
     setConfirmPassword("");
     setMessage("");
+    setMessageType("");
     setShowPasswordRequirements(false);
   };
 
@@ -159,14 +207,16 @@ export default function ChangePassword() {
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-5 p-6 md:p-8">
-                <PasswordInput
-                  label="Password Saat Ini"
-                  value={currentPassword}
-                  onChange={setCurrentPassword}
-                  showPassword={showCurrentPassword}
-                  setShowPassword={setShowCurrentPassword}
-                  placeholder="Masukkan password saat ini"
-                />
+                {hasPassword !== false && (
+                  <PasswordInput
+                    label="Password Saat Ini"
+                    value={currentPassword}
+                    onChange={setCurrentPassword}
+                    showPassword={showCurrentPassword}
+                    setShowPassword={setShowCurrentPassword}
+                    placeholder="Masukkan password saat ini"
+                  />
+                )}
 
                 <div>
                   <PasswordInput
@@ -200,8 +250,8 @@ export default function ChangePassword() {
                       </p>
 
                       <div
-                        className="grid grid-cols-4 gap-1"
-                        aria-label={`${passwordRuleProgress} dari 4 syarat terpenuhi`}
+                        className={`grid gap-1 ${hasPassword === false ? "grid-cols-4" : "grid-cols-5"}`}
+                        aria-label={`${passwordRuleProgress} dari ${Object.keys(passwordRules).length} syarat terpenuhi`}
                       >
                         {Object.values(passwordRules).map((valid, index) => (
                           <span
@@ -221,17 +271,23 @@ export default function ChangePassword() {
                         Minimal 8 karakter
                       </RuleItem>
 
-                      <RuleItem valid={passwordRules.hasLetter}>
-                        Mengandung huruf
+                      <RuleItem valid={passwordRules.hasLowercase}>
+                        Mengandung huruf kecil
+                      </RuleItem>
+
+                      <RuleItem valid={passwordRules.hasUppercase}>
+                        Mengandung huruf besar
                       </RuleItem>
 
                       <RuleItem valid={passwordRules.hasNumber}>
                         Mengandung angka
                       </RuleItem>
 
-                      <RuleItem valid={passwordRules.differentFromCurrent}>
-                        Tidak sama dengan password saat ini
-                      </RuleItem>
+                      {hasPassword !== false && (
+                        <RuleItem valid={passwordRules.differentFromCurrent}>
+                          Tidak sama dengan password saat ini
+                        </RuleItem>
+                      )}
                     </div>
                   )}
                 </div>
@@ -260,7 +316,7 @@ export default function ChangePassword() {
                 {message && (
                   <div
                     className={`rounded-xl px-4 py-3 text-sm ${
-                      message === "Password berhasil diperbarui."
+                      messageType === "success"
                         ? "bg-green-50 text-green-600"
                         : "bg-red-50 text-red-500"
                     }`}
@@ -280,9 +336,15 @@ export default function ChangePassword() {
                 </button>
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-hover sm:w-auto cursor-pointer"
+                  disabled={saving || hasPassword === null}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto cursor-pointer"
                 >
-                  Simpan Password
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {hasPassword === null
+                    ? "Memeriksa akun..."
+                    : saving
+                      ? "Menyimpan..."
+                      : "Simpan Password"}
                 </button>
               </div>
             </form>

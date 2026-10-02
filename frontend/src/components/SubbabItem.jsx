@@ -93,7 +93,7 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
         )}
 
         <p className="text-[11px] font-semibold text-slate-500">
-          Elo {subbab.current_cognitive_score ?? 1000} ·{" "}
+          {subbab.current_cognitive_score ?? 1000} ·{" "}
           {subbab.current_cognitive_level ?? "medium"}
         </p>
 
