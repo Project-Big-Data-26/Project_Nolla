@@ -1,0 +1,138 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+====================================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (login.cy.js)                                                          │
+  │ Searched:       cypress/e2e/auth/login.cy.js                                                   │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  login.cy.js                                                                     (1 of 1)
+
+
+  Login — halaman & tampilan
+    ✓ CY-LOGIN-002 (pelengkap auth-smoke): checkbox "Ingat saya" tampil dan bisa dicentang (492ms)
+    ✓ CY-LOGIN-005: kata sandi tersembunyi secara default (372ms)
+    ✓ CY-LOGIN-006 & 007: kata sandi bisa ditampilkan lalu disembunyikan lagi (517ms)
+    ✓ CY-LOGIN-021: tautan "Buat akun baru" membuka halaman Registrasi (207ms)
+    ✓ CY-LOGIN-022: tautan "Lupa Kata Sandi?" membuka halaman Lupa Kata Sandi (190ms)
+
+  Login — validasi input (tidak boleh terkirim ke API)
+    ✓ CY-LOGIN-011: email kosong menahan submit (543ms)
+    ✓ CY-LOGIN-012: kata sandi kosong menahan submit (804ms)
+    ✓ CY-LOGIN-013: semua field kosong menahan submit (217ms)
+    ✓ CY-LOGIN-014: format email tidak valid menahan submit (856ms)
+
+  Login — dengan backend asli
+    ✓ CY-LOGIN-008: login email valid diarahkan ke halaman BAB (1372ms)
+    1) CY-LOGIN-009: kata sandi salah ditolak dengan pesan generik
+    2) CY-LOGIN-010: email tidak terdaftar ditolak dengan pesan yang sama
+    3) CY-LOGIN-016: login gagal lalu berhasil dengan kata sandi benar
+    ✓ CY-LOGIN-020: tetap login saat pindah halaman dan refresh (1965ms)
+    4) CY-LOGIN-029: akun Google tanpa kata sandi tidak bisa login lewat form email
+    ✓ CY-LOGIN-031: halaman BAB tidak bisa dibuka tanpa login (100ms)
+    ✓ CY-LOGIN-032: siswa yang sudah login membuka /login diarahkan ke halaman BAB (1365ms)
+
+
+  13 passing (31s)
+  4 failing
+
+  1) Login — dengan backend asli
+       CY-LOGIN-009: kata sandi salah ditolak dengan pesan generik:
+     AssertionError: Timed out retrying after 4000ms: pesan "Email atau kata sandi salah." tampil: expected false to equal true
+      at Context.eval (webpack://client/./cypress/e2e/auth/login.cy.js:79:65)
+      at <unknown> (http://localhost:5173/__cypress/runner/cypress_runner.js:120804:17)
+      at tryCatcher (http://localhost:5173/__cypress/runner/cypress_runner.js:1780:23)
+      at Promise.attempt.Promise.try (http://localhost:5173/__cypress/runner/cypress_runner.js:4288:29)
+      at Context.shouldFnWithCallback (http://localhost:5173/__cypress/runner/cypress_runner.js:120801:66)
+      at Context.shouldFn (http://localhost:5173/__cypress/runner/cypress_runner.js:120844:37)
+
+  2) Login — dengan backend asli
+       CY-LOGIN-010: email tidak terdaftar ditolak dengan pesan yang sama:
+     AssertionError: Timed out retrying after 4000ms: pesan "Email atau kata sandi salah." tampil: expected false to equal true
+      at Context.eval (webpack://client/./cypress/e2e/auth/login.cy.js:79:65)
+      at <unknown> (http://localhost:5173/__cypress/runner/cypress_runner.js:120804:17)
+      at tryCatcher (http://localhost:5173/__cypress/runner/cypress_runner.js:1780:23)
+      at Promise.attempt.Promise.try (http://localhost:5173/__cypress/runner/cypress_runner.js:4288:29)
+      at Context.shouldFnWithCallback (http://localhost:5173/__cypress/runner/cypress_runner.js:120801:66)
+      at Context.shouldFn (http://localhost:5173/__cypress/runner/cypress_runner.js:120844:37)
+
+  3) Login — dengan backend asli
+       CY-LOGIN-016: login gagal lalu berhasil dengan kata sandi benar:
+     AssertionError: Timed out retrying after 4000ms: pesan "Email atau kata sandi salah." tampil: expected false to equal true
+      at Context.eval (webpack://client/./cypress/e2e/auth/login.cy.js:79:65)
+      at <unknown> (http://localhost:5173/__cypress/runner/cypress_runner.js:120804:17)
+      at tryCatcher (http://localhost:5173/__cypress/runner/cypress_runner.js:1780:23)
+      at Promise.attempt.Promise.try (http://localhost:5173/__cypress/runner/cypress_runner.js:4288:29)
+      at Context.shouldFnWithCallback (http://localhost:5173/__cypress/runner/cypress_runner.js:120801:66)
+      at Context.shouldFn (http://localhost:5173/__cypress/runner/cypress_runner.js:120844:37)
+
+  4) Login — dengan backend asli
+       CY-LOGIN-029: akun Google tanpa kata sandi tidak bisa login lewat form email:
+     AssertionError: Timed out retrying after 4000ms: pesan "Email atau kata sandi salah." tampil: expected false to equal true
+      at Context.eval (webpack://client/./cypress/e2e/auth/login.cy.js:79:65)
+      at <unknown> (http://localhost:5173/__cypress/runner/cypress_runner.js:120804:17)
+      at tryCatcher (http://localhost:5173/__cypress/runner/cypress_runner.js:1780:23)
+      at Promise.attempt.Promise.try (http://localhost:5173/__cypress/runner/cypress_runner.js:4288:29)
+      at Context.shouldFnWithCallback (http://localhost:5173/__cypress/runner/cypress_runner.js:120801:66)
+      at Context.shouldFn (http://localhost:5173/__cypress/runner/cypress_runner.js:120844:37)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        17                                                                               │
+  │ Passing:      13                                                                               │
+  │ Failing:      4                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  4                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     30 seconds                                                                       │
+  │ Spec Ran:     login.cy.js                                                                      │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/login.cy.j    (2560x1440)
+     s/Login — dengan backend asli -- CY-LOGIN-009 kata sandi salah ditolak dengan pe               
+     san generik (failed).png                                                                       
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/login.cy.j    (2560x1440)
+     s/Login — dengan backend asli -- CY-LOGIN-010 email tidak terdaftar ditolak deng               
+     an pesan yang sama (failed).png                                                                
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/login.cy.j    (2560x1440)
+     s/Login — dengan backend asli -- CY-LOGIN-016 login gagal lalu berhasil dengan k               
+     ata sandi benar (failed).png                                                                   
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/login.cy.j    (2560x1440)
+     s/Login — dengan backend asli -- CY-LOGIN-029 akun Google tanpa kata sandi tidak               
+      bisa login lewat form email (failed).png                                                      
+
+
+====================================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  login.cy.js                              00:30       17       13        4        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:30       17       13        4        -        -  
+
