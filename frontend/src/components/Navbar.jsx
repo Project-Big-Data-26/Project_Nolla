@@ -21,7 +21,7 @@ const Navbar = ({ activePage = "Dashboard" }) => {
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : "U";
 
   const menuItems = [
-    { label: "Topik", icon: BookOpen, path: "/topik" },
+    { label: "Bab Pembelajaran", icon: BookOpen, path: "/topik" },
     {
       label: "Hasil Belajar",
       icon: LayoutDashboard,
