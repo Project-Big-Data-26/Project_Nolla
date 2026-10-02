@@ -90,6 +90,18 @@ const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Mencegah scroll background saat mobile drawer navbar terbuka
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
   // Parallax tracking for Hero elements
   const [heroParallax, setHeroParallax] = useState({ x: 0, y: 0 });
   const handleHeroMouseMove = (e) => {
@@ -287,7 +299,7 @@ const LandingPage = () => {
       a: "Nolla fokus pada metode skill drill adaptif tanpa henti yang dirancang untuk membangun intuisi dan reflex matematika Anda. Bukan sekadar menonton rekaman video panjang, Anda langsung melatih keterampilan menyelesaikan ribuan variasi soal yang tingkat kesulitannya menyesuaikan kemampuan seketika.",
     },
     {
-      q: "Apakah soalnya bisa sama terus atau berulang?",
+      q: "Apakah soalnya terus berulang?",
       a: "Tidak! Bank soal kami didukung oleh algoritma cerdas yang menghasilkan variasi angka dan konteks masalah baru di setiap sesi drill. Siswa berlatih konsep, bukan menghafal jawaban soal.",
     },
     {
@@ -409,96 +421,132 @@ const LandingPage = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Toggle Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
-            aria-label="Toggle menu"
+            className="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            aria-label="Buka navigasi menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
-
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-[#e3e6f8] px-6 py-5 shadow-xl space-y-4 animate-in slide-in-from-top-2 duration-200">
-            <div className="flex flex-col space-y-3 font-semibold text-slate-700">
-              <a
-                href="#masalah"
-                onClick={(e) => scrollToSection(e, "masalah")}
-                className="py-1 hover:text-[#0284c7]"
-              >
-                Kenapa Nolla
-              </a>
-              <a
-                href="#cara"
-                onClick={(e) => scrollToSection(e, "cara")}
-                className="py-1 hover:text-[#0284c7]"
-              >
-                Cara Kerja
-              </a>
-              <a
-                href="#jenjang"
-                onClick={(e) => scrollToSection(e, "jenjang")}
-                className="py-1 hover:text-[#0284c7]"
-              >
-                Jenjang
-              </a>
-              <a
-                href="#fitur"
-                onClick={(e) => scrollToSection(e, "fitur")}
-                className="py-1 hover:text-[#0284c7]"
-              >
-                Keunggulan
-              </a>
-              <a
-                href="#faq"
-                onClick={(e) => scrollToSection(e, "faq")}
-                className="py-1 hover:text-[#0284c7]"
-              >
-                FAQ
-              </a>
-            </div>
-            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
-              {isAuthenticated ? (
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    navigate("/topik");
-                  }}
-                  className="w-full py-2.5 rounded-full font-bold text-center bg-[#2563eb] text-white"
-                >
-                  Buka Topik Belajar
-                </button>
-              ) : (
-                <>
-                  <Link
-                    to="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 rounded-full font-bold text-center text-[#ff8a1f] border-2 border-[#ff8a1f] hover:bg-[#ff8a1f] hover:text-white hover:border-[#ff8a1f] transition-all"
-                  >
-                    Masuk
-                  </Link>
-                  <Link
-                    to="/register"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 rounded-full font-bold text-center bg-[#009bf2] text-white flex items-center justify-center gap-1.5"
-                  >
-                    <span>Daftar Sekarang</span>
-                    <span className="font-bold text-base leading-none ml-0.5">&gt;</span>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
       </nav>
+
+      {/* -------------------- MOBILE DRAWER SIDEBAR & BACKDROP -------------------- */}
+      {/* Backdrop di sisi kanan: klik area bukan putih untuk menutup sidebar */}
+      <div
+        className={`fixed inset-0 bg-slate-950/60 z-[90] transition-opacity duration-300 md:hidden ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Panel Drawer dari samping kiri - Sesuai referensi Nurul Fikri */}
+      <div
+        className={`fixed top-0 bottom-0 left-0 w-[76%] max-w-[300px] h-full bg-white z-[100] shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-out md:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
+          }`}
+      >
+        {/* Bagian Atas: Logo paling atas, lalu list link pagenya dari bawah logo satu-satu kebawah */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Logo paling atas */}
+          <div className="px-6 pt-7 pb-5">
+            <button
+              type="button"
+              onClick={(e) => {
+                setMobileMenuOpen(false);
+                scrollToTop(e);
+              }}
+              className="block cursor-pointer bg-transparent border-0 p-0 text-left"
+            >
+              <img
+                src={logoNolla}
+                alt="NOLLA"
+                className="h-8 sm:h-9 w-auto object-contain"
+              />
+            </button>
+          </div>
+
+          {/* List link page dari bawah logo satu-satu kebawah */}
+          <div className="px-4 py-2 space-y-1 text-slate-800">
+            <button
+              type="button"
+              onClick={(e) => scrollToSection(e, "masalah")}
+              className="w-full text-left px-3.5 py-3 rounded-xl hover:bg-slate-50 hover:text-[#0284c7] font-bold text-sm sm:text-base transition-colors flex items-center justify-between cursor-pointer"
+            >
+              <span>Kenapa Nolla</span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => scrollToSection(e, "cara")}
+              className="w-full text-left px-3.5 py-3 rounded-xl hover:bg-slate-50 hover:text-[#0284c7] font-bold text-sm sm:text-base transition-colors flex items-center justify-between cursor-pointer"
+            >
+              <span>Cara Kerja</span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => scrollToSection(e, "jenjang")}
+              className="w-full text-left px-3.5 py-3 rounded-xl hover:bg-slate-50 hover:text-[#0284c7] font-bold text-sm sm:text-base transition-colors flex items-center justify-between group cursor-pointer"
+            >
+              <span>Jenjang</span>
+              <span className="text-slate-400 group-hover:text-[#0284c7] font-bold text-sm">&gt;</span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => scrollToSection(e, "fitur")}
+              className="w-full text-left px-3.5 py-3 rounded-xl hover:bg-slate-50 hover:text-[#0284c7] font-bold text-sm sm:text-base transition-colors flex items-center justify-between group cursor-pointer"
+            >
+              <span>Keunggulan</span>
+              <span className="text-slate-400 group-hover:text-[#0284c7] font-bold text-sm">&gt;</span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => scrollToSection(e, "faq")}
+              className="w-full text-left px-3.5 py-3 rounded-xl hover:bg-slate-50 hover:text-[#0284c7] font-bold text-sm sm:text-base transition-colors flex items-center justify-between cursor-pointer"
+            >
+              <span>FAQ</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bagian Paling Bawah: Baru ada buttonnya */}
+        <div className="p-5 border-t border-slate-100 flex flex-col gap-3 bg-white">
+          {isAuthenticated ? (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navigate("/topik");
+              }}
+              className="w-full py-2.5 rounded-xl font-bold text-sm text-center bg-[#2563eb] text-white shadow-md hover:bg-blue-700 transition cursor-pointer"
+            >
+              Buka Topik Belajar
+            </button>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-2.5 rounded-xl font-bold text-sm text-center text-[#ff8a1f] border-2 border-[#ff8a1f] hover:bg-[#ff8a1f] hover:text-white transition-all cursor-pointer"
+              >
+                Masuk
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-2.5 rounded-xl font-bold text-sm text-center bg-[#009bf2] text-white flex items-center justify-center gap-1.5 shadow-md hover:bg-sky-600 transition cursor-pointer"
+              >
+                <span>Daftar Sekarang</span>
+                <span className="font-bold text-sm leading-none ml-0.5">&gt;</span>
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* -------------------- HERO SECTION -------------------- */}
       <header
         onMouseMove={handleHeroMouseMove}
         onMouseLeave={handleHeroMouseLeave}
-        className="relative overflow-hidden bg-[#1e40af] text-white pt-7 sm:pt-10 pb-0 rounded-b-[32px] sm:rounded-b-[48px] transition-colors"
+        className="relative overflow-hidden bg-[#1e40af] text-white pt-8 sm:pt-12 lg:pt-8 pb-0 rounded-b-[32px] sm:rounded-b-[48px] transition-colors"
       >
         {/* Background Image: classroom (background_back.png) with clearly visible opacity */}
         <div
@@ -519,18 +567,18 @@ const LandingPage = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start lg:items-center">
-            {/* Left Hero Content - elevated higher, z-20 */}
-            <div className="-translate-y-8 lg:col-span-7 space-y-3 sm:space-y-3.5 text-center lg:text-left pt-0 sm:pt-1 pb-4 sm:pb-6 lg:pb-10 relative z-20">
-              {/* Main Headline Container with Piala hovering right above 'Nilai' and 'Kamu' */}
-              <div className="relative inline-block max-w-lg">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.35rem] xl:text-[2.75rem] font-semibold leading-[1.2] tracking-tight text-white drop-shadow-md">
+            {/* Left Hero Content - rapi di mobile tanpa minus translate yang menabrak navbar */}
+            <div className="translate-y-0 lg:-translate-y-8 lg:col-span-7 space-y-3 sm:space-y-3.5 text-center lg:text-left pt-3 sm:pt-5 lg:pt-0 pb-4 sm:pb-6 lg:pb-10 relative z-20">
+              {/* Main Headline Container with Piala hovering right above headline */}
+              <div className="relative inline-block max-w-lg mx-auto lg:mx-0">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.35rem] xl:text-[2.75rem] font-semibold leading-[1.25] tracking-tight text-white drop-shadow-md pr-0 sm:pr-4">
                   Tingkatkan{" "}
                   <span className="bg-gradient-to-r from-white via-[#ff8a1f] to-white bg-clip-text text-transparent animate-shimmer">
                     Nilai Matematika
                   </span>{" "}
                   Kamu dengan Latihan Soal untuk SD, SMP, &amp; SMA
                 </h1>
-                {/* Piala-komponenTambahan10.png: Tetap dipertahankan posisinya dengan style top & right */}
+                {/* Piala-komponenTambahan10.png: Tampil di desktop / tablet, di mobile disembunyikan agar teks judul bersih tanpa tertutup */}
                 <img
                   src={pialaIcon}
                   alt="Piala Prestasi"
@@ -539,7 +587,7 @@ const LandingPage = () => {
                     right: "20px",
                     transform: `translate3d(${heroParallax.x * 0.3}px, ${heroParallax.y * 0.3}px, 0)`,
                   }}
-                  className="hidden sm:block absolute w-14 sm:w-16 lg:w-20 h-auto drop-shadow-[0_12px_24px_rgba(0,0,0,0.4)] animate-float-slow select-none pointer-events-none z-30 transition-transform duration-200 ease-out"
+                  className="hidden sm:block absolute sm:w-16 lg:w-20 h-auto drop-shadow-[0_12px_24px_rgba(0,0,0,0.4)] animate-float-slow select-none pointer-events-none z-30 transition-transform duration-200 ease-out"
                 />
               </div>
 
@@ -551,11 +599,11 @@ const LandingPage = () => {
               </p>
 
               {/* 2 CTA Buttons */}
-              <div className="pt-0.5 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
-                {/* Mulai Drill Gratis */}
+              <div className="pt-0.5 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-4">
+                {/* Mulai Belajar */}
                 <Link
                   to="/register"
-                  className="w-full sm:w-auto px-5 sm:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm bg-[#009bf2] text-white shadow-md transition-all duration-300 transform hover:-translate-y-0.5 hover:bg-[#1e3a8a] hover:border-[#38bdf8]/60 hover:shadow-[0_0_25px_rgba(56,189,248,0.9)] border-2 border-transparent text-center flex items-center justify-center gap-1.5 group cursor-pointer"
+                  className="w-[84%] max-w-[280px] sm:w-auto px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-[#009bf2] text-white shadow-md transition-all duration-300 transform hover:-translate-y-0.5 hover:bg-[#1e3a8a] hover:border-[#38bdf8]/60 hover:shadow-[0_0_25px_rgba(56,189,248,0.9)] border-2 border-transparent text-center flex items-center justify-center gap-1.5 group cursor-pointer"
                 >
                   <span>Mulai Belajar</span>
                   <span className="font-bold text-sm leading-none ml-0.5 group-hover:translate-x-1 transition-transform">
@@ -566,14 +614,14 @@ const LandingPage = () => {
                 {/* Lihat Cara Kerja */}
                 <a
                   href="#cara"
-                  className="w-full sm:w-auto px-5 sm:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm bg-white text-slate-800 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:bg-[#ff8a1f] hover:text-white hover:border-[#ff8a1f] hover:shadow-[0_0_25px_rgba(255,138,31,0.85)] border-2 border-transparent text-center flex items-center justify-center cursor-pointer"
+                  className="w-[84%] max-w-[280px] sm:w-auto px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-white text-slate-800 shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 hover:bg-[#ff8a1f] hover:text-white hover:border-[#ff8a1f] hover:shadow-[0_0_25px_rgba(255,138,31,0.85)] border-2 border-transparent text-center flex items-center justify-center cursor-pointer"
                 >
                   Lihat Cara Kerja
                 </a>
               </div>
             </div>
 
-            {/* Right Side: Students Photo with subtle inverse mouse parallax */}
+            {/* Right Side: Students Photo (Centered di mobile, dipertahankan posisi desktop) */}
             <div className="lg:col-span-5 flex items-end justify-center lg:justify-end self-end h-full relative z-10 pointer-events-none">
               <img
                 src={siswaHero}
@@ -581,7 +629,7 @@ const LandingPage = () => {
                 style={{
                   transform: `translate3d(${-heroParallax.x * 0.4}px, ${-heroParallax.y * 0.4}px, 0)`,
                 }}
-                className="translate-x-11 w-auto h-[380px] sm:h-[430px] md:h-[460px] lg:h-[480px] xl:h-[530px] 2xl:h-[580px] max-w-full lg:max-w-none object-contain object-bottom align-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.5)] select-none pointer-events-none block -mb-0.5 transition-transform duration-200 ease-out"
+                className="translate-x-0 lg:translate-x-11 mx-auto w-auto h-[320px] xs:h-[360px] sm:h-[430px] md:h-[460px] lg:h-[480px] xl:h-[530px] 2xl:h-[580px] max-w-full lg:max-w-none object-contain object-bottom align-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.5)] select-none pointer-events-none block -mb-0.5 transition-transform duration-200 ease-out"
               />
             </div>
           </div>
@@ -630,7 +678,7 @@ const LandingPage = () => {
 
             <div className="text-center p-2 border-t md:border-t-0 border-l border-slate-100 group cursor-default">
               <span className="block text-2xl sm:text-3xl font-black text-[#2b3fd6] mb-1 group-hover:scale-105 transition-transform">
-                0 Soal Sama
+                Soal Adaptif
               </span>
               <span className="text-xs sm:text-sm font-medium text-[#5b6088]">
                 Tiap sesi baru selalu segar
@@ -734,7 +782,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
           <FadeInSection>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1b1f3b] mb-4">
-              3 langkah menuju jago
+              3 langkah meningkatkan kemampuan
             </h2>
             <p className="text-base text-[#5b6088] max-w-xl mx-auto mb-14">
               Metode belajar santai tapi terbukti ampuh membentuk pemahaman intuitif
@@ -1133,8 +1181,8 @@ const LandingPage = () => {
                         key={index}
                         ref={(el) => (faqItemRefs.current[index] = el)}
                         className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ${isOpen
-                            ? "bg-gradient-to-r from-[#ff851b] to-[#ff5745] ring-4 ring-[#ff8a1f]/25 shadow-xl scale-[1.01]"
-                            : "bg-gradient-to-r from-[#ff8a1f] to-[#ff6538] hover:shadow-lg hover:scale-[1.005]"
+                          ? "bg-gradient-to-r from-[#ff851b] to-[#ff5745] ring-4 ring-[#ff8a1f]/25 shadow-xl scale-[1.01]"
+                          : "bg-gradient-to-r from-[#ff8a1f] to-[#ff6538] hover:shadow-lg hover:scale-[1.005]"
                           }`}
                       >
                         <button
@@ -1145,8 +1193,8 @@ const LandingPage = () => {
                           <span className="leading-snug drop-shadow-xs">{item.q}</span>
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${isOpen
-                                ? "bg-white text-[#ff8a1f] shadow-md"
-                                : "bg-white/20 text-white hover:bg-white hover:text-[#ff8a1f]"
+                              ? "bg-white text-[#ff8a1f] shadow-md"
+                              : "bg-white/20 text-white hover:bg-white hover:text-[#ff8a1f]"
                               }`}
                           >
                             {isOpen ? (
@@ -1158,8 +1206,8 @@ const LandingPage = () => {
                         </button>
                         <div
                           className={`grid transition-all duration-300 ease-in-out ${isOpen
-                              ? "grid-rows-[1fr] opacity-100"
-                              : "grid-rows-[0fr] opacity-0"
+                            ? "grid-rows-[1fr] opacity-100"
+                            : "grid-rows-[0fr] opacity-0"
                             }`}
                         >
                           <div className="overflow-hidden">
@@ -1227,31 +1275,22 @@ const LandingPage = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            {/* Mobile-only avatar preview so mobile still gets the student illustration */}
-            <div className="lg:hidden flex justify-center -mt-24 mb-2 relative z-20">
-              <img
-                src={siswaSd}
-                alt="Siswa SD Nolla"
-                className="w-auto h-[230px] sm:h-[270px] object-contain drop-shadow-[0_20px_25px_rgba(0,0,0,0.3)] select-none pointer-events-none"
-              />
-            </div>
-
-            {/* Desktop spacer for siswa-sd */}
+            {/* Desktop spacer untuk siswa-sd */}
             <div className="hidden lg:block lg:col-span-4" />
 
-            {/* Right: Text Content & Action Buttons - shifted left, wide & spacious */}
+            {/* Right: Text Content & Action Buttons */}
             <div className="lg:col-span-8 text-center lg:text-left relative z-20 lg:pl-3 xl:pl-5">
               <FadeInSection>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4 max-w-2xl">
+                <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-3 sm:mb-4 max-w-2xl mx-auto lg:mx-0">
                   Siap ubah “takut” jadi “bisa”?
                 </h2>
-                <p className="text-base sm:text-xl text-white/95 max-w-2xl mx-auto lg:mx-0 mb-8 font-medium">
+                <p className="text-sm sm:text-xl text-white/95 max-w-2xl mx-auto lg:mx-0 mb-6 sm:mb-8 font-medium">
                   Daftar sekarang dan mulai sesi drill pertamamu dalam hitungan detik.
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
                   <Link
                     to="/register"
-                    className="w-full sm:w-auto px-8 py-3.5 rounded-full font-black text-base bg-white text-[#ff8a1f] hover:bg-slate-100 shadow-xl shadow-black/15 hover:shadow-2xl transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-2 group cursor-pointer"
+                    className="w-[84%] max-w-[280px] sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full font-black text-sm sm:text-base bg-white text-[#ff8a1f] hover:bg-slate-100 shadow-xl shadow-black/15 hover:shadow-2xl transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-2 group cursor-pointer"
                   >
                     <span>Daftar Sekarang</span>
                     <span className="font-bold text-base leading-none group-hover:translate-x-1 transition-transform">
@@ -1260,7 +1299,7 @@ const LandingPage = () => {
                   </Link>
                   <Link
                     to="/login"
-                    className="w-full sm:w-auto px-8 py-3.5 rounded-full font-bold text-base bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 hover:border-white transition-all text-center cursor-pointer"
+                    className="w-[84%] max-w-[280px] sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full font-bold text-sm sm:text-base bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 hover:border-white transition-all text-center cursor-pointer"
                   >
                     Sudah Punya Akun? Masuk
                   </Link>
@@ -1272,11 +1311,12 @@ const LandingPage = () => {
       </section>
 
       {/* -------------------- FOOTER -------------------- */}
-      <footer className="bg-[#0b1739] text-slate-300 pt-12 sm:pt-14 pb-0 text-sm border-t border-[#1e2e5c]">
+      <footer className="bg-[#0b1739] text-slate-300 pt-10 sm:pt-14 pb-0 text-sm border-t border-[#1e2e5c]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-8 mb-10">
-            {/* Col 1: Brand & Socials */}
-            <div className="sm:col-span-2 lg:col-span-1">
+          {/* Grid Layout: 2 Kolom di Mobile, 5 Kolom di Desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-x-6 sm:gap-x-8 gap-y-8 lg:gap-8 mb-10">
+            {/* Col 1: Brand & Socials (Full width 2 kolom di mobile, 1 kolom di desktop) */}
+            <div className="col-span-2 lg:col-span-1">
               <button
                 type="button"
                 onClick={scrollToTop}
@@ -1285,7 +1325,7 @@ const LandingPage = () => {
               >
                 <img src={logoNolla} alt="NOLLA" className="h-7 w-auto object-contain" />
               </button>
-              <p className="text-slate-400 text-xs leading-relaxed mb-5 max-w-xs">
+              <p className="text-slate-400 text-xs leading-relaxed mb-5 max-w-sm lg:max-w-xs">
                 Skill drill matematika adaptif untuk siswa SD–SMA. Melatih intuisi
                 dan keterampilan berhitung secara bertahap dan menyenangkan.
               </p>
@@ -1335,8 +1375,8 @@ const LandingPage = () => {
               </div>
             </div>
 
-            {/* Col 2: Quick Links */}
-            <div>
+            {/* Baris 1 di Mobile: Quick Links (Kiri) */}
+            <div className="col-span-1">
               <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
                 QUICK LINKS
               </h4>
@@ -1376,8 +1416,8 @@ const LandingPage = () => {
               </ul>
             </div>
 
-            {/* Col 3: Resources */}
-            <div>
+            {/* Baris 1 di Mobile: Resources (Kanan) */}
+            <div className="col-span-1">
               <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
                 RESOURCES
               </h4>
@@ -1409,40 +1449,40 @@ const LandingPage = () => {
               </ul>
             </div>
 
-            {/* Col 4: Contact Us */}
-            <div>
+            {/* Baris 2 di Mobile: Contact Us (Kiri) */}
+            <div className="col-span-1">
               <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
                 CONTACT US
               </h4>
               <ul className="space-y-2.5 text-xs text-slate-400">
-                <li className="flex items-start gap-2.5">
-                  <MapPin size={16} className="text-[#ff8a1f] shrink-0 mt-0.5" />
+                <li className="flex items-start gap-2">
+                  <MapPin size={15} className="text-[#ff8a1f] shrink-0 mt-0.5" />
                   <span className="leading-relaxed">
                     123 Education Lane,<br />
-                    Knowledge City, KC 12345
+                    Knowledge City
                   </span>
                 </li>
-                <li className="flex items-center gap-2.5">
-                  <Phone size={16} className="text-[#ff8a1f] shrink-0" />
-                  <a href="tel:+15551234567" className="hover:text-white transition-colors">
+                <li className="flex items-center gap-2">
+                  <Phone size={15} className="text-[#ff8a1f] shrink-0" />
+                  <a href="tel:+15551234567" className="hover:text-white transition-colors truncate">
                     +1 (555) 123-4567
                   </a>
                 </li>
-                <li className="flex items-center gap-2.5">
-                  <Mail size={16} className="text-[#ff8a1f] shrink-0" />
-                  <a href="mailto:info@brightfuture.edu" className="hover:text-white transition-colors">
+                <li className="flex items-center gap-2">
+                  <Mail size={15} className="text-[#ff8a1f] shrink-0" />
+                  <a href="mailto:info@brightfuture.edu" className="hover:text-white transition-colors break-all">
                     info@brightfuture.edu
                   </a>
                 </li>
               </ul>
             </div>
 
-            {/* Col 5: Newsletter */}
-            <div>
+            {/* Baris 2 di Mobile: Newsletter (Kanan) */}
+            <div className="col-span-1">
               <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
                 NEWSLETTER
               </h4>
-              <p className="text-xs text-slate-400 mb-3.5 leading-relaxed">
+              <p className="text-xs text-slate-400 mb-3 leading-relaxed">
                 Stay updated with our latest news and events.
               </p>
               <form onSubmit={handleNewsletterSubmit} className="flex items-center w-full rounded-md overflow-hidden bg-white shadow-md">
@@ -1451,7 +1491,7 @@ const LandingPage = () => {
                   placeholder="Enter your email"
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="w-full bg-white text-slate-800 text-xs px-3.5 py-2.5 outline-none placeholder:text-slate-400 min-w-0"
+                  className="w-full bg-white text-slate-800 text-xs px-3 py-2.5 outline-none placeholder:text-slate-400 min-w-0"
                   required
                 />
                 <button
