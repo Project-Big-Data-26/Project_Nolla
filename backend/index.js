@@ -11,6 +11,7 @@ const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const personalizationRoutes = require("./routes/personalizationRoutes");
 const pretestRoutes = require("./routes/pretestRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 
 const app = express();
@@ -23,6 +24,7 @@ app.use("/api/personalization", personalizationRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/pretest", pretestRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/quiz", quizRoutes);
 
 // --- SWAGGER SETUP ---
