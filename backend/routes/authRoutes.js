@@ -8,7 +8,8 @@ const {
   logout,
   forgotPassword,
   verifyResetOTP,
-  resetPassword,
+  changePassword,
+  resendOTP,
   getMe,
   refreshAccessToken,
   googleLogin,
@@ -187,13 +188,11 @@ router.post("/logout", authMiddleware, logout);
  */
 router.post("/forgot-password", forgotPassword);
 
-router.post("/verify-reset-otp", verifyResetOTP);
-
 /**
  * @swagger
- * /api/auth/reset-password:
+ * /api/auth/send-otp:
  *   post:
- *     summary: Mengubah password menggunakan OTP
+ *     summary: Mengirim ulang OTP dengan cooldown bersama
  *     tags:
  *       - Auth
  *     requestBody:
@@ -204,16 +203,43 @@ router.post("/verify-reset-otp", verifyResetOTP);
  *             type: object
  *             required:
  *               - email
- *               - otp
- *               - newPassword
+ *               - type
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
- *                 example: siswa@example.com
- *               otp:
+ *               type:
  *                 type: string
- *                 example: "839102"
+ *                 enum: [EMAIL_VERIFICATION, PASSWORD_RESET]
+ *     responses:
+ *       200:
+ *         description: OTP berhasil dikirim
+ *       429:
+ *         description: Cooldown pengiriman OTP masih aktif
+ */
+router.post("/send-otp", resendOTP);
+
+router.post("/verify-reset-otp", verifyResetOTP);
+router.post("/verify-otp", verifyResetOTP);
+
+/**
+ * @swagger
+ * /api/auth/change-password:
+ *   post:
+ *     summary: Mengubah password menggunakan token hasil verifikasi OTP
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newPassword
+ *             properties:
  *               newPassword:
  *                 type: string
  *                 format: password
@@ -222,11 +248,11 @@ router.post("/verify-reset-otp", verifyResetOTP);
  *       200:
  *         description: Password berhasil diubah
  *       400:
- *         description: OTP salah atau kedaluwarsa
+ *         description: Token verifikasi tidak valid atau kedaluwarsa
  *       500:
  *         description: Server error
  */
-router.post("/reset-password", resetPassword);
+router.post("/change-password", changePassword);
 
 /**
  * @swagger

@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    allJenjang: {
+      type: Boolean,
+      default: false,
+    },
+
     jenjang_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Jenjang",

@@ -8,7 +8,10 @@ import ResetPassword from "./ResetPassword";
 // render dengan Routes supaya ada halaman "/login" tujuan yang bisa dicek.
 function renderWithRoutes() {
     return render(
-        <MemoryRouter initialEntries={["/reset-password"]}>
+        <MemoryRouter initialEntries={[{
+            pathname: "/reset-password",
+            state: { email: "budi@example.com", resetToken: "valid-token" },
+        }]}>
             <Routes>
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/login" element={<div>Halaman Login</div>} />
@@ -19,7 +22,10 @@ function renderWithRoutes() {
 
 function renderPlain() {
     return render(
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[{
+            pathname: "/reset-password",
+            state: { email: "budi@example.com", resetToken: "valid-token" },
+        }]}>
             <ResetPassword />
         </MemoryRouter>
     );
@@ -75,7 +81,7 @@ describe("ResetPassword", () => {
         expect(confirmInput).toHaveAttribute("type", "text");
     });
 
-    it("menampilkan alert mismatch dan TIDAK pindah halaman kalau password tidak cocok", () => {
+    it("menampilkan error dan tetap berada di halaman jika password tidak cocok", () => {
         const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => { });
         renderWithRoutes();
 
@@ -89,10 +95,8 @@ describe("ResetPassword", () => {
             screen.getByRole("button", { name: "Simpan Kata Sandi Baru" })
         );
 
-        expect(alertSpy).toHaveBeenCalledWith(
-            "Konfirmasi kata sandi baru tidak cocok!"
-        );
-        expect(alertSpy).toHaveBeenCalledTimes(1);
+        expect(screen.getByText("Konfirmasi kata sandi baru tidak cocok!")).toBeInTheDocument();
+        expect(alertSpy).not.toHaveBeenCalled();
         // masih di halaman reset password, belum pindah ke login
         expect(screen.getByText("Atur Ulang Kata Sandi")).toBeInTheDocument();
         expect(screen.queryByText("Halaman Login")).not.toBeInTheDocument();
@@ -100,8 +104,7 @@ describe("ResetPassword", () => {
         alertSpy.mockRestore();
     });
 
-    it("menampilkan alert sukses dan redirect ke /login kalau password cocok", () => {
-        const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => { });
+    it("memvalidasi password sebelum mengirim perubahan", () => {
         const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => { });
         renderWithRoutes();
 
@@ -115,20 +118,8 @@ describe("ResetPassword", () => {
             screen.getByRole("button", { name: "Simpan Kata Sandi Baru" })
         );
 
-        expect(alertSpy).toHaveBeenCalledWith(
-            "Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru."
-        );
-        expect(consoleSpy).toHaveBeenCalledWith(
-            "Static Reset Password Data:",
-            expect.objectContaining({
-                newPassword: "sandiBaru123",
-                confirmPassword: "sandiBaru123",
-            })
-        );
-        // berhasil pindah ke halaman login
-        expect(screen.getByText("Halaman Login")).toBeInTheDocument();
-
-        alertSpy.mockRestore();
+        expect(consoleSpy).not.toHaveBeenCalled();
+        expect(screen.getByText(/Minimal 8 karakter/)).toBeInTheDocument();
         consoleSpy.mockRestore();
     });
 

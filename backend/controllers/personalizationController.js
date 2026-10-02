@@ -3,9 +3,44 @@ const Jenjang = require("../models/Jenjang");
 const mongoose = require("mongoose");
 const setPersonalization = async (req, res) => {
   try {
-    const { educationLevel: jenjangId } = req.body;
+    const { educationLevel: jenjangId, skipAllJenjang } = req.body;
     const userId = req.user.id;
-    // ... sisanya tetap sama
+
+    if (skipAllJenjang) {
+      const user = await User.findByIdAndUpdate(
+        userId,
+        {
+          jenjang_id: null,
+          allJenjang: true,
+          isProfileComplete: true,
+        },
+        { new: true },
+      );
+
+      if (!user) {
+        return res.status(404).json({
+          statusCode: 404,
+          status: "error",
+          message: "User tidak ditemukan",
+        });
+      }
+
+      return res.status(200).json({
+        statusCode: 200,
+        status: "success",
+        message: "Semua jenjang pendidikan berhasil dipilih",
+        data: {
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            isProfileComplete: user.isProfileComplete,
+            allJenjang: user.allJenjang,
+          },
+        },
+      });
+    }
+
     if (!jenjangId) {
       return res.status(400).json({
         statusCode: 400,
@@ -36,6 +71,7 @@ const setPersonalization = async (req, res) => {
       userId,
       {
         jenjang_id: jenjang._id,
+        allJenjang: false,
         isProfileComplete: true,
       },
       { new: true },

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
 
 import sdIcon from "../../assets/icon/SD.png";
@@ -32,24 +32,35 @@ const educationOptions = [
 
 export default function PersonalizationWizard() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [educationLevel, setEducationLevel] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Tangkap token dari URL jika dialihkan dari Google OAuth
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const tokenFromUrl = queryParams.get("accessToken");
-    const refreshTokenFromUrl = queryParams.get("refreshToken");
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch("http://localhost:5000/api/personalization", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ skipAllJenjang: true }),
+      });
+      const result = await response.json();
 
-    if (tokenFromUrl) {
-      localStorage.setItem("accessToken", tokenFromUrl);
-      if (refreshTokenFromUrl) {
-        localStorage.setItem("refreshToken", refreshTokenFromUrl);
+      if (!response.ok || result.status !== "success") {
+        toast.error(result.message || "Gagal menyimpan pilihan jenjang.");
+        return;
       }
-      window.history.replaceState({}, document.title, window.location.pathname);
+
+      navigate("/topik");
+    } catch {
+      toast.error("Gagal terhubung ke server.");
+    } finally {
+      setLoading(false);
     }
-  }, [location]);
+  };
 
   const handleSavePersonalization = async () => {
     if (!educationLevel) {
@@ -113,8 +124,9 @@ export default function PersonalizationWizard() {
       <header className="relative z-20 flex items-center justify-end px-6 py-4 sm:py-6 max-w-7xl w-full mx-auto">
         <button
           type="button"
-          onClick={() => navigate("/")}
-          className="text-xs font-semibold text-neutral-muted hover:text-neutral-text transition-colors cursor-pointer"
+          onClick={handleSkip}
+          disabled={loading}
+          className="text-xs font-semibold text-neutral-muted hover:text-neutral-text transition-colors cursor-pointer disabled:opacity-50"
         >
           Lewati
         </button>

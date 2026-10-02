@@ -16,12 +16,11 @@ function fillValidForm() {
         target: { value: "budi@example.com" },
     });
     fireEvent.change(screen.getByPlaceholderText("Kata Sandi"), {
-        target: { value: "rahasia123" },
+        target: { value: "Rahasia123" },
     });
     fireEvent.change(screen.getByPlaceholderText("Konfirmasi Kata Sandi"), {
-        target: { value: "rahasia123" },
+        target: { value: "Rahasia123" },
     });
-    fireEvent.click(screen.getByRole("checkbox"));
 }
 
 describe("Register", () => {
@@ -44,7 +43,7 @@ describe("Register", () => {
         ).toBeInTheDocument();
     });
 
-    it("mengisi semua field saat diketik", () => {
+    it("mengisi field registrasi tanpa persetujuan syarat wajib", () => {
         renderWithRouter(<Register />);
         fillValidForm();
 
@@ -54,7 +53,8 @@ describe("Register", () => {
         expect(screen.getByPlaceholderText("Alamat Email")).toHaveValue(
             "budi@example.com"
         );
-        expect(screen.getByRole("checkbox")).toBeChecked();
+        expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+        expect(screen.getByText(/Minimal 8 karakter/)).toBeInTheDocument();
     });
 
     it("password dan konfirmasi password tersembunyi secara default", () => {
@@ -97,46 +97,36 @@ describe("Register", () => {
             target: { value: "budi@example.com" },
         });
         fireEvent.change(screen.getByPlaceholderText("Kata Sandi"), {
-            target: { value: "rahasia123" },
+            target: { value: "Rahasia123" },
         });
         fireEvent.change(screen.getByPlaceholderText("Konfirmasi Kata Sandi"), {
             target: { value: "beda123" },
         });
-        fireEvent.click(screen.getByRole("checkbox"));
-
         fireEvent.click(screen.getByRole("button", { name: "Daftar Akun" }));
 
-        expect(alertSpy).toHaveBeenCalledWith(
-            "Kata sandi dan konfirmasi kata sandi tidak cocok!"
-        );
+        expect(screen.getByText("Kata sandi dan konfirmasi kata sandi tidak cocok!")).toBeInTheDocument();
         expect(consoleSpy).not.toHaveBeenCalled();
 
         alertSpy.mockRestore();
         consoleSpy.mockRestore();
     });
 
-    it("submit berhasil (tanpa alert) kalau password cocok", () => {
-        const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => { });
-        const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => { });
+    it("menolak password yang tidak memiliki huruf besar", () => {
+        const fetchSpy = vi.spyOn(globalThis, "fetch");
         renderWithRouter(<Register />);
 
         fillValidForm();
+        fireEvent.change(screen.getByPlaceholderText("Kata Sandi"), {
+            target: { value: "rahasia123" },
+        });
+        fireEvent.change(screen.getByPlaceholderText("Konfirmasi Kata Sandi"), {
+            target: { value: "rahasia123" },
+        });
         fireEvent.click(screen.getByRole("button", { name: "Daftar Akun" }));
 
-        expect(alertSpy).not.toHaveBeenCalled();
-        expect(consoleSpy).toHaveBeenCalledWith(
-            "Register Data:",
-            expect.objectContaining({
-                fullName: "Budi Santoso",
-                email: "budi@example.com",
-                password: "rahasia123",
-                confirmPassword: "rahasia123",
-                agreeTerms: true,
-            })
-        );
-
-        alertSpy.mockRestore();
-        consoleSpy.mockRestore();
+        expect(screen.getByText(/huruf besar, huruf kecil, serta angka/)).toBeInTheDocument();
+        expect(fetchSpy).not.toHaveBeenCalled();
+        fetchSpy.mockRestore();
     });
 
     it("menampilkan link menuju halaman login", () => {

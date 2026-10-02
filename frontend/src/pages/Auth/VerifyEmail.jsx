@@ -1,13 +1,15 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
+import { useAuth } from "../../context/AuthContext";
 
 const VerifyEmail = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Data dari navigate state
   const email = location.state?.email || "user@example.com";
@@ -16,7 +18,50 @@ const VerifyEmail = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(
+    location.state?.resendAfterSeconds || 0,
+  );
+  const [resending, setResending] = useState(false);
   const inputRefs = useRef([]);
+
+  useEffect(() => {
+    if (resendCountdown <= 0) return undefined;
+    const timer = window.setTimeout(
+      () => setResendCountdown((seconds) => Math.max(0, seconds - 1)),
+      1000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [resendCountdown]);
+
+  const handleResend = async () => {
+    setResending(true);
+    setErrorMessage("");
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          type: action === "reset-password" ? "PASSWORD_RESET" : "EMAIL_VERIFICATION",
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        if (result.retryAfterSeconds) {
+          setResendCountdown(result.retryAfterSeconds);
+        }
+        setErrorMessage(result.message || "Gagal mengirim ulang OTP.");
+        return;
+      }
+      setOtp(["", "", "", "", "", ""]);
+      setResendCountdown(result.data?.resendAfterSeconds || 0);
+      toast.success("OTP baru telah dikirim ke email Anda.");
+    } catch {
+      setErrorMessage("Gagal terhubung ke server untuk mengirim OTP.");
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
@@ -85,7 +130,10 @@ const VerifyEmail = () => {
 
           setTimeout(() => {
             navigate("/reset", {
-              state: { email: email, otp: fullOtp },
+              state: {
+                email,
+                resetToken: result.data.resetToken,
+              },
             });
           }, 1200);
         } else {
@@ -115,13 +163,16 @@ const VerifyEmail = () => {
           localStorage.setItem("accessToken", result.data.accessToken);
           localStorage.setItem("refreshToken", result.data.refreshToken);
 
-          const isProfileComplete = result.data.user?.isProfileComplete;
+          const verifiedUser = result.data.user;
+          login(verifiedUser, result.data.accessToken);
+          localStorage.setItem("refreshToken", result.data.refreshToken);
+          const isProfileComplete = verifiedUser?.isProfileComplete;
 
           setTimeout(() => {
             if (!isProfileComplete) {
               navigate("/personalization");
             } else {
-              navigate("/");
+              navigate("/topik");
             }
           }, 1200);
         } else {
@@ -189,6 +240,20 @@ const VerifyEmail = () => {
               {loading ? "Memproses..." : "Verifikasi OTP"}
             </button>
           </form>
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resending || resendCountdown > 0}
+              className="text-xs font-semibold text-primary hover:text-primary-hover disabled:cursor-not-allowed disabled:text-neutral-muted"
+            >
+              {resending
+                ? "Mengirim OTP..."
+                : resendCountdown > 0
+                  ? `Kirim ulang OTP dalam ${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")}`
+                  : "Kirim ulang OTP"}
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 sm:mt-8 text-center">
