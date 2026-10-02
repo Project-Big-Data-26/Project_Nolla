@@ -223,7 +223,7 @@ export default function PersonalizationProfile() {
 
             <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2">
               <Link
-                to="/profile/settings"
+                to="/profile/ganti-password"
                 className="flex items-center justify-between p-3 rounded-lg bg-white border border-slate-100 hover:border-primary/40 transition group cursor-pointer shadow-2xs"
                 id="btn-change-password"
               >
