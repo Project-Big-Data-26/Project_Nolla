@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Check, LockKeyhole } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import API from "../../api/axios";
+import QuestionImage from "../../components/QuestionImage";
 
 // ================================
 // LATEX
@@ -118,7 +119,9 @@ const renderLatexText = (text) => {
 
     if (part.type === "inline") {
       return (
-        <InlineMath key={`latex-inline-${partIndex}`}>{part.value}</InlineMath>
+        <InlineMath key={`latex-inline-${partIndex}`}>
+          {part.value.replace(/\\frac\b/g, "\\dfrac")}
+        </InlineMath>
       );
     }
 
@@ -1343,7 +1346,7 @@ const QuestionPage = () => {
                   <div className="flex flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 sm:p-4">
                     <div className="flex max-h-full flex-wrap items-center justify-center gap-3">
                       {question.images.map((imageUrl) => (
-                        <img
+                        <QuestionImage
                           key={imageUrl}
                           src={imageUrl}
                           alt="Ilustrasi Soal"

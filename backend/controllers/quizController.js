@@ -9,6 +9,7 @@ const Soal = require("../models/Soal");
 const MengerjakanKuis = require("../models/MengerjakanKuis");
 const MendapatkanDifficulty = require("../models/MendapatkanDifficulty");
 const MenyelesaikanSubbab = require("../models/MenyelesaikanSubbab");
+const { toPublicImageUrls } = require("../utils/questionImage");
 
 const DEFAULT_RATING = 1000;
 const QUESTION_RATINGS = { easy: 600, medium: 1000, hard: 1400 };
@@ -52,7 +53,7 @@ const calculateExpectedScore = (studentRating, questionRating) =>
 
 const getUpdatedLevel = (score) => getDifficultyFromScore(score);
 
-const serializeQuestion = (question) => ({
+const serializeQuestion = (question, req) => ({
   question_id: question._id.toString(),
   subbab_id: question.subbab_id.toString(),
   question_text: question.soal_text,
@@ -63,7 +64,7 @@ const serializeQuestion = (question) => ({
         text: option.text,
       }))
     : [],
-  image_url: Array.isArray(question.image_url) ? question.image_url : [],
+  image_url: toPublicImageUrls(question.image_url, req),
   cognitive_level: getQuestionDifficulty(question),
 });
 
@@ -202,7 +203,10 @@ const startQuiz = async (req, res) => {
           started_at: activeSession.started_at,
           resumed: true,
           questions: activeQuestionIds.map((questionId) =>
-            serializeQuestion(activeQuestionMap.get(questionId.toString())),
+            serializeQuestion(
+              activeQuestionMap.get(questionId.toString()),
+              req,
+            ),
           ),
         },
       });
@@ -274,7 +278,9 @@ const startQuiz = async (req, res) => {
         difficulty: track,
         started_at: session.started_at,
         resumed: false,
-        questions: questions.map(serializeQuestion),
+        questions: questions.map((question) =>
+          serializeQuestion(question, req),
+        ),
       },
     });
   } catch (error) {
@@ -527,9 +533,7 @@ const getQuizReview = async (req, res) => {
                 text: option.text,
               }))
             : [],
-          image_url: Array.isArray(question.image_url)
-            ? question.image_url
-            : [],
+          image_url: toPublicImageUrls(question.image_url, req),
           cognitive_level: getQuestionDifficulty(question),
           cognitive_score: getQuestionRating(question),
           selected_answer: answer.pilihan_jawaban,

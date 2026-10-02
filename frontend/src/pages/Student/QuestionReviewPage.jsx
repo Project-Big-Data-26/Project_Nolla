@@ -7,6 +7,7 @@ import { Check, X } from "lucide-react";
 import Navbar from "../../components/Navbar";
 
 import API from "../../api/axios";
+import QuestionImage from "../../components/QuestionImage";
 
 import smaIcon from "../../assets/icon/SMA.png";
 
@@ -104,12 +105,20 @@ const renderLatexText = (text) => {
 
     // Inline LaTeX: $ ... $
     if (part.startsWith("$") && part.endsWith("$")) {
-      return <InlineMath key={index}>{part.slice(1, -1).trim()}</InlineMath>;
+      return (
+        <InlineMath key={index}>
+          {part.slice(1, -1).trim().replace(/\\frac\b/g, "\\dfrac")}
+        </InlineMath>
+      );
     }
 
     // Inline LaTeX: \( ... \)
     if (part.startsWith("\\(") && part.endsWith("\\)")) {
-      return <InlineMath key={index}>{part.slice(2, -2).trim()}</InlineMath>;
+      return (
+        <InlineMath key={index}>
+          {part.slice(2, -2).trim().replace(/\\frac\b/g, "\\dfrac")}
+        </InlineMath>
+      );
     }
 
     // Block LaTeX: \[ ... \]
@@ -218,7 +227,11 @@ const QuestionReviewPage = () => {
               id: String(item.question_id),
               stage: item.stage || null,
               text: item.question_text || "",
-              images: Array.isArray(item.image_url) ? item.image_url : [],
+              images: Array.isArray(item.image_url)
+                ? item.image_url
+                : item.image_url
+                  ? [item.image_url]
+                  : [],
               options: (item.options || []).map((option) => ({
                 id: String(option.option_id),
                 text: option.text,
@@ -259,7 +272,7 @@ const QuestionReviewPage = () => {
       level: item.question.stage || "Pretest",
       topic: reviewData.name || "Pretest",
       question: item.question.text,
-      image: item.question.images?.[0] || null,
+      images: item.question.images || [],
       options: item.question.options.map((option) => ({
         label: option.id,
         value: option.text,
@@ -312,7 +325,7 @@ const QuestionReviewPage = () => {
 
   const question = questionsToReview[currentQuestion];
 
-  const hasImage = Boolean(question.image);
+  const hasImage = Boolean(question.images?.length);
 
   const isLastQuestion = currentQuestion === questionsToReview.length - 1;
 
@@ -488,11 +501,16 @@ const QuestionReviewPage = () => {
                   </div>
 
                   <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 flex items-center justify-center flex-1 overflow-hidden">
-                    <img
-                      src={question.image}
-                      alt="Ilustrasi Soal"
-                      className="max-h-36 sm:max-h-52 md:max-h-60 max-w-full object-contain rounded-xl"
-                    />
+                    <div className="flex max-h-full flex-wrap items-center justify-center gap-3">
+                      {question.images.map((imageUrl) => (
+                        <QuestionImage
+                          key={imageUrl}
+                          src={imageUrl}
+                          alt="Ilustrasi Soal"
+                          className="max-h-36 sm:max-h-52 md:max-h-60 max-w-full object-contain rounded-xl"
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
 
