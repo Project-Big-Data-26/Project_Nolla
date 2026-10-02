@@ -70,7 +70,7 @@ const Navbar = ({ activePage = "Dashboard" }) => {
           </div>
           <div>
             <h1 className="font-heading text-lg font-bold leading-none text-neutral-text">
-              Big Data
+              NOLLA
             </h1>
             <span className="text-xs text-neutral-muted">Big Data Project</span>
           </div>

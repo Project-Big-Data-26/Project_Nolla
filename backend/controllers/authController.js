@@ -1020,8 +1020,32 @@ const handleGoogleCallback = async (req, res, next) => {
   }
 };
 
+// const googleCallback = async (req, res) => {
+//   const frontendUrl = process.env.FRONTEND_URL;
+//   try {
+//     // Buat token JWT untuk user yang berhasil login via Google
+//     const accessToken = generateAccessToken(req.user); // sesuaikan dengan helper token di controller kalian
+//     const refreshToken = generateRefreshToken(req.user);
+
+//     // Cek kelengkapan profil pengguna baru
+//     if (!req.user.isProfileComplete) {
+//       return res.redirect(
+//         `${frontendUrl}/personalization?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+//       );
+//     } else {
+//       return res.redirect(
+//         `${frontendUrl}/dashboard?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+//       );
+//     }
+//   } catch (error) {
+//     console.error("Error Google Callback Controller:", error);
+//     return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+//   }
+// };
+
 const googleCallback = async (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL;
+
   try {
     // Buat token JWT untuk user yang berhasil login via Google
     const accessToken = generateAccessToken(req.user); // sesuaikan dengan helper token di controller kalian
@@ -1034,6 +1058,7 @@ const googleCallback = async (req, res) => {
     return res.redirect(callbackUrl.toString());
   } catch (error) {
     console.error("Error Google Callback Controller:", error);
+
     return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
 };

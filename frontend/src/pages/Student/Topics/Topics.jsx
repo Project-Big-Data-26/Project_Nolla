@@ -37,6 +37,15 @@ const normalizeBab = (bab, classInfo) => ({
     ...subbab,
     _id: subbab.id,
     classReference: classInfo?.name || "",
+    hasLearningActivity: Boolean(subbab.started || subbab.completed),
+    current_cognitive_score:
+      subbab.started || subbab.completed
+        ? subbab.current_cognitive_score
+        : null,
+    current_cognitive_level:
+      subbab.started || subbab.completed
+        ? subbab.current_cognitive_level
+        : null,
     status: subbab.completed
       ? "completed"
       : subbab.started

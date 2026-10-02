@@ -56,9 +56,6 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
   const { badge, buttonText, buttonClass } = renderStatusAndAction(
     subbab.status,
   );
-  const difficultyLevel = subbab.current_cognitive_level || "medium";
-  const eloThreshold =
-    ({ easy: 600, medium: 1000, hard: 1400 })[difficultyLevel] ?? 1000;
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-300 transition-all shadow-2xs">
@@ -81,7 +78,8 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
         </p>
 
         <p className="mt-1 text-[11px] font-semibold text-slate-500">
-          Level {difficultyLevel} · Ambang Elo {eloThreshold}
+          Elo {subbab.current_cognitive_score ?? 1000} ·{" "}
+          {subbab.current_cognitive_level ?? "medium"}
         </p>
 
         {subbab.status === "needs_prerequisite" && (

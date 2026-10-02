@@ -12,12 +12,14 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const personalizationRoutes = require("./routes/personalizationRoutes");
 const pretestRoutes = require("./routes/pretestRoutes");
 const quizRoutes = require("./routes/quizRoutes");
+const { getQuestionImage } = require("./controllers/imageController");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+app.get("/image/:token", getQuestionImage);
 app.use("/api/personalization", personalizationRoutes);
 // --- AUTH ROUTES ---
 app.use("/api/auth", authRoutes);

@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 
 const BASE_URL = process.env.TEST_API_URL || "http://localhost:5000";
-const EMAIL = process.env.TEST_EMAIL || "student2@example.com";
+const EMAIL = process.env.TEST_EMAIL || "student@example.com";
 const PASSWORD = process.env.TEST_PASSWORD || "12345678";
 const BAB_NAME = (process.env.TEST_BAB_NAME || "Peluang").toLowerCase();
 const SUBBAB_INDEX = Number(process.env.TEST_SUBBAB_INDEX || 0);
@@ -269,7 +269,9 @@ const run = async () => {
           typeof item.selected_answer === "string" &&
           typeof item.correct_answer === "string" &&
           typeof item.is_correct === "boolean" &&
-          item.options.some((option) => option.option_id === item.correct_answer),
+          item.options.some(
+            (option) => option.option_id === item.correct_answer,
+          ),
       ),
       "Quiz review harus mengembalikan jawaban pengguna dan kunci jawaban",
     );
