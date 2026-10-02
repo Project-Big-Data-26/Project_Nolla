@@ -557,7 +557,7 @@ const LandingPage = () => {
                   to="/register"
                   className="w-full sm:w-auto px-5 sm:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm bg-[#009bf2] text-white shadow-md transition-all duration-300 transform hover:-translate-y-0.5 hover:bg-[#1e3a8a] hover:border-[#38bdf8]/60 hover:shadow-[0_0_25px_rgba(56,189,248,0.9)] border-2 border-transparent text-center flex items-center justify-center gap-1.5 group cursor-pointer"
                 >
-                  <span>Mulai Drill Gratis</span>
+                  <span>Mulai Belajar</span>
                   <span className="font-bold text-sm leading-none ml-0.5 group-hover:translate-x-1 transition-transform">
                     &gt;
                   </span>
@@ -1132,11 +1132,10 @@ const LandingPage = () => {
                       <div
                         key={index}
                         ref={(el) => (faqItemRefs.current[index] = el)}
-                        className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ${
-                          isOpen
+                        className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ${isOpen
                             ? "bg-gradient-to-r from-[#ff851b] to-[#ff5745] ring-4 ring-[#ff8a1f]/25 shadow-xl scale-[1.01]"
                             : "bg-gradient-to-r from-[#ff8a1f] to-[#ff6538] hover:shadow-lg hover:scale-[1.005]"
-                        }`}
+                          }`}
                       >
                         <button
                           type="button"
@@ -1145,11 +1144,10 @@ const LandingPage = () => {
                         >
                           <span className="leading-snug drop-shadow-xs">{item.q}</span>
                           <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
-                              isOpen
+                            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${isOpen
                                 ? "bg-white text-[#ff8a1f] shadow-md"
                                 : "bg-white/20 text-white hover:bg-white hover:text-[#ff8a1f]"
-                            }`}
+                              }`}
                           >
                             {isOpen ? (
                               <Minus size={18} className="stroke-[2.5]" />
@@ -1159,11 +1157,10 @@ const LandingPage = () => {
                           </div>
                         </button>
                         <div
-                          className={`grid transition-all duration-300 ease-in-out ${
-                            isOpen
+                          className={`grid transition-all duration-300 ease-in-out ${isOpen
                               ? "grid-rows-[1fr] opacity-100"
                               : "grid-rows-[0fr] opacity-0"
-                          }`}
+                            }`}
                         >
                           <div className="overflow-hidden">
                             <div className="px-6 pb-5 pt-1">
@@ -1249,14 +1246,14 @@ const LandingPage = () => {
                   Siap ubah “takut” jadi “bisa”?
                 </h2>
                 <p className="text-base sm:text-xl text-white/95 max-w-2xl mx-auto lg:mx-0 mb-8 font-medium">
-                  Daftar gratis sekarang dan mulai sesi drill pertamamu dalam hitungan detik.
+                  Daftar sekarang dan mulai sesi drill pertamamu dalam hitungan detik.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                   <Link
                     to="/register"
                     className="w-full sm:w-auto px-8 py-3.5 rounded-full font-black text-base bg-white text-[#ff8a1f] hover:bg-slate-100 shadow-xl shadow-black/15 hover:shadow-2xl transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-2 group cursor-pointer"
                   >
-                    <span>Daftar Sekarang — Gratis</span>
+                    <span>Daftar Sekarang</span>
                     <span className="font-bold text-base leading-none group-hover:translate-x-1 transition-transform">
                       &gt;
                     </span>
@@ -1304,7 +1301,7 @@ const LandingPage = () => {
                   className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-pink-500 hover:bg-gradient-to-tr hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 shadow-sm transition-all duration-300 group cursor-pointer"
                 >
                   <svg className="w-4 h-4 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                   </svg>
                 </a>
 
@@ -1318,7 +1315,7 @@ const LandingPage = () => {
                   className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-cyan-400 hover:bg-[#000000] shadow-sm transition-all duration-300 group cursor-pointer"
                 >
                   <svg className="w-4 h-4 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.76 1.42-.03 2.67-.97 3.03-2.34.19-.61.24-1.25.24-1.89l.01-17.43z"/>
+                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.76 1.42-.03 2.67-.97 3.03-2.34.19-.61.24-1.25.24-1.89l.01-17.43z" />
                   </svg>
                 </a>
 
@@ -1332,7 +1329,7 @@ const LandingPage = () => {
                   className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-red-500 hover:bg-[#ff0000] shadow-sm transition-all duration-300 group cursor-pointer"
                 >
                   <svg className="w-4 h-4 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
                 </a>
               </div>
