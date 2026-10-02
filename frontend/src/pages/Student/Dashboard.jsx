@@ -9,7 +9,8 @@ import {
   BookOpen,
   ChevronRight,
 } from "lucide-react";
-import Navbar from "../components/Navbar";
+import Navbar from "../../components/Navbar";
+import SectionCard from "../../components/SectionCard";
 
 const Dashboard = () => {
   const topics = [
@@ -51,18 +52,14 @@ const Dashboard = () => {
       <Navbar />
 
       {/* Konten Utama */}
-      <main className="flex-1 p-5 md:p-8 pb-24 md:pb-8">
+      <main className="flex-1 px-6 py-8 md:px-8 md:py-10 pb-28 md:pb-12 max-w-6xl mx-auto">
         {/* HEADER */}
         <header className="mb-7">
-          <p className="text-sm text-neutral-muted mb-1">
-            Jumat, 18 September 2026
-          </p>
-
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-neutral-text">
-            Selamat Datang, Rifqi! 👋
+          <h1 className="font-bold text-xl md:text-xl font-bold text-neutral-text">
+            Selamat Datang, User! 👋
           </h1>
 
-          <p className="text-neutral-muted mt-2">
+          <p className="text-sm text-neutral-muted">
             Berikut adalah ringkasan aktivitas pembelajaran kamu hari ini.
           </p>
         </header>
@@ -70,100 +67,99 @@ const Dashboard = () => {
         {/* STATISTIK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Streak */}
-          <div className="bg-neutral-card rounded-2xl p-5 border border-neutral-border">
-            <div className="flex items-center justify-between">
+          <SectionCard padding="p-5" className="relative overflow-hidden">
+            <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-sm text-neutral-muted">
+                <p className="text-xs font-medium text-neutral-muted">
                   Streak Belajar
                 </p>
 
-                <p className="text-2xl font-bold text-neutral-text mt-1">
+                <p className="text-xl font-bold text-neutral-text mt-1">
                   7 Hari
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center">
-                <Flame className="text-orange-500" size={22} />
+              {/* Ikon Terisi (Solid), Besar, dan Miring */}
+              <div className="absolute -right-11 opacity-90 transition-transform hover:scale-105 mt-6">
+                <Flame className="text-primary -rotate-8" size={100} />
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Poin */}
-          <div className="bg-neutral-card rounded-2xl p-5 border border-neutral-border">
-            <div className="flex items-center justify-between">
+          <SectionCard padding="p-5" className="relative overflow-hidden">
+            <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-sm text-neutral-muted">
+                <p className="text-xs font-medium text-neutral-muted">
                   Total Poin
                 </p>
 
-                <p className="text-2xl font-bold text-neutral-text mt-1">
+                <p className="text-xl font-bold text-neutral-text mt-1">
                   1.240
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-yellow-100 flex items-center justify-center">
-                <Trophy className="text-yellow-500" size={22} />
+              <div className="absolute -right-9 opacity-90 transition-transform hover:scale-105 mt-6">
+                <Trophy className="text-primary -rotate-8" size={90} />
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Akurasi */}
-          <div className="bg-neutral-card rounded-2xl p-5 border border-neutral-border">
-            <div className="flex items-center justify-between">
+          <SectionCard padding="p-5" className="relative overflow-hidden">
+            <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-sm text-neutral-muted">
+                <p className="text-xs font-medium text-neutral-muted">
                   Akurasi
                 </p>
 
-                <p className="text-2xl font-bold text-neutral-text mt-1">
-                  86%
-                </p>
+                <p className="text-xl font-bold text-neutral-text mt-1">86%</p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center">
-                <Target className="text-green-500" size={22} />
+              <div className="absolute -right-11 opacity-90 transition-transform hover:scale-105 mt-6">
+                <Target className="text-primary -rotate-8" size={100} />
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Waktu Belajar */}
-          <div className="bg-neutral-card rounded-2xl p-5 border border-neutral-border">
-            <div className="flex items-center justify-between">
+          <SectionCard padding="p-5" className="relative overflow-hidden">
+            <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-sm text-neutral-muted">
+                <p className="text-xs font-medium text-neutral-muted">
                   Waktu Belajar
                 </p>
 
-                <p className="text-2xl font-bold text-neutral-text mt-1">
+                <p className="text-xl font-bold text-neutral-text mt-1">
                   12,5 jam
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center">
-                <Clock className="text-blue-500" size={22} />
+              <div className="absolute -right-11 opacity-90 transition-transform hover:scale-105 mt-6">
+                <Clock className="text-primary -rotate-8" size={100} />
               </div>
             </div>
-          </div>
+          </SectionCard>
         </div>
 
-        {/* LANJUTKAN BELAJAR */}
-        <section className="bg-primary rounded-3xl p-6 text-white mb-6">
+        {/* LANJUTKAN BELAJAR (bukan SectionCard: warna & shadow beda, banner CTA) */}
+        <section className="bg-primary rounded-2xl p-6 text-white mb-6 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div className="flex-1">
-              <p className="text-white/70 text-sm mb-2">
+              <p className="text-white/80 text-xs font-normal tracking-wider mb-1">
                 LANJUTKAN BELAJAR
               </p>
 
-              <h2 className="text-2xl font-bold">
+              <h2 className="font-heading text-xl font-bold">
                 Pecahan & Persentase
               </h2>
 
-              <p className="text-white/70 mt-2">
+              <p className="text-white/80 text-sm mt-2">
                 Lanjutkan dari materi terakhir yang kamu pelajari.
               </p>
 
               <div className="mt-5 max-w-xl">
-                <div className="flex justify-between text-sm mb-2">
+                <div className="flex justify-between text-xs font-medium mb-2">
                   <span>Progress</span>
                   <span>40%</span>
                 </div>
@@ -174,8 +170,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <button className="bg-white text-primary px-5 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-neutral-bg transition">
-              <Play size={18} />
+            <button className="bg-white text-primary px-5 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-neutral-bg transition-colors cursor-pointer shadow-sm">
               Lanjutkan
             </button>
           </div>
@@ -184,20 +179,20 @@ const Dashboard = () => {
         {/* TARGET + MATERI */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* TARGET HARI INI */}
-          <section className="bg-neutral-card rounded-2xl p-6 border border-neutral-border">
+          <SectionCard as="section">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-neutral-text">
+                <h2 className="font-heading text-lg font-bold text-neutral-text">
                   Target Hari Ini
                 </h2>
 
-                <p className="text-sm text-neutral-muted mt-1">
+                <p className="text-xs text-neutral-muted mt-1">
                   Target belajar yang perlu kamu selesaikan
                 </p>
               </div>
 
-              <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center">
-                <Target size={22} className="text-blue-600" />
+              <div>
+                <Target size={22} className="text-neutral-muted" />
               </div>
             </div>
 
@@ -210,34 +205,32 @@ const Dashboard = () => {
                   </span>
                 </p>
 
-                <p className="text-sm text-neutral-muted mt-1">
+                <p className="text-xs text-neutral-muted mt-1">
                   aktivitas selesai
                 </p>
               </div>
 
-              <span className="text-sm font-semibold text-primary">
-                60%
-              </span>
+              <span className="text-xs font-bold text-primary">60%</span>
             </div>
 
-            <div className="h-3 bg-neutral-bg rounded-full overflow-hidden">
+            <div className="h-3 bg-neutral-bg rounded-full overflow-hidden border border-neutral-border">
               <div className="h-full w-[60%] bg-primary rounded-full" />
             </div>
 
             <p className="text-xs text-neutral-muted mt-3">
               Tinggal 2 aktivitas lagi untuk mencapai target hari ini.
             </p>
-          </section>
+          </SectionCard>
 
           {/* MATERI */}
-          <section className="bg-neutral-card rounded-2xl p-6 border border-neutral-border">
+          <SectionCard as="section">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-lg font-bold text-neutral-text">
+                <h2 className="font-heading text-lg font-bold text-neutral-text">
                   Materi yang Sedang Dipelajari
                 </h2>
 
-                <p className="text-sm text-neutral-muted mt-1">
+                <p className="text-xs text-neutral-muted mt-1">
                   Lanjutkan materi yang belum selesai
                 </p>
               </div>
@@ -249,16 +242,16 @@ const Dashboard = () => {
               {topics.map((topic) => (
                 <div key={topic.name}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-neutral-text">
+                    <span className="text-xs font-medium text-neutral-text">
                       {topic.name}
                     </span>
 
-                    <span className="text-sm text-neutral-muted">
+                    <span className="text-xs font-semibold text-neutral-muted">
                       {topic.progress}%
                     </span>
                   </div>
 
-                  <div className="h-2 bg-neutral-bg rounded-full overflow-hidden">
+                  <div className="h-2 bg-neutral-bg rounded-full overflow-hidden border border-neutral-border">
                     <div
                       className={`h-full ${topic.color} rounded-full`}
                       style={{
@@ -269,18 +262,18 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
-          </section>
+          </SectionCard>
         </div>
 
         {/* AKTIVITAS TERBARU */}
-        <section className="bg-neutral-card rounded-2xl p-6 border border-neutral-border">
+        <SectionCard as="section">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-lg font-bold text-neutral-text">
+              <h2 className="font-heading text-lg font-bold text-neutral-text">
                 Aktivitas Terbaru
               </h2>
 
-              <p className="text-sm text-neutral-muted mt-1">
+              <p className="text-xs text-neutral-muted mt-1">
                 Aktivitas belajarmu terbaru
               </p>
             </div>
@@ -292,33 +285,30 @@ const Dashboard = () => {
             {activities.map((activity, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-4 rounded-xl bg-neutral-bg"
+                className="flex items-start gap-3 p-4 rounded-xl bg-neutral-bg border border-neutral-border/50 hover:border-neutral-border transition-colors cursor-pointer"
               >
-                <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                  <CheckCircle2
-                    size={18}
-                    className="text-green-600"
-                  />
+                <div className="w-9 h-9 rounded-full bg-success/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 size={18} className="text-success" />
                 </div>
 
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-neutral-text">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-neutral-text truncate">
                     {activity.title}
                   </p>
 
-                  <p className="text-xs text-neutral-muted mt-1">
+                  <p className="text-[11px] text-neutral-muted mt-1">
                     {activity.time}
                   </p>
                 </div>
 
                 <ChevronRight
                   size={18}
-                  className="text-neutral-muted mt-1"
+                  className="text-neutral-muted shrink-0 mt-0.5"
                 />
               </div>
             ))}
           </div>
-        </section>
+        </SectionCard>
       </main>
     </div>
   );

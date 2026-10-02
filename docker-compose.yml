@@ -43,6 +43,19 @@ services:
 
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: project_assessment_frontend
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
+
   mongodb:
     image: mongo:8
 
