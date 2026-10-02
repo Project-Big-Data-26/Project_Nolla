@@ -43,7 +43,7 @@ function PasswordInput({
 
       <div className="relative mt-1.5">
         <input
-          type={showPassword ? "text" : "password"}
+          type={showPassword ? "text" : "kata sandi"}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
@@ -54,7 +54,7 @@ function PasswordInput({
           type="button"
           onClick={() => setShowPassword((previous) => !previous)}
           aria-label={
-            showPassword ? "Sembunyikan password" : "Tampilkan password"
+            showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"
           }
           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-primary"
         >
@@ -93,7 +93,7 @@ export default function ChangePassword() {
         setHasPassword(true);
         setMessage(
           error.response?.data?.message ||
-            "Status password akun gagal diperiksa. Masukkan password saat ini.",
+            "Status kata sandi akun gagal diperiksa. Masukkan kata sandi saat ini.",
         );
         setMessageType("error");
       });
@@ -126,19 +126,21 @@ export default function ChangePassword() {
     setMessageType("");
 
     if (hasPassword === null) {
-      setMessage("Status password akun sedang diperiksa. Coba lagi sebentar.");
+      setMessage(
+        "Status kata sandi akun sedang diperiksa. Coba lagi sebentar.",
+      );
       setMessageType("error");
       return;
     }
 
     if (!isPasswordValid) {
-      setMessage("Password baru belum memenuhi ketentuan.");
+      setMessage("Kata sandi baru belum memenuhi ketentuan.");
       setMessageType("error");
       return;
     }
 
     if (!isConfirmationValid) {
-      setMessage("Konfirmasi password tidak sesuai.");
+      setMessage("Konfirmasi kata sandi tidak sesuai.");
       setMessageType("error");
       return;
     }
@@ -152,13 +154,13 @@ export default function ChangePassword() {
       });
       sessionStorage.setItem(
         "profileRedirectToastMessage",
-        data.message || "Password berhasil diubah.",
+        data.message || "Kata sandi berhasil diubah.",
       );
       navigate("/profile");
     } catch (error) {
       setMessage(
         error.response?.data?.message ||
-          "Password gagal diperbarui. Silakan coba lagi.",
+          "Kata sandi gagal diperbarui. Silakan coba lagi.",
       );
       setMessageType("error");
     } finally {
@@ -196,10 +198,10 @@ export default function ChangePassword() {
                 </button>
                 <div>
                   <h1 className="font-heading text-lg font-bold leading-tight text-neutral-text sm:text-xl">
-                    Ganti Password
+                    Ganti Kata Sandi
                   </h1>
                   <p className="mt-0.5 text-xs text-neutral-muted">
-                    Perbarui password akunmu untuk menjaga keamanan akun.
+                    Perbarui kata sandi akunmu untuk menjaga keamanan akun.
                   </p>
                 </div>
               </div>
@@ -209,18 +211,18 @@ export default function ChangePassword() {
               <div className="space-y-5 p-6 md:p-8">
                 {hasPassword !== false && (
                   <PasswordInput
-                    label="Password Saat Ini"
+                    label="Kata Sandi Saat Ini"
                     value={currentPassword}
                     onChange={setCurrentPassword}
                     showPassword={showCurrentPassword}
                     setShowPassword={setShowCurrentPassword}
-                    placeholder="Masukkan password saat ini"
+                    placeholder="Masukkan kata sandi saat ini"
                   />
                 )}
 
                 <div>
                   <PasswordInput
-                    label="Password Baru"
+                    label="Kata Sandi Baru"
                     value={newPassword}
                     onChange={(value) => {
                       setNewPassword(value);
@@ -228,7 +230,7 @@ export default function ChangePassword() {
                     }}
                     showPassword={showNewPassword}
                     setShowPassword={setShowNewPassword}
-                    placeholder="Masukkan password baru"
+                    placeholder="Masukkan kata sandi baru"
                   />
 
                   {showPasswordRequirements && (
@@ -245,8 +247,8 @@ export default function ChangePassword() {
                         }`}
                       >
                         {isPasswordValid
-                          ? "Password baru sudah memenuhi syarat."
-                          : "Password belum kuat. Harus memenuhi:"}
+                          ? "Kata sandi baru sudah memenuhi syarat."
+                          : "Kata sandi belum kuat. Harus memenuhi:"}
                       </p>
 
                       <div
@@ -293,12 +295,12 @@ export default function ChangePassword() {
                 </div>
 
                 <PasswordInput
-                  label="Konfirmasi Password Baru"
+                  label="Konfirmasi Kata Sandi Baru"
                   value={confirmPassword}
                   onChange={setConfirmPassword}
                   showPassword={showConfirmPassword}
                   setShowPassword={setShowConfirmPassword}
-                  placeholder="Masukkan kembali password baru"
+                  placeholder="Masukkan kembali kata sandi baru"
                 />
 
                 {confirmPassword.length > 0 && (
@@ -308,8 +310,8 @@ export default function ChangePassword() {
                     }`}
                   >
                     {isConfirmationValid
-                      ? "Konfirmasi password sesuai."
-                      : "Konfirmasi password tidak sesuai."}
+                      ? "Konfirmasi kata sandi sesuai."
+                      : "Konfirmasi kata sandi tidak sesuai."}
                   </p>
                 )}
 
@@ -344,7 +346,7 @@ export default function ChangePassword() {
                     ? "Memeriksa akun..."
                     : saving
                       ? "Menyimpan..."
-                      : "Simpan Password"}
+                      : "Simpan kata sandi"}
                 </button>
               </div>
             </form>

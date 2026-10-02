@@ -243,7 +243,7 @@ export default function PersonalizationProfile() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-neutral-text group-hover:text-primary transition-colors">
-                      Ganti Password
+                      Ganti Kata Sandi
                     </p>
                     <p className="text-[11px] text-neutral-muted">
                       Perbarui kata sandi akun untuk keamanan
