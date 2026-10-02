@@ -29,7 +29,7 @@ const AKUN01 = {
 };
 const AKUN07_EMAIL = Cypress.env("AKUN07_EMAIL");
 const EMAIL_TIDAK_TERDAFTAR = "tidakterdaftar.nolla@example.com";
-const PESAN_GENERIK = "Email atau kata sandi salah.";
+const PESAN_GENERIK = "Email atau kata sandi salah";
 const HALAMAN_BAB = "/topik";
 
 const SEL = {
@@ -210,7 +210,7 @@ describe("Login — dengan backend asli", () => {
 
     it("CY-LOGIN-020: tetap login saat pindah halaman dan refresh", () => {
         loginViaUi();
-        ["Hasil Belajar", "Profil", "Topik"].forEach((menu) => {
+        ["Hasil Belajar", "Profil", "Bab Pembelajaran"].forEach((menu) => {
             cy.contains("a, button", menu).click();
             cy.location("pathname").should("not.eq", "/login");
             cy.reload();
