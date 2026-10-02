@@ -860,7 +860,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
           <FadeInSection>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1b1f3b] mb-4">
-              Untuk semua tahap belajar
+              Belajar Sesuai Jenjangmu
             </h2>
             <p className="text-base text-[#5b6088] max-w-xl mx-auto mb-14">
               Setiap jenjang memiliki kurikulum dan tantangan yang disesuaikan dengan
@@ -1049,106 +1049,107 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* -------------------- SECTION 5: TESTIMONI (HORIZONTAL TICKER) -------------------- */}
+      {/* -------------------- SECTION 5: TESTIMONI (HORIZONTAL TICKER) - DI-HIDE SEMENTARA -------------------- */}
+      {/* Catatan: Section ini disembunyikan dari tampilan layar (hidden) tanpa menghapus kodenya */}
       <section
         id="testimoni"
+        className="hidden pt-16 sm:pt-20 lg:pt-20 pb-10 sm:pb-12 lg:pb-14 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-white"
         onMouseEnter={handleMouseEnterTestimonial}
         onMouseLeave={handleMouseLeaveTestimonial}
         onMouseMove={(e) => setCursorPos({ x: e.clientX, y: e.clientY })}
-        className="pt-16 sm:pt-20 lg:pt-20 pb-10 sm:pb-12 lg:pb-14 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-white"
       >
-        {/* Floating Math Decor - DKV Balanced */}
-        <img
-          src={mathPi}
-          alt=""
-          aria-hidden="true"
-          className="absolute top-6 left-4 sm:left-10 w-10 sm:w-14 md:w-16 h-auto object-contain opacity-25 animate-float-slow pointer-events-none select-none drop-shadow-sm z-0"
-        />
-        <img
-          src={mathLightbulb}
-          alt=""
-          aria-hidden="true"
-          className="absolute top-6 right-4 sm:right-10 w-12 sm:w-16 md:w-18 h-auto object-contain opacity-20 animate-float-reverse pointer-events-none select-none drop-shadow-sm z-0"
-        />
-        <FadeInSection className="max-w-6xl mx-auto px-4 sm:px-6 text-center mb-8 sm:mb-10 relative z-10">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] tracking-tight mb-3">
-            Apa kata mereka tentang Nolla?
-          </h2>
-          <p className="text-base text-[#5b6088] max-w-xl mx-auto">
-            Cerita nyata dari ribuan pelajar &amp; pendidik yang mengubah rasa takut matematika menjadi rasa percaya diri.
-          </p>
-        </FadeInSection>
+          {/* Floating Math Decor - DKV Balanced */}
+          <img
+            src={mathPi}
+            alt=""
+            aria-hidden="true"
+            className="absolute top-6 left-4 sm:left-10 w-10 sm:w-14 md:w-16 h-auto object-contain opacity-25 animate-float-slow pointer-events-none select-none drop-shadow-sm z-0"
+          />
+          <img
+            src={mathLightbulb}
+            alt=""
+            aria-hidden="true"
+            className="absolute top-6 right-4 sm:right-10 w-12 sm:w-16 md:w-18 h-auto object-contain opacity-20 animate-float-reverse pointer-events-none select-none drop-shadow-sm z-0"
+          />
+          <FadeInSection className="max-w-6xl mx-auto px-4 sm:px-6 text-center mb-8 sm:mb-10 relative z-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] tracking-tight mb-3">
+              Apa kata mereka tentang Nolla?
+            </h2>
+            <p className="text-base text-[#5b6088] max-w-xl mx-auto">
+              Cerita nyata dari ribuan pelajar &amp; pendidik yang mengubah rasa takut matematika menjadi rasa percaya diri.
+            </p>
+          </FadeInSection>
 
-        {/* Horizontal Ticker with Gradient Fade Edges */}
-        <FadeInSection delay={150}>
-          <div className="relative w-full overflow-hidden group py-3">
-            {/* Left & Right Gradient Shadows for seamless entry/exit */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-36 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-36 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+          {/* Horizontal Ticker with Gradient Fade Edges */}
+          <FadeInSection delay={150}>
+            <div className="relative w-full overflow-hidden group py-3">
+              {/* Left & Right Gradient Shadows for seamless entry/exit */}
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-36 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-36 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
 
-            {/* Marquee Track */}
-            <div className="flex gap-6 animate-marquee">
-              {[...testimonials, ...testimonials].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="w-[300px] sm:w-[370px] shrink-0 bg-white rounded-3xl p-6 sm:p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between select-none cursor-default"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-3.5">
-                      <div className="flex gap-1 text-amber-400 text-sm">
-                        {"★".repeat(item.rating)}
-                      </div>
-                      <span className="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                        {item.tag}
-                      </span>
-                    </div>
-                    <h4 className="font-bold text-sm text-[#1b1f3b] mb-2 flex items-center gap-1.5">
-                      <span>✨</span>
-                      <span>{item.highlight}</span>
-                    </h4>
-                    <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed mb-5">
-                      “{item.text}”
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 pt-3.5 border-t border-slate-100">
-                    <div
-                      className={`w-10 h-10 rounded-full ${item.avatarBg} font-bold flex items-center justify-center text-sm shadow-xs shrink-0`}
-                    >
-                      {item.initial}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h5 className="font-bold text-xs sm:text-sm text-[#1b1f3b] truncate">
-                          {item.name}
-                        </h5>
-                        <span className="text-emerald-500 font-bold text-xs" title="Terverifikasi">
-                          ✓
+              {/* Marquee Track */}
+              <div className="flex gap-6 animate-marquee">
+                {[...testimonials, ...testimonials].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="w-[300px] sm:w-[370px] shrink-0 bg-white rounded-3xl p-6 sm:p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between select-none cursor-default"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3.5">
+                        <div className="flex gap-1 text-amber-400 text-sm">
+                          {"★".repeat(item.rating)}
+                        </div>
+                        <span className="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                          {item.tag}
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#5b6088] truncate">{item.role}</p>
+                      <h4 className="font-bold text-sm text-[#1b1f3b] mb-2 flex items-center gap-1.5">
+                        <span>✨</span>
+                        <span>{item.highlight}</span>
+                      </h4>
+                      <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed mb-5">
+                        “{item.text}”
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 pt-3.5 border-t border-slate-100">
+                      <div
+                        className={`w-10 h-10 rounded-full ${item.avatarBg} font-bold flex items-center justify-center text-sm shadow-xs shrink-0`}
+                      >
+                        {item.initial}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h5 className="font-bold text-xs sm:text-sm text-[#1b1f3b] truncate">
+                            {item.name}
+                          </h5>
+                          <span className="text-emerald-500 font-bold text-xs" title="Terverifikasi">
+                            ✓
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#5b6088] truncate">{item.role}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </FadeInSection>
+          </FadeInSection>
 
-        {/* Dynamic Cursor Tooltip Notification (Muncul 3 detik saja saat memasuki section) */}
-        {showTestimonialHint && (
-          <div
-            className="pointer-events-none fixed z-50 px-3.5 py-1.5 rounded-full bg-[#1b1f3b]/95 backdrop-blur-md text-white text-xs font-medium shadow-2xl border border-white/20 flex items-center gap-2 select-none transition-opacity duration-300 ease-out whitespace-nowrap animate-in fade-in"
-            style={{
-              left: `${cursorPos.x}px`,
-              top: `${cursorPos.y}px`,
-              transform: "translate(-50%, -140%)",
-            }}
-          >
-            <span className="text-amber-400 text-sm">👆</span>
-            <span>Arahkan kursor ke kartu untuk menjeda</span>
-          </div>
-        )}
-      </section>
+          {/* Dynamic Cursor Tooltip Notification (Muncul 3 detik saja saat memasuki section) */}
+          {showTestimonialHint && (
+            <div
+              className="pointer-events-none fixed z-50 px-3.5 py-1.5 rounded-full bg-[#1b1f3b]/95 backdrop-blur-md text-white text-xs font-medium shadow-2xl border border-white/20 flex items-center gap-2 select-none transition-opacity duration-300 ease-out whitespace-nowrap animate-in fade-in"
+              style={{
+                left: `${cursorPos.x}px`,
+                top: `${cursorPos.y}px`,
+                transform: "translate(-50%, -140%)",
+              }}
+            >
+              <span className="text-amber-400 text-sm">👆</span>
+              <span>Arahkan kursor ke kartu untuk menjeda</span>
+            </div>
+          )}
+        </section>
 
       {/* -------------------- SECTION 6: FAQ -------------------- */}
       <section id="faq" className="pt-14 sm:pt-16 lg:pt-20 pb-0 relative overflow-hidden bg-[#f4f9ff]">
@@ -1290,7 +1291,7 @@ const LandingPage = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
                   <Link
                     to="/register"
-                    className="w-[84%] max-w-[280px] sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full font-black text-sm sm:text-base bg-white text-[#ff8a1f] hover:bg-slate-100 shadow-xl shadow-black/15 hover:shadow-2xl transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-2 group cursor-pointer"
+                    className="w-[84%] max-w-[280px] sm:w-auto sm:max-w-none whitespace-nowrap px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full font-black text-sm sm:text-base bg-white text-[#ff8a1f] hover:bg-slate-100 shadow-xl shadow-black/15 hover:shadow-2xl transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-2 group cursor-pointer"
                   >
                     <span>Daftar Sekarang</span>
                     <span className="font-bold text-base leading-none group-hover:translate-x-1 transition-transform">
@@ -1299,7 +1300,7 @@ const LandingPage = () => {
                   </Link>
                   <Link
                     to="/login"
-                    className="w-[84%] max-w-[280px] sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full font-bold text-sm sm:text-base bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 hover:border-white transition-all text-center cursor-pointer"
+                    className="w-[84%] max-w-[280px] sm:w-auto sm:max-w-none whitespace-nowrap px-6 py-2.5 sm:px-8 sm:py-3.5 rounded-full font-bold text-sm sm:text-base bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 hover:border-white transition-all text-center cursor-pointer"
                   >
                     Sudah Punya Akun? Masuk
                   </Link>
