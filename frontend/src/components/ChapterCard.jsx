@@ -29,15 +29,30 @@ const ChapterCard = ({
 
   const chapterSubbabList = chapter.subbab || chapter.subtopics || [];
   const totalLessons = chapter.total_subbab ?? chapterSubbabList.length;
+  const startedSubbabList = chapterSubbabList.filter(
+    (subbab) =>
+      subbab.started ||
+      subbab.completed ||
+      subbab.status === "in_progress" ||
+      subbab.status === "completed",
+  );
   const startedSubbabCount =
-    chapter.started_subbab ??
-    chapterSubbabList.filter(
-      (subbab) =>
-        subbab.started || subbab.completed || subbab.status === "completed",
-    ).length;
+    chapter.started_subbab ?? startedSubbabList.length;
   const progressPercentage =
-    totalLessons > 0
-      ? Math.min(100, Math.round((startedSubbabCount / totalLessons) * 100))
+    startedSubbabList.length > 0 && totalLessons > 0
+      ? Math.min(
+          100,
+          Math.round(
+            (startedSubbabList.reduce((total, subbab) => {
+              const elo = Number(
+                subbab.current_cognitive_score ?? subbab.elo,
+              );
+              return total + (Number.isFinite(elo) ? Math.max(0, elo) : 0);
+            }, 0) /
+              (1600 * totalLessons)) *
+              100,
+          ),
+        )
       : 0;
 
   const displaySubbab =
