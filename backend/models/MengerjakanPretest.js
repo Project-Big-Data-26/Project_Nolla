@@ -21,6 +21,23 @@ const mengerjakanPretestSchema = new mongoose.Schema(
       ref: "Soal",
       default: null,
     },
+    subbab_cognitive_scores: [
+      {
+        subbab_id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Subbab",
+          required: true,
+        },
+        current_cognitive_level: {
+          type: String,
+          enum: ["easy", "medium", "hard"],
+          required: true,
+        },
+        current_cognitive_score: { type: Number, required: true },
+        pretest_subbab_correct: { type: Number, default: 0 },
+        pretest_subbab_total: { type: Number, default: 0 },
+      },
+    ],
   },
   { timestamps: false },
 );

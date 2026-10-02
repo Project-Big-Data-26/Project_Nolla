@@ -12,12 +12,36 @@ services:
     env_file:
       - ./backend/.env
 
+    environment:
+      - AI_SERVICE_URL=http://ai:8000
+      - MONGO_URI=mongodb://mongodb:27017/project_assessment
+
     volumes:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
 
     depends_on:
       - mongodb
+      - ai
+
+  ai:
+    build:
+      context: ../extraction_model
+      dockerfile: Dockerfile
+
+    container_name: project_assessment_ai
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ../extraction_model/data:/app/data
+      - ../extraction_model/models:/app/models
+
+    environment:
+      - APP_ENV=development
+
+    restart: unless-stopped
 
   frontend:
     build:

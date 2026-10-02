@@ -9,9 +9,23 @@ const makeChoiceSet = (values) => {
 
   return optionIds.map((optionId, index) => ({
     option_id: optionId,
-    text: values[index],
+    text: formatMathOption(values[index]),
   }));
 };
+
+const formatMathOption = (value) => {
+  const text = String(value);
+  const fraction = text.match(/^(-?\d+)\/(\d+)$/);
+
+  if (fraction) return `$\\frac{${fraction[1]}}{${fraction[2]}}$`;
+  if (/^-?\d+(?:\.\d+)?$/.test(text)) return `$${text}$`;
+  return text;
+};
+
+const formatQuestionNumbers = (text) =>
+  text.replace(/(-?\d+(?:[.,]\d+)?)/g, (number) =>
+    `$${number}$`,
+  );
 
 const combinationsOfThree = (count) => (count * (count - 1) * (count - 2)) / 6;
 
@@ -95,7 +109,7 @@ const buildKelas12SubbabQuestions = (
     buildQuestion({
       subbab_id,
       kelas_id,
-      soal_text: `(Variasi ${order} - Easy) Dalam sebuah kotak terdapat ${order + 2} bola merah dan ${order + 3} bola putih. Peluang terambilnya bola merah pada pengambilan pertama secara acak adalah ...`,
+      soal_text: `(Variasi ${order} - Easy) Dalam sebuah kotak terdapat $${order + 2}$ bola merah dan $${order + 3}$ bola putih. Peluang terambilnya bola merah pada pengambilan pertama secara acak adalah ...`,
       options: makeChoiceSet([
         `${order + 3}/${2 * order + 5}`, // A
         `${order + 2}/${2 * order + 5}`, // B (Jawaban Benar dipindah ke B)
@@ -109,7 +123,7 @@ const buildKelas12SubbabQuestions = (
     buildQuestion({
       subbab_id,
       kelas_id,
-      soal_text: `(Variasi ${order} - Medium) Dua buah dadu seimbang dilempar undi bersama-sama sebanyak ${order * 2} kali. Frekuensi harapan munculnya mata dadu berjumlah ganjil adalah ...`,
+      soal_text: `(Variasi ${order} - Medium) Dua buah dadu seimbang dilempar undi bersama-sama sebanyak $${order * 2}$ kali. Frekuensi harapan munculnya mata dadu berjumlah ganjil adalah ...`,
       options: makeChoiceSet([
         `${36 * order}`, // A
         `${order}`, // B (Jawaban Benar)
@@ -123,7 +137,7 @@ const buildKelas12SubbabQuestions = (
     buildQuestion({
       subbab_id,
       kelas_id,
-      soal_text: `(Variasi ${order} - Hard) Dari ${boys} siswa putra dan ${girls} siswa putri akan dipilih 3 orang utusan sekolah secara acak. Peluang terpilihnya paling sedikit 1 siswa putri adalah ...`,
+      soal_text: `(Variasi ${order} - Hard) Dari $${boys}$ siswa putra dan $${girls}$ siswa putri akan dipilih $3$ orang utusan sekolah secara acak. Peluang terpilihnya paling sedikit 1 siswa putri adalah ...`,
       options: makeChoiceSet([
         "1/4", // A
         atLeastOneGirlProbability, // B
@@ -254,7 +268,9 @@ const buildPrerequisiteQuestions = ({
     buildQuestion({
       subbab_id,
       kelas_id,
-      soal_text: `${question.text} [Variasi ${index + 1}]`,
+      soal_text: `${prefix}${formatQuestionNumbers(
+        question.text.slice(prefix.length),
+      )} [Variasi ${index + 1}]`,
       options: makeChoiceSet(
         moveCorrectAnswerToOptionB(question.options, question.answer),
       ),

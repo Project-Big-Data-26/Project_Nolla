@@ -37,6 +37,7 @@ const normalizeBab = (bab, classInfo) => ({
     ...subbab,
     _id: subbab.id,
     classReference: classInfo?.name || "",
+    hasLearningActivity: Boolean(subbab.started || subbab.completed),
     status: subbab.completed
       ? "completed"
       : subbab.started
@@ -436,7 +437,7 @@ const Topics = () => {
     <div className="flex min-h-screen bg-neutral-bg">
       <Navbar activePage="Topik" />
       <div className="min-w-0 flex-1">
-        <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+        <main className="mx-auto max-w-6xl px-5 py-8 pb-24 sm:px-8 lg:px-10 md:pb-8">
           <TopHeader />
           <TopicSearchBar
             searchQuery={searchQuery}

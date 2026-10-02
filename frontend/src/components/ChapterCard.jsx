@@ -33,15 +33,11 @@ const ChapterCard = ({
     chapter.started_subbab ??
     chapterSubbabList.filter(
       (subbab) =>
-        subbab.started ||
-        subbab.completed ||
-        subbab.status === "completed",
+        subbab.started || subbab.completed || subbab.status === "completed",
     ).length;
   const progressPercentage =
-    typeof chapter.progress === "number"
-      ? chapter.progress
-      : isPretestCompleted && totalLessons > 0
-        ? Math.round((startedSubbabCount / totalLessons) * 100)
+    totalLessons > 0
+      ? Math.min(100, Math.round((startedSubbabCount / totalLessons) * 100))
       : 0;
 
   const displaySubbab =
@@ -58,8 +54,7 @@ const ChapterCard = ({
     >
       <div className="p-5 sm:p-6">
         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-          BAB {chapter.display_order || 1} •{" "}
-          {chapter.educationLevel || "MATEMATIKA"}
+          BAB {chapter.display_order || 1}
         </div>
 
         <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug mb-1">
@@ -73,7 +68,9 @@ const ChapterCard = ({
         {/* Progress Bar */}
         <div className="mb-5">
           <div className="text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
-            <span>{startedSubbabCount} dari {totalLessons} subbab dimulai</span>
+            <span>
+              {startedSubbabCount} dari {totalLessons} subbab dimulai
+            </span>
             <span className="text-[11px] font-medium text-slate-400">
               {progressPercentage}%
             </span>
@@ -125,11 +122,11 @@ const ChapterCard = ({
 
       {/* Accordion List Subbab */}
       {isExpanded && isPretestCompleted && (
-        <div className="border-t border-slate-200 bg-slate-50/60 p-4 sm:p-6 space-y-4 animate-in fade-in duration-300">
+        <div className="border-t border-slate-200 bg-slate-50/60 p-3 sm:p-6 space-y-3 sm:space-y-4 animate-in fade-in duration-300">
           {/* Pretest Result Card */}
-          <div className="bg-white border border-emerald-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="bg-white border border-emerald-200/90 rounded-2xl p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shadow-xs">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center mb-1">
                 <h4 className="text-sm font-bold text-slate-900">
                   Diagnostic Pretest: {chapter.name}
                 </h4>
@@ -144,14 +141,16 @@ const ChapterCard = ({
               </p>
             </div>
 
-            <div className="shrink-0 self-end sm:self-center">
+            <div className="w-full shrink-0 sm:w-auto sm:self-center">
               <button
                 onClick={() => handleViewPretestResult(chapter)}
                 disabled={pretestLoading}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                className="w-full justify-center px-4 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs sm:w-auto"
               >
                 <Award className="w-3.5 h-3.5" />
-                <span>{pretestLoading ? "Memuat Hasil..." : "Lihat Hasil Pretest"}</span>
+                <span>
+                  {pretestLoading ? "Memuat Hasil..." : "Lihat Hasil Pretest"}
+                </span>
               </button>
             </div>
           </div>

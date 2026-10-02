@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      immutable: true,
     },
 
     password: {
@@ -45,6 +46,21 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Jenjang",
       default: null,
+    },
+
+    avatar: {
+      type: String,
+      enum: [
+        "avatar_1",
+        "avatar_2",
+        "avatar_3",
+        "avatar_4",
+        "avatar_5",
+        "avatar_6",
+        "avatar_7",
+        "avatar_8",
+      ],
+      default: "avatar_1",
     },
 
     role: {

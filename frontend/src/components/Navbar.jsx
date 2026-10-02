@@ -9,19 +9,46 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import LogoutConfirmModal from "./LogoutConfirmModal";
+import avatar1 from "../assets/avatar/avatar1.svg";
+import avatar2 from "../assets/avatar/avatar2.svg";
+import avatar3 from "../assets/avatar/avatar3.svg";
+import avatar4 from "../assets/avatar/avatar4.svg";
+import avatar5 from "../assets/avatar/avatar5.svg";
+import avatar6 from "../assets/avatar/avatar6.svg";
+import avatar7 from "../assets/avatar/avatar7.svg";
+import avatar8 from "../assets/avatar/avatar8.svg";
+
+const avatarSources = {
+  avatar_1: avatar1,
+  avatar_2: avatar2,
+  avatar_3: avatar3,
+  avatar_4: avatar4,
+  avatar_5: avatar5,
+  avatar_6: avatar6,
+  avatar_7: avatar7,
+  avatar_8: avatar8,
+};
 
 const Navbar = ({ activePage = "Dashboard" }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const displayName = user?.name || "User";
   const displayEmail = user?.email || "User@gmail.com";
 
-  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : "U";
+  const storedPhoto =
+    typeof window !== "undefined" ? localStorage.getItem("user_photo") : null;
+  const avatarSource =
+    avatarSources[user?.avatar] ||
+    (user?.avatar && !/^avatar_\d+$/.test(user.avatar) ? user.avatar : null) ||
+    storedPhoto ||
+    avatar1;
 
   const menuItems = [
-    { label: "Topik", icon: BookOpen, path: "/topik" },
+    { label: "Bab Pembelajaran", icon: BookOpen, path: "/topik" },
     {
       label: "Hasil Belajar",
       icon: LayoutDashboard,
@@ -70,7 +97,7 @@ const Navbar = ({ activePage = "Dashboard" }) => {
           </div>
           <div>
             <h1 className="font-heading text-lg font-bold leading-none text-neutral-text">
-              Big Data
+              NOLLA
             </h1>
             <span className="text-xs text-neutral-muted">Big Data Project</span>
           </div>
@@ -108,10 +135,15 @@ const Navbar = ({ activePage = "Dashboard" }) => {
         {/* Profile & Logout Button (Desktop) */}
         <div className="hidden border-t border-neutral-border bg-neutral-bg/50 p-4 md:flex md:w-full md:items-center md:justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            {/* Avatar Inisial */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white shadow-xs">
-              {userInitial}
-            </div>
+            {/* Avatar User */}
+            <img
+              src={avatarSource}
+              alt={`Avatar ${displayName}`}
+              onError={(event) => {
+                event.currentTarget.src = avatar1;
+              }}
+              className="h-9 w-9 shrink-0 rounded-full border border-slate-200 bg-white object-cover shadow-xs"
+            />
 
             {/* Nama & Email Dinamis */}
             <div className="min-w-0 flex-1">
@@ -125,7 +157,7 @@ const Navbar = ({ activePage = "Dashboard" }) => {
           </div>
 
           <button
-            onClick={handleLogout}
+            onClick={() => setIsLogoutConfirmOpen(true)}
             disabled={isLoading}
             title="Keluar"
             className="cursor-pointer rounded-lg p-1.5 text-neutral-muted hover:text-danger hover:bg-neutral-card transition-colors disabled:opacity-50"
@@ -138,6 +170,13 @@ const Navbar = ({ activePage = "Dashboard" }) => {
           </button>
         </div>
       </aside>
+
+      <LogoutConfirmModal
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        isLoading={isLoading}
+      />
 
       {/* Spacer Mobile */}
       <div className="h-16 md:hidden" />

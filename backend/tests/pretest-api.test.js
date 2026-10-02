@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 
 const BASE_URL = process.env.TEST_API_URL || "http://localhost:5000";
-const EMAIL = process.env.TEST_EMAIL || "student2@example.com";
+const EMAIL = process.env.TEST_EMAIL || "student@example.com";
 const PASSWORD = process.env.TEST_PASSWORD || "12345678";
 
 // Edit jawaban di sini. Urutan mengikuti soal yang dikirim API.

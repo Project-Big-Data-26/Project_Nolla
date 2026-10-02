@@ -16,12 +16,14 @@ import PersonalizationWizard from "../pages/Student/PersonalizationWizard";
 import Topics from "../pages/Student/Topics/Topics";
 import TopikDetail from "../pages/Student/ResultLearning/TopicDetailPage";
 
+import PersonalizationProfile from "../pages/Student/Profile/PersonalizationProfile";
+import EditProfile from "../pages/Student/Profile/EditProfile";
+import ChangePassword from "../pages/Student/Profile/ChangePassword";
+
 import QuestionPage from "../pages/Student/QuestionPage";
 import QuestionReviewPage from "../pages/Student/QuestionReviewPage";
 
 import Dashboard from "../pages/Student/Dashboard";
-import PersonalizationProfile from "../pages/Student/PersonalizationProfile";
-import Settings from "../pages/Student/Settings";
 import EvaluationPage from "../pages/Student/EvaluationPage";
 import ResultPage from "../pages/Student/ResultPage";
 
@@ -46,12 +48,13 @@ const AppRoutes = () => {
         <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
         <Route path="/topik" element={<Topics />} />
         <Route path="/profile" element={<PersonalizationProfile />} />
+        <Route path="/profile/edit" element={<EditProfile />} />
+        <Route path="/profile/ganti-password" element={<ChangePassword />} />
 
         <Route path="/quiz" element={<QuestionPage />} />
         <Route path="/review-quiz" element={<QuestionReviewPage />} />
 
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/settings" element={<Settings />} />
         <Route path="/evaluasi" element={<EvaluationPage />} />
         <Route path="/result" element={<ResultPage />} />
       </Route>

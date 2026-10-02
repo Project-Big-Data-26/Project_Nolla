@@ -44,6 +44,15 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("accessToken", authToken);
   };
 
+  // 💡 TAMBAHAN FUNGSI: Untuk update data user secara parsial (misal nama/profile)
+  const updateUser = (newUserData) => {
+    setUser((prev) => {
+      const updated = { ...prev, ...newUserData };
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -59,6 +68,7 @@ export const AuthProvider = ({ children }) => {
         token,
         isAuthenticated: Boolean(token),
         login,
+        updateUser,
         logout,
       }}
     >
