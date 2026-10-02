@@ -1443,7 +1443,7 @@ const getPretestReview = async (req, res) => {
           ? record.soal_id.image_url
           : [],
         selected_answer: record.selected_answer,
-        correct_answer: record.soal_id.correct_answer,
+        correct_answer: record.soal_id.jawaban,
         is_correct: Boolean(record.is_correct),
         response_time: record.response_time ?? null,
       }));

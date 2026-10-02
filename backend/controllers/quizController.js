@@ -533,7 +533,7 @@ const getQuizReview = async (req, res) => {
           cognitive_level: getQuestionDifficulty(question),
           cognitive_score: getQuestionRating(question),
           selected_answer: answer.pilihan_jawaban,
-          jawaban: question.jawaban,
+          correct_answer: question.jawaban,
           is_correct: Boolean(answer.is_correct),
           response_time: answer.response_time ?? null,
         },

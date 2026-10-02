@@ -1,10 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
+
 import { useNavigate, useSearchParams } from "react-router-dom";
+
 import { Check, X } from "lucide-react";
+
 import Navbar from "../../components/Navbar";
+
 import API from "../../api/axios";
 
 import smaIcon from "../../assets/icon/SMA.png";
+
+import { InlineMath, BlockMath } from "react-katex";
+import "katex/dist/katex.min.css";
 
 const reviewQuestions = [
   {
@@ -63,10 +70,64 @@ const reviewQuestions = [
   },
 ];
 
+/**
+ * Render text yang mengandung LaTeX.
+ *
+ * Format yang didukung:
+ * $x^2$
+ * $$x^2 + y^2 = z^2$$
+ * \(x^2\)
+ * \[x^2 + y^2 = z^2\]
+ *
+ * Text biasa tetap akan ditampilkan seperti semula.
+ */
+const renderLatexText = (text) => {
+  if (text === null || text === undefined) {
+    return null;
+  }
+
+  const value = String(text);
+
+  const parts = value.split(
+    /(\$\$[\s\S]*?\$\$|\$[^$]+\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/g,
+  );
+
+  return parts.map((part, index) => {
+    if (!part) {
+      return null;
+    }
+
+    // Block LaTeX: $$ ... $$
+    if (part.startsWith("$$") && part.endsWith("$$")) {
+      return <BlockMath key={index}>{part.slice(2, -2).trim()}</BlockMath>;
+    }
+
+    // Inline LaTeX: $ ... $
+    if (part.startsWith("$") && part.endsWith("$")) {
+      return <InlineMath key={index}>{part.slice(1, -1).trim()}</InlineMath>;
+    }
+
+    // Inline LaTeX: \( ... \)
+    if (part.startsWith("\\(") && part.endsWith("\\)")) {
+      return <InlineMath key={index}>{part.slice(2, -2).trim()}</InlineMath>;
+    }
+
+    // Block LaTeX: \[ ... \]
+    if (part.startsWith("\\[") && part.endsWith("\\]")) {
+      return <BlockMath key={index}>{part.slice(2, -2).trim()}</BlockMath>;
+    }
+
+    // Text biasa
+    return <React.Fragment key={index}>{part}</React.Fragment>;
+  });
+};
+
 const readPretestReview = (sessionId) => {
   if (!sessionId) return null;
+
   try {
     const stored = sessionStorage.getItem(`pretest-review:${sessionId}`);
+
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
@@ -84,25 +145,36 @@ const formatResponseTime = (value) => {
 
   const seconds = Math.max(0, Math.floor(Number(value)));
   const minutes = Math.floor(seconds / 60);
+
   return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
 };
 
 const QuestionReviewPage = () => {
   const navigate = useNavigate();
+
   const [searchParams] = useSearchParams();
+
   const sessionId = searchParams.get("sessionId");
+
   const reviewMode = searchParams.get("mode") === "quiz" ? "quiz" : "pretest";
+
   const routeTopicName =
     searchParams.get("topicName") ||
     searchParams.get("chapterName") ||
     (reviewMode === "quiz" ? "Kuis Subbab" : "Pretest");
+
   const [pretestReview] = useState(() =>
     reviewMode === "pretest" ? readPretestReview(sessionId) : null,
   );
+
   const [reviewData, setReviewData] = useState(pretestReview);
+
   const [reviewLoading, setReviewLoading] = useState(Boolean(sessionId));
+
   const [reviewError, setReviewError] = useState("");
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
+
   const [showQuizResult, setShowQuizResult] = useState(false);
 
   useEffect(() => {
@@ -112,6 +184,7 @@ const QuestionReviewPage = () => {
     }
 
     let isCurrent = true;
+
     const reviewEndpoint =
       reviewMode === "quiz"
         ? `/quiz/${sessionId}/review`
@@ -120,7 +193,9 @@ const QuestionReviewPage = () => {
     API.get(reviewEndpoint)
       .then((response) => {
         if (!isCurrent) return;
+
         const data = response.data.data;
+
         setReviewData({
           mode: reviewMode,
           sessionId: String(data.pretest_id || data.session_id),
@@ -155,6 +230,7 @@ const QuestionReviewPage = () => {
             responseTime: item.response_time,
           })),
         });
+
         setReviewError("");
       })
       .catch((error) => {
@@ -165,7 +241,9 @@ const QuestionReviewPage = () => {
         }
       })
       .finally(() => {
-        if (isCurrent) setReviewLoading(false);
+        if (isCurrent) {
+          setReviewLoading(false);
+        }
       });
 
     return () => {
@@ -198,6 +276,7 @@ const QuestionReviewPage = () => {
     return (
       <div className="flex min-h-screen bg-neutral-bg">
         <Navbar />
+
         <main className="flex flex-1 items-center justify-center p-6">
           <p className="text-sm font-semibold text-slate-600">
             Memuat review pretest...
@@ -211,11 +290,13 @@ const QuestionReviewPage = () => {
     return (
       <div className="flex min-h-screen bg-neutral-bg">
         <Navbar />
+
         <main className="flex flex-1 items-center justify-center p-6">
           <section className="max-w-md rounded-2xl border border-red-200 bg-white p-5">
             <p role="alert" className="text-sm text-red-700">
               {reviewError}
             </p>
+
             <button
               type="button"
               onClick={() => navigate("/topik")}
@@ -230,7 +311,9 @@ const QuestionReviewPage = () => {
   }
 
   const question = questionsToReview[currentQuestion];
+
   const hasImage = Boolean(question.image);
+
   const isLastQuestion = currentQuestion === questionsToReview.length - 1;
 
   const handleNext = () => {
@@ -245,6 +328,7 @@ const QuestionReviewPage = () => {
             babId: reviewData.babId || "",
             chapterName: reviewData.name || "Pretest",
           });
+
           navigate(`/topik?${query.toString()}`);
         }
       } else {
@@ -264,9 +348,12 @@ const QuestionReviewPage = () => {
   if (showQuizResult && reviewData && reviewMode === "quiz") {
     const totalQuestions =
       reviewData.total_questions || questionsToReview.length;
+
     const correctCount = reviewData.correct_answers ?? 0;
+
     const wrongCount =
       reviewData.wrong_answers ?? Math.max(0, totalQuestions - correctCount);
+
     const scorePercentage = totalQuestions
       ? Math.round((correctCount / totalQuestions) * 100)
       : 0;
@@ -274,36 +361,47 @@ const QuestionReviewPage = () => {
     return (
       <div className="flex min-h-screen bg-neutral-bg">
         <Navbar />
+
         <main className="flex flex-1 items-center justify-center p-5 pb-24 md:pb-5">
           <section className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <p className="text-xs font-bold uppercase text-primary">
               Hasil Quiz
             </p>
+
             <h1 className="mt-2 text-2xl font-extrabold text-slate-900">
               {reviewData.name || "Kuis Subbab"}
             </h1>
+
             <div className="mt-6 grid grid-cols-3 gap-3 text-center">
               <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">Skor</p>
+
                 <p className="mt-1 text-xl font-extrabold text-primary">
                   {scorePercentage}%
                 </p>
               </div>
+
               <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">Benar / Salah</p>
+
                 <p className="mt-1 text-sm font-bold text-slate-800">
                   <span className="text-emerald-700">{correctCount}</span>
+
                   {" / "}
+
                   <span className="text-rose-700">{wrongCount}</span>
                 </p>
               </div>
+
               <div className="rounded-xl bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">Durasi</p>
+
                 <p className="mt-1 font-mono text-sm font-bold text-slate-800">
                   {formatResponseTime(reviewData.duration)}
                 </p>
               </div>
             </div>
+
             <div className="mt-6 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
@@ -312,6 +410,7 @@ const QuestionReviewPage = () => {
               >
                 Lihat Review Jawaban
               </button>
+
               <button
                 type="button"
                 onClick={() => navigate("/topik")}
@@ -339,6 +438,7 @@ const QuestionReviewPage = () => {
                 const isCorrect = reviewData
                   ? q.isCorrect === true
                   : q.userAnswer === q.correctAnswer;
+
                 const isActive = idx === currentQuestion;
 
                 const badgeBg = isCorrect
@@ -365,6 +465,7 @@ const QuestionReviewPage = () => {
               <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase tracking-wider">
                 WAKTU PENGERJAAN
               </span>
+
               <span className="text-right text-[10px] font-extrabold leading-tight text-slate-700 sm:text-sm">
                 {reviewData
                   ? formatResponseTime(reviewData.duration)
@@ -382,7 +483,7 @@ const QuestionReviewPage = () => {
                 <div className="flex flex-col gap-2.5 sm:gap-4">
                   <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shrink-0">
                     <p className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
-                      {question.question}
+                      {renderLatexText(question.question)}
                     </p>
                   </div>
 
@@ -395,7 +496,7 @@ const QuestionReviewPage = () => {
                   </div>
                 </div>
 
-                {/* KANAN: OPTION JAWABAN (IKON LUCIDE) + PEMBAHASAN */}
+                {/* KANAN: OPTION JAWABAN + PEMBAHASAN */}
                 <div className="flex flex-col justify-between gap-3 bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-6 overflow-y-auto">
                   <div className="flex flex-col space-y-2.5 sm:space-y-3 justify-center flex-1">
                     {question.options.map((opt) => {
@@ -407,6 +508,7 @@ const QuestionReviewPage = () => {
                             ? opt.label === question.correctAnswer
                             : question.isCorrect === true &&
                               opt.label === question.userAnswer;
+
                       const isUserWrongAnswer =
                         question.isCorrect === undefined
                           ? opt.label === question.userAnswer &&
@@ -416,17 +518,20 @@ const QuestionReviewPage = () => {
 
                       let btnStyle =
                         "bg-slate-50/80 text-slate-700 border-slate-100";
+
                       let badgeStyle = "bg-slate-200/60 text-slate-600";
 
                       if (isCorrectAnswer) {
                         btnStyle = reviewData
                           ? "bg-emerald-600 text-white"
                           : "bg-primary text-white";
+
                         badgeStyle = reviewData
                           ? "bg-white text-emerald-700"
                           : "bg-white text-primary";
                       } else if (isUserWrongAnswer) {
                         btnStyle = "bg-rose-500 text-white";
+
                         badgeStyle = "bg-white text-rose-500";
                       }
 
@@ -440,14 +545,15 @@ const QuestionReviewPage = () => {
                           >
                             {opt.label}
                           </div>
+
                           <span className="text-xs sm:text-sm font-semibold flex-1">
-                            {opt.value}
+                            {renderLatexText(opt.value)}
                           </span>
 
-                          {/* IKON LUCIDE */}
                           {isCorrectAnswer && (
                             <Check className="w-5 h-5 text-white shrink-0 stroke-[2.5]" />
                           )}
+
                           {isUserWrongAnswer && (
                             <X className="w-5 h-5 text-white shrink-0 stroke-[2.5]" />
                           )}
@@ -457,14 +563,17 @@ const QuestionReviewPage = () => {
                   </div>
 
                   {/* PEMBAHASAN / SOLUTION */}
-                  {/* <div className="bg-primary/5 border border-primary/20 p-3.5 rounded-2xl shrink-0 my-1">
+                  {/* 
+                  <div className="bg-primary/5 border border-primary/20 p-3.5 rounded-2xl shrink-0 my-1">
                     <p className="text-xs font-bold text-primary mb-1">
                       💡 Pembahasan Soal:
                     </p>
+
                     <p className="text-xs text-slate-600 leading-relaxed font-medium">
                       {question.solution}
                     </p>
-                  </div> */}
+                  </div>
+                  */}
 
                   {/* NAVIGASI BUTTON */}
                   <div className="flex items-center justify-between md:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 shrink-0">
@@ -498,7 +607,7 @@ const QuestionReviewPage = () => {
               <div className="flex flex-col gap-3 sm:gap-4 h-auto">
                 <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shrink-0">
                   <p className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
-                    {question.question}
+                    {renderLatexText(question.question)}
                   </p>
                 </div>
 
@@ -513,6 +622,7 @@ const QuestionReviewPage = () => {
                             ? opt.label === question.correctAnswer
                             : question.isCorrect === true &&
                               opt.label === question.userAnswer;
+
                       const isUserWrongAnswer =
                         question.isCorrect === undefined
                           ? opt.label === question.userAnswer &&
@@ -522,17 +632,20 @@ const QuestionReviewPage = () => {
 
                       let btnStyle =
                         "bg-slate-50/80 text-slate-700 border-slate-100";
+
                       let badgeStyle = "bg-slate-200/60 text-slate-600";
 
                       if (isCorrectAnswer) {
                         btnStyle = reviewData
                           ? "bg-emerald-600 text-white"
                           : "bg-primary text-white";
+
                         badgeStyle = reviewData
                           ? "bg-white text-emerald-700"
                           : "bg-white text-primary";
                       } else if (isUserWrongAnswer) {
                         btnStyle = "bg-rose-500 text-white";
+
                         badgeStyle = "bg-white text-rose-500";
                       }
 
@@ -546,14 +659,15 @@ const QuestionReviewPage = () => {
                           >
                             {opt.label}
                           </div>
+
                           <span className="text-xs sm:text-sm font-semibold flex-1">
-                            {opt.value}
+                            {renderLatexText(opt.value)}
                           </span>
 
-                          {/* IKON LUCIDE */}
                           {isCorrectAnswer && (
                             <Check className="w-5 h-5 text-white shrink-0 stroke-[2.5]" />
                           )}
+
                           {isUserWrongAnswer && (
                             <X className="w-5 h-5 text-white shrink-0 stroke-[2.5]" />
                           )}
@@ -563,14 +677,17 @@ const QuestionReviewPage = () => {
                   </div>
 
                   {/* PEMBAHASAN / SOLUTION */}
-                  {/* <div className="bg-primary/5 border border-primary/20 p-3.5 rounded-2xl shrink-0">
+                  {/* 
+                  <div className="bg-primary/5 border border-primary/20 p-3.5 rounded-2xl shrink-0">
                     <p className="text-xs font-bold text-primary mb-1">
                       💡 Pembahasan Soal:
                     </p>
+
                     <p className="text-xs text-slate-600 leading-relaxed font-medium">
                       {question.solution}
                     </p>
-                  </div> */}
+                  </div>
+                  */}
 
                   {/* NAVIGASI BUTTON */}
                   <div className="flex items-center justify-between md:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 shrink-0">
