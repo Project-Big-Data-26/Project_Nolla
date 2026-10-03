@@ -43,7 +43,7 @@ function PasswordInput({
 
       <div className="relative mt-1.5">
         <input
-          type={showPassword ? "text" : "kata sandi"}
+          type={showPassword ? "text" : "password"}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}

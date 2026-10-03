@@ -4,10 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "prepare:pdfjs": "node scripts/copy-pdfjs-assets.mjs",
-    "predev": "npm run prepare:pdfjs",
-    "dev": "vite",
-    "prebuild": "npm run prepare:pdfjs",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -16,7 +12,8 @@
     "cy:run": "cypress run",
     "test:profil": "NO_COLOR=1 cypress run --spec 'cypress/e2e/auth/profile-*.cy.js' 2>&1 | tee cypress/reports/hasil-profil-$(date +%F).txt",
     "test:profil:pass": "NO_COLOR=1 cypress run --spec 'cypress/e2e/auth/profile-pass.cy.js' 2>&1 | tee cypress/reports/hasil-profil-pass-$(date +%F).txt",
-    "test:profil:fail": "NO_COLOR=1 cypress run --spec 'cypress/e2e/auth/profile-fail.cy.js' 2>&1 | tee cypress/reports/hasil-profil-fail-$(date +%F).txt"
+    "test:profil:fail": "NO_COLOR=1 cypress run --spec 'cypress/e2e/auth/profile-fail.cy.js' 2>&1 | tee cypress/reports/hasil-profil-fail-$(date +%F).txt",
+    "dev": "vite"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
