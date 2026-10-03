@@ -1,18 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
 // 1. Import SearchBar secara konsisten
 import SearchBar from "../../../components/SearchBar";
+import TopHeaderIllustration from "../../../components/TopHeaderIllustration";
 import Navbar from "../../../components/Navbar";
-import {
-  ArrowLeft,
-  Trophy,
-  CheckCircle2,
-  Clock3,
-  ChevronRight,
-  Play,
-  BookOpen,
-  Target,
-} from "lucide-react";
+import { CheckCircle2, Clock3, Target } from "lucide-react";
 
 const dataBab = [
   {
@@ -78,6 +69,73 @@ const dataBab = [
 ];
 
 const progressFilters = ["Semua", "Selesai", "Sedang Dipelajari"];
+
+const localLearningSummary = {
+  selesai: dataBab.filter((bab) => bab.progress >= 100).length,
+  sedangDipelajari: dataBab.filter(
+    (bab) => bab.progress > 0 && bab.progress < 100,
+  ).length,
+};
+
+function LearningSummaryHeader() {
+  return (
+    <section className="mb-7" aria-label="Ringkasan hasil belajar">
+      <div className="relative w-full overflow-hidden rounded-3xl border-b border-[#d6e5fb] bg-gradient-to-r from-[#eaf3fe] via-[#edf5fe] to-[#e5eefc] px-4 pb-4 pt-2 shadow-2xs sm:px-6 sm:pb-6 sm:pt-3">
+        <div className="relative flex min-h-16 items-center justify-between gap-2 px-1 pb-2 sm:min-h-24 sm:gap-3 sm:px-2 sm:pb-5">
+          <div>
+            <h1 className="mt-1 text-lg font-extrabold leading-tight tracking-tight text-[#1d63ed] sm:text-3xl">
+              Hasil Pembelajaran
+            </h1>
+            <p className="mt-1 max-w-xl text-[10px] leading-snug text-slate-600 sm:mt-2 sm:text-sm sm:leading-relaxed">
+              Pantau Perjalanan Belajarmu, Raih Targetmu Selangkah demi
+              Selangkah!
+            </p>
+          </div>
+
+          <div className="relative mr-1 hidden h-10 w-20 shrink-0 sm:mr-3 sm:h-24 sm:w-64 sm:block md:h-28 md:w-72">
+            <TopHeaderIllustration />
+          </div>
+        </div>
+
+        <div className="relative grid grid-cols-2 gap-2 border-t border-[#d6e5fb] pt-3 sm:gap-4 sm:px-2 sm:pt-5">
+          <article className="flex min-w-0 items-center justify-between gap-1.5 rounded-2xl border border-[#d6e5fb] bg-white p-2.5 shadow-2xs sm:gap-3 sm:p-4">
+            <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 sm:h-8 sm:w-8">
+                <CheckCircle2 className="h-4 w-4" />
+              </span>
+              <p className="text-[10px] font-medium leading-tight text-slate-600 sm:text-sm sm:leading-snug">
+                BAB Selesai Dipelajari
+              </p>
+            </div>
+            <p className="shrink-0 text-lg font-bold leading-none text-slate-900 sm:text-2xl">
+              {localLearningSummary.selesai}{" "}
+              <span className="text-[10px] font-semibold text-slate-500 sm:text-xs">
+                BAB
+              </span>
+            </p>
+          </article>
+
+          <article className="flex min-w-0 items-center justify-between gap-1.5 rounded-2xl border border-[#d6e5fb] bg-white p-2.5 shadow-2xs sm:gap-3 sm:p-4">
+            <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1d63ed] sm:h-8 sm:w-8">
+                <Clock3 className="h-4 w-4" />
+              </span>
+              <p className="text-[10px] font-medium leading-tight text-slate-600 sm:text-sm sm:leading-snug">
+                BAB Sedang Dipelajari
+              </p>
+            </div>
+            <p className="shrink-0 text-lg font-bold leading-none text-slate-900 sm:text-2xl">
+              {localLearningSummary.sedangDipelajari}{" "}
+              <span className="text-[10px] font-semibold text-slate-500 sm:text-xs">
+                BAB
+              </span>
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function BabCard({ bab }) {
   return (
@@ -175,6 +233,8 @@ export default function TopikDetail() {
 
       <main className="min-w-0 flex-1">
         <div className="mx-auto max-w-6xl px-5 py-8 pb-24 sm:px-8 lg:px-10 md:pb-8">
+          <LearningSummaryHeader />
+
           {/* Panggil SearchBar dengan props lengkap */}
           <SearchBar
             searchQuery={searchQuery}

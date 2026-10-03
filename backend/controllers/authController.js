@@ -642,7 +642,7 @@ const changePassword = async (req, res) => {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Token verifikasi dan password baru wajib diisi",
+        message: "Token verifikasi dan kata sandi baru wajib diisi",
       });
     }
 
@@ -724,7 +724,8 @@ const changePassword = async (req, res) => {
     return res.status(200).json({
       statusCode: 200,
       status: "success",
-      message: "Password berhasil diubah. Silakan login dengan password baru.",
+      message:
+        "Kata sandi berhasil diubah. Silakan login dengan password baru.",
     });
   } catch (error) {
     console.error("Change password error:", error);
