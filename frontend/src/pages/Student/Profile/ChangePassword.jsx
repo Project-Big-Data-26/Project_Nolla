@@ -287,7 +287,7 @@ export default function ChangePassword() {
 
                       {hasPassword !== false && (
                         <RuleItem valid={passwordRules.differentFromCurrent}>
-                          Tidak sama dengan password saat ini
+                          Tidak sama dengan kata sandi saat ini
                         </RuleItem>
                       )}
                     </div>
