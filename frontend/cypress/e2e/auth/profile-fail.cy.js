@@ -170,6 +170,57 @@ const kembalikanProfil08 = () => {
     });
 };
 
+// Alur avatar di aplikasi: klik "Ganti Avatar" -> daftar "Pilih Avatar Karakter" (8 pilihan) -> klik satu avatar -> klik "Pilih Avatar" -> tombol "Simpan Perubahan" muncul.
+// Avatar utama = gambar terbesar di area utama halaman (gambar di daftar pilihan avatar berukuran kecil dan
+// tetap ada di halaman walau daftarnya tertutup, jadi "gambar pertama" tidak bisa dipakai).
+const srcAvatarUtama = () =>
+    cy.get("main img").then(($im) => {
+        const terbesar = [...$im].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+        return terbesar.getAttribute("src");
+    });
+
+// Memilih avatar dari daftar sistem. Avatar yang sedang dipakai ikut ada di daftar, jadi dicoba satu per satu
+// sampai avatar utama benar-benar berubah. Hasilnya disimpan di alias @avatarBaru.
+const gantiAvatar = () => {
+    srcAvatarUtama().as("avatarAwal");
+    const coba = (i) => {
+        cy.contains("button", /ganti avatar/i).click();
+        cy.contains(/pilih avatar karakter/i).should("be.visible");
+        // daftar avatar = ancestor terdekat dari judul daftar yang berisi lebih dari satu gambar
+        cy.contains(/pilih avatar karakter/i)
+            .parents()
+            .filter((_, el) => el.querySelectorAll("img").length >= 2)
+            .first()
+            .find("img")
+            .eq(i)
+            .click({ force: true });
+        cy.contains("button", /^\s*pilih avatar\s*$/i).click();
+        cy.wait(300);
+        srcAvatarUtama().then((src) => {
+            cy.get("@avatarAwal").then((awal) => {
+                if (src === awal && i < 7) {
+                    coba(i + 1); // yang terpilih ternyata avatar yang sama, coba yang berikutnya
+                } else {
+                    expect(src, "avatar utama berubah setelah Pilih Avatar").to.not.eq(awal);
+                    cy.wrap(src).as("avatarBaru");
+                }
+            });
+        });
+    };
+    coba(0);
+};
+// Avatar utama di halaman sudah avatar baru (bukan yang lama)
+const cekAvatarTampil = (baru) => {
+    cy.get("@avatarAwal").then((awal) => {
+        cy.get("main img").should(($im) => {
+            const terbesar = [...$im].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+            const src = terbesar.getAttribute("src");
+            expect(src, "avatar utama = avatar baru").to.eq(baru);
+            expect(src, "avatar utama bukan avatar lama").to.not.eq(awal);
+        });
+    });
+};
+
 // ------------------------------------------------------------------ baca saja (AKUN-01)
 
 describe("Profil: tampilan (AKUN-01)", () => {
@@ -214,20 +265,22 @@ describe("Profil: tampilan (AKUN-01)", () => {
     });
 
     it("CY-PROFIL-005 gagal mengambil data profil lalu coba lagi", () => {
-        // Stub hanya request API (bukan halaman /profile). Sesuaikan pola URL dengan route backend profil.
-        cy.intercept({ method: "GET", url: /\/api\/.*profile/ }, { statusCode: 500, body: { message: "error" } }).as("profilGagal");
-        cy.visit(PROFIL);
+        // Halaman /profile tidak memanggil server; pengambilan data profil terjadi di Edit Profil (GET /api/profile).
+        cy.intercept({ method: "GET", url: /\/api\/profile/ }, { forceNetworkError: true }).as("profilGagal"); // seperti request diblokir: server tidak terjangkau
+        cy.visit(EDIT);
         cy.wait("@profilGagal");
-        adaPesan(RE_GAGAL);
-        cy.contains("button", /coba lagi/i).should("be.visible");
-        cy.intercept({ method: "GET", url: /\/api\/.*profile/ }, (req) => req.continue());
-        cy.contains("button", /coba lagi/i).click();
-        cy.contains(EMAIL_01).should("be.visible");
+        cy.contains(/profil gagal dimuat dari server/i).should("be.visible");
+        // Coba lagi: aplikasi tidak punya tombol "Coba lagi"; pengguna memuat ulang halaman setelah server pulih.
+        cy.intercept({ method: "GET", url: /\/api\/profile/ }, (req) => req.continue()).as("profilPulih");
+        cy.reload();
+        cy.wait("@profilPulih");
+        cy.contains(/profil gagal dimuat dari server/i).should("not.exist");
+        inputEmail().should("have.value", EMAIL_01);
     });
 
     it("CY-PROFIL-036 menu Keluar menampilkan konfirmasi keluar", () => {
         cy.visit(PROFIL);
-        cy.contains("button, a", /^\s*keluar\s*$/i).click();
+        cy.contains(/^\s*keluar\s*$/i).click(); // judul menu "Keluar" (di bawahnya ada keterangan "Keluar dari akun ini")
         cy.contains(/konfirmasi keluar/i).should("be.visible");
         cy.contains("button", /^\s*ya, keluar\s*$/i).should("be.visible");
         cy.contains("button", /^\s*batal\s*$/i).click();
@@ -255,47 +308,40 @@ describe("Profil: Edit Profil (AKUN-08)", () => {
         cy.visit(PROFIL);
         cy.contains("SMP").should("be.visible");
         cy.visit(HALAMAN_BAB);
-        cy.contains(/SMP/).should("be.visible");
+        // Jenjang SMP -> BAB berlabel Kelas 7-9, tidak ada Kelas 1-6
+        cy.contains(/Kelas 7/).should("be.visible");
+        cy.contains(/Kelas [1-6]\b/).should("not.exist");
         kembalikanProfil08();
         cy.visit(HALAMAN_BAB);
-        cy.contains(/SMP/).should("not.exist");
+        // Kembali ke jenjang Semua -> BAB semua kelas tampil lagi (ada Kelas 1 dan Kelas 7)
+        cy.contains(/Kelas 1\b/).should("exist");
+        cy.contains(/Kelas 7/).should("exist");
     });
 
     it("CY-PROFIL-010 mengganti avatar dari daftar sistem", () => {
         bukaEdit();
-        cy.get("main img").first().invoke("attr", "src").as("avatarAwal");
-        cy.contains("button", /ganti avatar/i).click();
-        // Pilihan avatar: gambar lain di halaman yang berbeda dari avatar saat ini
-        cy.get("@avatarAwal").then((awal) => {
-            cy.get("img").should(($im) => {
-                const unik = new Set([...$im].map((el) => el.getAttribute("src")));
-                expect(unik.size, "jumlah gambar berbeda di halaman").to.be.greaterThan(1);
-            });
-            cy.get("img").then(($im) => {
-                const lain = [...$im].filter((el) => el.getAttribute("src") !== awal).pop();
-                cy.wrap(lain).click({ force: true });
-            });
-        });
+        gantiAvatar();
         simpanProfil();
         adaPesan(RE_BERHASIL);
         cy.visit(PROFIL);
-        cy.get("@avatarAwal").then((awal) => {
-            cy.get("main img").first().invoke("attr", "src").should("not.eq", awal);
-        });
-        // Catatan: avatar tidak dikembalikan otomatis. Pilih avatar awal lagi secara manual bila perlu.
+        cy.get("@avatarBaru").then((baru) => cekAvatarTampil(baru));
+        cy.reload();
+        cy.get("@avatarBaru").then((baru) => cekAvatarTampil(baru)); // tetap setelah reload
+        // Avatar tidak dikembalikan; AKUN-08 didaftarkan ulang sebelum tiap run.
     });
 
     it("CY-PROFIL-012 mengubah beberapa data sekaligus", () => {
-        // Belum lengkap: avatar belum ikut diubah (menunggu selektor daftar avatar dari CY-PROFIL-010)
         const namaBaru = "QA Akun Delapan Multi";
         bukaEdit();
         inputNama().clear().type(namaBaru);
         pilihJenjang("SD");
+        gantiAvatar();
         simpanProfil();
         adaPesan(RE_BERHASIL);
         cy.visit(PROFIL);
         cy.contains(namaBaru).should("be.visible");
         cy.contains("SD").should("be.visible");
+        cy.get("@avatarBaru").then((baru) => cekAvatarTampil(baru));
         kembalikanProfil08();
     });
 

@@ -13,7 +13,10 @@
     "test:profil": "NO_COLOR=1 cypress run --spec 'cypress/e2e/auth/profile-*.cy.js' 2>&1 | tee cypress/reports/hasil-profil-$(date +%F).txt",
     "test:profil:pass": "NO_COLOR=1 cypress run --spec 'cypress/e2e/auth/profile-pass.cy.js' 2>&1 | tee cypress/reports/hasil-profil-pass-$(date +%F).txt",
     "test:profil:fail": "NO_COLOR=1 cypress run --spec 'cypress/e2e/auth/profile-fail.cy.js' 2>&1 | tee cypress/reports/hasil-profil-fail-$(date +%F).txt",
-    "dev": "vite"
+    "dev": "vite",
+    "cy:registrasi:pass": "NO_COLOR=1 cypress run --spec 'cypress/e2e/registrasi/registrasi-pass.cy.js' 2>&1 | tee cypress/reports/hasil-registrasi-pass-$(date +%F).txt",
+    "cy:registrasi:fail": "NO_COLOR=1 cypress run --spec 'cypress/e2e/registrasi/registrasi-fail.cy.js' 2>&1 | tee cypress/reports/hasil-registrasi-fail-$(date +%F).txt",
+    "cy:registrasi:otp": "NO_COLOR=1 cypress run --headed --browser chrome --spec 'cypress/e2e/registrasi/registrasi-otp.cy.js' 2>&1 | tee cypress/reports/hasil-registrasi-otp-$(date +%F).txt"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
