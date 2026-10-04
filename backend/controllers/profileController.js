@@ -5,9 +5,7 @@ const mongoose = require("mongoose");
 // GET PROFILE
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
-      .select("-password")
-      .populate("jenjang_id");
+    const user = await User.findById(req.user.id).populate("jenjang_id");
 
     if (!user) {
       return res.status(404).json({
@@ -25,6 +23,8 @@ const getProfile = async (req, res) => {
         allJenjang: user.allJenjang,
         avatar: user.avatar,
         role: user.role,
+        hasPassword: Boolean(user.password),
+        updatedAt: user.updatedAt,
       },
     });
   } catch (error) {
@@ -112,6 +112,8 @@ const updateProfile = async (req, res) => {
         allJenjang: user.allJenjang,
         avatar: user.avatar,
         role: user.role,
+        hasPassword: Boolean(user.password),
+        updatedAt: user.updatedAt,
       },
     });
   } catch (error) {

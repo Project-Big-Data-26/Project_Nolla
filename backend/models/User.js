@@ -57,6 +57,8 @@ const userSchema = new mongoose.Schema(
         "avatar_4",
         "avatar_5",
         "avatar_6",
+        "avatar_7",
+        "avatar_8",
       ],
       default: "avatar_1",
     },

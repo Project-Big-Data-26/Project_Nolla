@@ -21,7 +21,7 @@ const router = express.Router();
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Profil berhasil diambil
+ *         description: Profil berhasil diambil, termasuk indikator hasPassword dan waktu updatedAt dari server
  *       401:
  *         description: Token tidak valid atau sudah kedaluwarsa
  *       404:
@@ -60,10 +60,11 @@ router.get("/", authMiddleware, getProfile);
  *                 example: false
  *               avatar:
  *                 type: string
+ *                 enum: [avatar_1, avatar_2, avatar_3, avatar_4, avatar_5, avatar_6, avatar_7, avatar_8]
  *                 example: avatar_2
  *     responses:
  *       200:
- *         description: Profil berhasil diperbarui
+ *         description: Profil berhasil diperbarui, termasuk waktu updatedAt dari server
  *       400:
  *         description: Data profil tidak valid
  *       401:

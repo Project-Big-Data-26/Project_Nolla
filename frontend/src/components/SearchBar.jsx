@@ -10,6 +10,9 @@ const Searchbar = ({
   setIsFilterOpen,
   filterDropdownRef,
   availableGradeFilters,
+  filterOptions = availableGradeFilters,
+  filterDefaultValue = "Semua Kelas",
+  filterTitle = "Filter Berdasarkan Kelas",
 }) => {
   return (
     <div className="flex items-center gap-3 mb-6">
@@ -39,19 +42,19 @@ const Searchbar = ({
         <button
           onClick={() => setIsFilterOpen((prev) => !prev)}
           className={`bg-white border rounded-2xl px-4 sm:px-5 py-3 flex items-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-xs select-none ${
-            isFilterOpen || selectedGrade !== "Semua Kelas"
+            isFilterOpen || selectedGrade !== filterDefaultValue
               ? "border-primary text-primary bg-blue-50/40 ring-1 ring-primary/20"
               : "border-slate-200 text-slate-700 hover:bg-slate-50"
           }`}
-          title="Filter materi berdasarkan kelas"
+          title={filterTitle}
         >
           <span>
-            {selectedGrade !== "Semua Kelas"
+            {selectedGrade !== filterDefaultValue
               ? `Filters: ${selectedGrade}`
               : "Filters"}
           </span>
           <SlidersHorizontal className="w-4 h-4 text-slate-500" />
-          {selectedGrade !== "Semua Kelas" && (
+          {selectedGrade !== filterDefaultValue && (
             <span className="w-2 h-2 rounded-full bg-primary" />
           )}
         </button>
@@ -59,17 +62,19 @@ const Searchbar = ({
         {isFilterOpen && (
           <div className="absolute right-0 top-full mt-2 w-56 sm:w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-2.5 z-30 animate-in fade-in zoom-in-95 max-h-[80vh] overflow-y-auto">
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5 mb-1">
-              Filter Berdasarkan Kelas
+              {filterTitle}
             </div>
 
             <div className="space-y-1">
-              {availableGradeFilters.map((grade) => {
-                const isSelected = selectedGrade === grade;
+              {filterOptions.map((option) => {
+                const value = typeof option === "string" ? option : option.value;
+                const label = typeof option === "string" ? option : option.label;
+                const isSelected = selectedGrade === value;
                 return (
                   <button
-                    key={grade}
+                    key={value}
                     onClick={() => {
-                      setSelectedGrade(grade);
+                      setSelectedGrade(value);
                       setIsFilterOpen(false);
                     }}
                     className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
@@ -79,7 +84,9 @@ const Searchbar = ({
                     }`}
                   >
                     <span>
-                      {grade === "Semua Kelas" ? `${grade} (Default)` : grade}
+                      {value === filterDefaultValue && filterTitle === "Filter Berdasarkan Kelas"
+                        ? `${label} (Default)`
+                        : label}
                     </span>
                     {isSelected && <Check className="w-3.5 h-3.5" />}
                   </button>
@@ -87,11 +94,11 @@ const Searchbar = ({
               })}
             </div>
 
-            {selectedGrade !== "Semua Kelas" && (
+            {selectedGrade !== filterDefaultValue && (
               <div className="pt-2 mt-2 border-t border-slate-100 px-1">
                 <button
                   onClick={() => {
-                    setSelectedGrade("Semua Kelas");
+                    setSelectedGrade(filterDefaultValue);
                     setIsFilterOpen(false);
                   }}
                   className="w-full text-center py-1.5 text-[11px] font-medium text-slate-500 hover:text-primary flex items-center justify-center gap-1 cursor-pointer transition-colors"

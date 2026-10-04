@@ -77,7 +77,7 @@ const Login = () => {
         }, 1200);
       } else {
         const msg =
-          result.message || "Email atau password yang Anda masukkan salah.";
+          result.message || "Email atau kata sandi yang Anda masukkan salah.";
         if (result.code === "EMAIL_NOT_VERIFIED") {
           navigate("/verify", {
             state: {

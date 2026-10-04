@@ -105,7 +105,8 @@ const register = async (req, res) => {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
+        message:
+          "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
       });
     }
 
@@ -276,7 +277,7 @@ const login = async (req, res) => {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Email dan password wajib diisi",
+        message: "Email dan kata sandi wajib diisi",
       });
     }
 
@@ -291,7 +292,7 @@ const login = async (req, res) => {
       return res.status(401).json({
         statusCode: 401,
         status: "error",
-        message: "Email atau password salah",
+        message: "Email atau kata sandi salah",
       });
     }
 
@@ -300,7 +301,7 @@ const login = async (req, res) => {
       return res.status(401).json({
         statusCode: 401,
         status: "error",
-        message: "Email atau password salah",
+        message: "Email atau kata sandi salah",
       });
     }
 
@@ -311,7 +312,7 @@ const login = async (req, res) => {
       return res.status(401).json({
         statusCode: 401,
         status: "error",
-        message: "Email atau password salah",
+        message: "Email atau kata sandi salah",
       });
     }
 
@@ -605,7 +606,11 @@ const verifyResetOTP = async (req, res) => {
       message: "Kode OTP valid",
       data: {
         resetToken: jwt.sign(
-          { purpose: "password_reset", email: normalizedEmail, otpId: otpData._id },
+          {
+            purpose: "password_reset",
+            email: normalizedEmail,
+            otpId: otpData._id,
+          },
           process.env.JWT_SECRET,
           { expiresIn: "10m" },
         ),
@@ -637,7 +642,7 @@ const changePassword = async (req, res) => {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Token verifikasi dan password baru wajib diisi",
+        message: "Token verifikasi dan kata sandi baru wajib diisi",
       });
     }
 
@@ -645,7 +650,8 @@ const changePassword = async (req, res) => {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
+        message:
+          "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
       });
     }
 
@@ -718,7 +724,8 @@ const changePassword = async (req, res) => {
     return res.status(200).json({
       statusCode: 200,
       status: "success",
-      message: "Password berhasil diubah. Silakan login dengan password baru.",
+      message:
+        "Kata sandi berhasil diubah. Silakan login dengan password baru.",
     });
   } catch (error) {
     console.error("Change password error:", error);
@@ -750,21 +757,19 @@ const updateOwnPassword = async (req, res) => {
       });
     }
 
-    // Untuk sementara hanya akun yang memang sudah punya password
-    if (!user.password) {
+    if (!newPassword || !confirmPassword) {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message: "Akun ini belum memiliki password",
+        message: "Password baru dan konfirmasi password wajib diisi",
       });
     }
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (user.password && !currentPassword) {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
-        message:
-          "Password lama, password baru, dan konfirmasi password wajib diisi",
+        message: "Password lama wajib diisi",
       });
     }
 
@@ -785,17 +790,28 @@ const updateOwnPassword = async (req, res) => {
       });
     }
 
-    const isPasswordMatch = await bcrypt.compare(
-      currentPassword,
-      user.password,
-    );
+    if (user.password) {
+      const isPasswordMatch = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
 
-    if (!isPasswordMatch) {
-      return res.status(400).json({
-        statusCode: 400,
-        status: "error",
-        message: "Password lama salah",
-      });
+      if (!isPasswordMatch) {
+        return res.status(400).json({
+          statusCode: 400,
+          status: "error",
+          message: "Password lama salah",
+        });
+      }
+
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({
+          statusCode: 400,
+          status: "error",
+          message: "Password baru harus berbeda dari password saat ini",
+        });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -844,7 +860,8 @@ const resendOTP = async (req, res) => {
       return res.status(200).json({
         statusCode: 200,
         status: "success",
-        message: "Jika email terdaftar, kode OTP untuk reset password telah dikirim.",
+        message:
+          "Jika email terdaftar, kode OTP untuk reset password telah dikirim.",
       });
     }
 
@@ -1108,32 +1125,8 @@ const handleGoogleCallback = async (req, res, next) => {
   }
 };
 
-// const googleCallback = async (req, res) => {
-//   const frontendUrl = process.env.FRONTEND_URL;
-//   try {
-//     // Buat token JWT untuk user yang berhasil login via Google
-//     const accessToken = generateAccessToken(req.user); // sesuaikan dengan helper token di controller kalian
-//     const refreshToken = generateRefreshToken(req.user);
-
-//     // Cek kelengkapan profil pengguna baru
-//     if (!req.user.isProfileComplete) {
-//       return res.redirect(
-//         `${frontendUrl}/personalization?accessToken=${accessToken}&refreshToken=${refreshToken}`,
-//       );
-//     } else {
-//       return res.redirect(
-//         `${frontendUrl}/dashboard?accessToken=${accessToken}&refreshToken=${refreshToken}`,
-//       );
-//     }
-//   } catch (error) {
-//     console.error("Error Google Callback Controller:", error);
-//     return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
-//   }
-// };
-
 const googleCallback = async (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL;
-
   try {
     // Buat token JWT untuk user yang berhasil login via Google
     const accessToken = generateAccessToken(req.user); // sesuaikan dengan helper token di controller kalian
@@ -1146,7 +1139,6 @@ const googleCallback = async (req, res) => {
     return res.redirect(callbackUrl.toString());
   } catch (error) {
     console.error("Error Google Callback Controller:", error);
-
     return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
 };

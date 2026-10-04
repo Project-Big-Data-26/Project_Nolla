@@ -260,7 +260,7 @@ router.post("/change-password", changePassword);
  * /api/auth/password:
  *   patch:
  *     summary: Mengganti password user yang sedang login
- *     description: Digunakan untuk mengganti password akun yang terdaftar menggunakan email dan password.
+ *     description: Mengganti password akun. Password lama wajib untuk akun yang sudah memiliki password; opsional untuk akun tanpa password.
  *     tags:
  *       - Auth
  *     security:
@@ -272,7 +272,6 @@ router.post("/change-password", changePassword);
  *           schema:
  *             type: object
  *             required:
- *               - currentPassword
  *               - newPassword
  *               - confirmPassword
  *             properties:
