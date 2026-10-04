@@ -1,7 +1,13 @@
 const mongoose = require("mongoose");
 
 const jenjangSchema = new mongoose.Schema(
-  { name: { type: String } }, // Nama jenjang
+  {
+    name: {
+      type: String,
+      required: true,
+      enum: ["SD", "SMP", "SMA"],
+    },
+  },
   { timestamps: false },
 );
 

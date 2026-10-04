@@ -12,12 +12,28 @@ services:
     env_file:
       - ./backend/.env
 
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/project_assessment
+
     volumes:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
 
     depends_on:
       - mongodb
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: project_assessment_frontend
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
 
   mongodb:
     image: mongo:8

@@ -1,20 +1,91 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   BookOpen,
-  Settings,
   User,
   LogOut,
   GraduationCap,
+  Loader2,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import LogoutConfirmModal from "./LogoutConfirmModal";
+import avatar1 from "../assets/avatar/avatar1.svg";
+import avatar2 from "../assets/avatar/avatar2.svg";
+import avatar3 from "../assets/avatar/avatar3.svg";
+import avatar4 from "../assets/avatar/avatar4.svg";
+import avatar5 from "../assets/avatar/avatar5.svg";
+import avatar6 from "../assets/avatar/avatar6.svg";
+import avatar7 from "../assets/avatar/avatar7.svg";
+import avatar8 from "../assets/avatar/avatar8.svg";
 
-const Navbar = () => {
+const avatarSources = {
+  avatar_1: avatar1,
+  avatar_2: avatar2,
+  avatar_3: avatar3,
+  avatar_4: avatar4,
+  avatar_5: avatar5,
+  avatar_6: avatar6,
+  avatar_7: avatar7,
+  avatar_8: avatar8,
+};
+
+const Navbar = ({ activePage = "Dashboard" }) => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+  const displayName = user?.name || "User";
+  const displayEmail = user?.email || "User@gmail.com";
+
+  const storedPhoto =
+    typeof window !== "undefined" ? localStorage.getItem("user_photo") : null;
+  const avatarSource =
+    avatarSources[user?.avatar] ||
+    (user?.avatar && !/^avatar_\d+$/.test(user.avatar) ? user.avatar : null) ||
+    storedPhoto ||
+    avatar1;
+
   const menuItems = [
-    { label: "Dashboard", icon: LayoutDashboard, active: true },
-    { label: "Topik", icon: BookOpen, active: false },
-    { label: "Profil", icon: User, active: false },
-    { label: "Setting", icon: Settings, active: false },
+    { label: "Bab Pembelajaran", icon: BookOpen, path: "/topik" },
+    {
+      label: "Hasil Belajar",
+      icon: LayoutDashboard,
+      path: "/hasil-pembelajaran",
+    },
+    { label: "Profil", icon: User, path: "/profile" },
   ];
+
+  const handleLogout = async () => {
+    setIsLoading(true);
+
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      if (accessToken && refreshToken) {
+        await fetch("http://localhost:5000/api/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+      }
+    } catch (error) {
+      console.error("Gagal koneksi saat logout:", error);
+    } finally {
+      // 1. Panggil logout dari AuthContext (Reset State Global)
+      logout();
+
+      setIsLoading(false);
+
+      // 2. Redirect ke /login dengan replace: true agar history browser bersih
+      navigate("/login", { replace: true });
+    }
+  };
 
   return (
     <>
@@ -26,7 +97,7 @@ const Navbar = () => {
           </div>
           <div>
             <h1 className="font-heading text-lg font-bold leading-none text-neutral-text">
-              Big Data
+              NOLLA
             </h1>
             <span className="text-xs text-neutral-muted">Big Data Project</span>
           </div>
@@ -37,48 +108,75 @@ const Navbar = () => {
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             return (
-              <button
+              <NavLink
                 key={index}
-                className={`flex items-center transition-all cursor-pointer 
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center transition-all cursor-pointer 
                   /* Mobile Style: Bertumpuk Vertikal */
                   flex-col justify-center 
                   /* Desktop Style: Lurus Horizontal Rata Kiri */
                   md:flex-row md:justify-start md:gap-3 md:rounded-xl md:px-4 md:py-3 ${
-                    item.active
+                    isActive
                       ? "text-primary font-semibold md:bg-primary md:text-white md:shadow-sm"
                       : "text-neutral-muted hover:text-neutral-text md:hover:bg-neutral-bg"
-                  }`}
+                  }`
+                }
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 <span className="text-[10px] mt-0.5 md:mt-0 md:text-sm font-medium">
                   {item.label}
                 </span>
-              </button>
+              </NavLink>
             );
           })}
         </nav>
 
-        {/* Profile (Desktop) */}
+        {/* Profile & Logout Button (Desktop) */}
         <div className="hidden border-t border-neutral-border bg-neutral-bg/50 p-4 md:flex md:w-full md:items-center md:justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-dark text-xs font-semibold text-white">
-              U
-            </div>
+            {/* Avatar User */}
+            <img
+              src={avatarSource}
+              alt={`Avatar ${displayName}`}
+              onError={(event) => {
+                event.currentTarget.src = avatar1;
+              }}
+              className="h-9 w-9 shrink-0 rounded-full border border-slate-200 bg-white object-cover shadow-xs"
+            />
+
+            {/* Nama & Email Dinamis */}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-neutral-text">
-                User
+                {displayName}
               </p>
               <p className="truncate text-xs text-neutral-muted">
-                User@gmail.com
+                {displayEmail}
               </p>
             </div>
           </div>
 
-          <button className="cursor-pointer rounded-lg p-1.5 text-neutral-muted hover:text-danger transition-colors">
-            <LogOut className="h-5 w-5" />
+          <button
+            onClick={() => setIsLogoutConfirmOpen(true)}
+            disabled={isLoading}
+            title="Keluar"
+            className="cursor-pointer rounded-lg p-1.5 text-neutral-muted hover:text-danger hover:bg-neutral-card transition-colors disabled:opacity-50"
+          >
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-neutral-muted" />
+            ) : (
+              <LogOut className="h-5 w-5" />
+            )}
           </button>
         </div>
       </aside>
+
+      <LogoutConfirmModal
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        isLoading={isLoading}
+      />
 
       {/* Spacer Mobile */}
       <div className="h-16 md:hidden" />

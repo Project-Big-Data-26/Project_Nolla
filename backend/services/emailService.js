@@ -12,20 +12,23 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendOTPEmail = async (email, otp) => {
+const sendOTPEmail = async (email, otp, type = "EMAIL_VERIFICATION") => {
   try {
+    const isPasswordReset = type === "PASSWORD_RESET";
+    const purpose = isPasswordReset ? "reset password" : "memverifikasi email";
+    const validityMinutes = isPasswordReset ? 15 : 10;
     const mailOptions = {
-      from: `"E-Learning App" <${process.env.SMTP_USER}>`, // Nama pengirim
+      from: `"Nolla App" <${process.env.SMTP_USER}>`,
       to: email, // Email tujuan
-      subject: "Kode Verifikasi (OTP) Anda",
+      subject: isPasswordReset ? "Kode Reset Password" : "Kode Verifikasi (OTP) Anda",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-          <h2>Verifikasi Email</h2>
+          <h2>${isPasswordReset ? "Reset Password" : "Verifikasi Email"}</h2>
           <p>Halo,</p>
-          <p>Terima kasih telah mendaftar. Berikut adalah kode OTP untuk memverifikasi email Anda:</p>
+          <p>Gunakan kode OTP berikut untuk ${purpose}:</p>
           <h1 style="color: #4CAF50; letter-spacing: 2px;">${otp}</h1>
-          <p>Kode ini hanya berlaku selama <strong>10 menit</strong>.</p>
-          <p>Jika Anda tidak merasa mendaftar, abaikan email ini.</p>
+          <p>Kode ini hanya berlaku selama <strong>${validityMinutes} menit</strong>.</p>
+          <p>Jika Anda tidak meminta kode ini, abaikan email ini.</p>
         </div>
       `,
     };
@@ -44,37 +47,4 @@ const sendOTPEmail = async (email, otp) => {
   }
 };
 
-const sendPasswordResetOTPEmail = async (to, otp) => {
-  const mailOptions = {
-    from: `"E-Learning Project" <${process.env.SMTP_USER}>`,
-    to,
-    subject: "Kode Reset Password",
-    text: `Kode OTP untuk reset password Anda adalah: ${otp}. Kode ini berlaku selama 15 menit.`,
-    html: `
-      <div style="font-family: Arial, sans-serif;">
-        <h2>Reset Password</h2>
-
-        <p>
-          Gunakan kode OTP berikut untuk mengubah password Anda:
-        </p>
-
-        <h1 style="letter-spacing: 8px;">
-          ${otp}
-        </h1>
-
-        <p>
-          Kode ini berlaku selama 15 menit.
-        </p>
-
-        <p>
-          Jika Anda tidak meminta reset password,
-          abaikan email ini.
-        </p>
-      </div>
-    `,
-  };
-
-  return transporter.sendMail(mailOptions);
-};
-
-module.exports = { sendOTPEmail, sendPasswordResetOTPEmail };
+module.exports = { sendOTPEmail };

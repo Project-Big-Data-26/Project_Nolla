@@ -1,15 +1,16 @@
-import { useState } from "react";
-import PersonalizationWizard from "./pages/PersonalizationWizard";
-import Dashboard from "./pages/Dashboard";
+import React from "react";
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import AppRoutes from "./routes/AppRoutes";
 
 function App() {
-  const [onboardingDone, setOnboardingDone] = useState(false);
-
-  if (!onboardingDone) {
-    return <PersonalizationWizard onFinish={() => setOnboardingDone(true)} />;
-  }
-
-  return <Dashboard />;
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
 export default App;
