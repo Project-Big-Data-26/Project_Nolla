@@ -891,13 +891,13 @@ const LandingPage = () => {
                     logika matematika yang menyenangkan.
                   </p>
                 </div>
-                <Link
+                {/* <Link
                   to={isAuthenticated ? "/topik" : "/register"}
                   className="w-full max-w-xs inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white hover:shadow-lg transition-all text-center group/btn"
                 >
                   <span>Lihat Topik SD</span>
                   <span className="font-bold text-base leading-none group-hover/btn:translate-x-1 transition-transform">&gt;</span>
-                </Link>
+                </Link> */}
               </div>
             </FadeInSection>
 
@@ -923,13 +923,13 @@ const LandingPage = () => {
                     teorema Pythagoras, dan statistika dasar.
                   </p>
                 </div>
-                <Link
+                {/* <Link
                   to={isAuthenticated ? "/topik" : "/register"}
                   className="w-full max-w-xs inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white hover:shadow-lg transition-all text-center group/btn"
                 >
                   <span>Lihat Topik SMP</span>
                   <span className="font-bold text-base leading-none group-hover/btn:translate-x-1 transition-transform">&gt;</span>
-                </Link>
+                </Link> */}
               </div>
             </FadeInSection>
 
@@ -955,13 +955,13 @@ const LandingPage = () => {
                     matriks, dan teori peluang kombinatorika.
                   </p>
                 </div>
-                <Link
+                {/* <Link
                   to={isAuthenticated ? "/topik" : "/register"}
                   className="w-full max-w-xs inline-flex items-center justify-center gap-2 py-3 px-6 rounded-full font-bold text-sm text-[#2b3fd6] border-2 border-[#2b3fd6] hover:bg-[#2b3fd6] hover:text-white hover:shadow-lg transition-all text-center group/btn"
                 >
                   <span>Lihat Topik SMA</span>
                   <span className="font-bold text-base leading-none group-hover/btn:translate-x-1 transition-transform">&gt;</span>
-                </Link>
+                </Link> */}
               </div>
             </FadeInSection>
           </div>
@@ -1334,7 +1334,7 @@ const LandingPage = () => {
               <div className="flex items-center gap-2.5">
                 {/* Instagram */}
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/celestiall24?"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
@@ -1348,7 +1348,7 @@ const LandingPage = () => {
 
                 {/* TikTok */}
                 <a
-                  href="https://tiktok.com"
+                  href="https://www.tiktok.com/@celestiall.24?"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="TikTok"
@@ -1362,7 +1362,7 @@ const LandingPage = () => {
 
                 {/* YouTube */}
                 <a
-                  href="https://youtube.com"
+                  href="https://www.youtube.com/@FakultasTeknikUM"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="YouTube"
@@ -1409,11 +1409,15 @@ const LandingPage = () => {
                     Jenjang SD–SMA
                   </a>
                 </li>
-                <li>
-                  <Link to="/topik" className="hover:text-white transition-colors">
-                    Daftar Topik
-                  </Link>
-                </li>
+                            <li>
+              <a
+                href="#faq"
+                onClick={(e) => scrollToSection(e, "faq")}
+                className="hover:text-[#0284c7] transition-colors cursor-pointer"
+              >
+                FAQ
+              </a>
+            </li>
               </ul>
             </div>
 
@@ -1425,26 +1429,12 @@ const LandingPage = () => {
               <ul className="space-y-2 text-xs text-slate-400">
                 <li>
                   <a
-                    href="#faq"
-                    onClick={(e) => scrollToSection(e, "faq")}
-                    className="hover:text-white transition-colors cursor-pointer"
+                    href="https://buku.kemendikdasmen.go.id/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
                   >
-                    Pertanyaan Umum (FAQ)
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Kebijakan Privasi
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Syarat &amp; Ketentuan
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Panduan Belajar
+                    SIBI (Sistem Informasi Perbukuan Indonesia)
                   </a>
                 </li>
               </ul>
@@ -1459,20 +1449,19 @@ const LandingPage = () => {
                 <li className="flex items-start gap-2">
                   <MapPin size={15} className="text-[#ff8a1f] shrink-0 mt-0.5" />
                   <span className="leading-relaxed">
-                    123 Education Lane,<br />
-                    Knowledge City
+                    Jalan Semarang No. 5, Sumbersari, Kecamatan Lowokwaru, Kota Malang, Jawa Timur 65145<br />
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Phone size={15} className="text-[#ff8a1f] shrink-0" />
                   <a href="tel:+15551234567" className="hover:text-white transition-colors truncate">
-                    +1 (555) 123-4567
+                    (0341) 551312
                   </a>
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail size={15} className="text-[#ff8a1f] shrink-0" />
                   <a href="mailto:info@brightfuture.edu" className="hover:text-white transition-colors break-all">
-                    info@brightfuture.edu
+                    qa.nolla.akun01@gmail.com
                   </a>
                 </li>
               </ul>
@@ -1484,9 +1473,9 @@ const LandingPage = () => {
                 NEWSLETTER
               </h4>
               <p className="text-xs text-slate-400 mb-3 leading-relaxed">
-                Stay updated with our latest news and events.
+                Dapatkan informasi terkini mengenai berita dan acara kami.
               </p>
-              <form onSubmit={handleNewsletterSubmit} className="flex items-center w-full rounded-md overflow-hidden bg-white shadow-md">
+              {/* <form onSubmit={handleNewsletterSubmit} className="flex items-center w-full rounded-md overflow-hidden bg-white shadow-md">
                 <input
                   type="email"
                   placeholder="Enter your email"
@@ -1503,7 +1492,7 @@ const LandingPage = () => {
                 >
                   <ArrowRight size={16} className="stroke-[2.5]" />
                 </button>
-              </form>
+              </form> */}
               {newsletterStatus === "success" && (
                 <p className="text-[11px] text-emerald-400 mt-2 font-medium animate-in fade-in">
                   ✓ Terima kasih sudah berlangganan!

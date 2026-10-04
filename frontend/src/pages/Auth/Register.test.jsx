@@ -33,6 +33,12 @@ describe("Register", () => {
         expect(screen.getByText("Buat Akun Baru")).toBeInTheDocument();
     });
 
+    it("menampilkan tombol kembali ke landing page", () => {
+        renderWithRouter(<Register />);
+        const homeLink = screen.getByRole("link", { name: "Kembali ke Beranda" });
+        expect(homeLink).toHaveAttribute("href", "/");
+    });
+
     it("menampilkan 4 field: nama, email, password, konfirmasi password", () => {
         renderWithRouter(<Register />);
         expect(screen.getByPlaceholderText("Nama Lengkap")).toBeInTheDocument();

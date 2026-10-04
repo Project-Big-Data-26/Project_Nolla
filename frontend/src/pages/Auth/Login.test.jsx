@@ -27,6 +27,12 @@ describe("Login", () => {
         expect(screen.getByText("Masuk ke Akun Anda")).toBeInTheDocument();
     });
 
+    it("menampilkan tombol kembali ke landing page", () => {
+        renderWithRouter(<Login />);
+        const homeLink = screen.getByRole("link", { name: "Kembali ke Beranda" });
+        expect(homeLink).toHaveAttribute("href", "/");
+    });
+
     it("menampilkan field email dan password", () => {
         renderWithRouter(<Login />);
         expect(screen.getByPlaceholderText("Alamat Email")).toBeInTheDocument();
