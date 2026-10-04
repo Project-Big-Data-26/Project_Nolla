@@ -209,8 +209,14 @@ const getPretestQuestionState = async (pretest) => {
     answeredRecords.length < prerequisiteQuestionLimit &&
     remainingPrerequisiteQuestions.length
   ) {
+    const hardPrerequisiteQuestions = selectQuestionByDifficulty(
+      remainingPrerequisiteQuestions,
+      "hard",
+    );
     const nextQuestion = pickDeterministicQuestion(
-      selectQuestionByDifficulty(remainingPrerequisiteQuestions, "hard"),
+      hardPrerequisiteQuestions.length
+        ? hardPrerequisiteQuestions
+        : remainingPrerequisiteQuestions,
     );
 
     return {
@@ -276,8 +282,14 @@ const getPretestQuestionState = async (pretest) => {
           ? "hard"
           : "easy";
 
+    const questionsAtTargetDifficulty = selectQuestionByDifficulty(
+      questionsInSubbab,
+      targetDifficulty,
+    );
     const nextQuestion = pickRandomQuestion(
-      selectQuestionByDifficulty(questionsInSubbab, targetDifficulty),
+      questionsAtTargetDifficulty.length
+        ? questionsAtTargetDifficulty
+        : questionsInSubbab,
     );
 
     if (nextQuestion) {

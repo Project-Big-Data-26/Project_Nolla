@@ -311,31 +311,9 @@ const QuestionPage = () => {
           );
 
           if (!questionData) {
-            await API.post(`/pretest/${pretestId}/submit`, {});
-
-            const resultResponse = await API.get(
-              `/pretest/${pretestId}/result`,
+            throw new Error(
+              "Soal pretest belum tersedia. Tekan Coba lagi untuk memuat ulang soal.",
             );
-
-            sessionStorage.setItem(
-              `pretest-review:${pretestId}`,
-              JSON.stringify({
-                sessionId: String(pretestId),
-                babId: String(babId),
-                name: chapterName,
-                questions: savedHistory,
-                result: resultResponse.data.data,
-              }),
-            );
-
-            sessionStorage.removeItem(storageKey);
-
-            return {
-              navigateToReview: `/review-quiz?mode=pretest&sessionId=${encodeURIComponent(
-                pretestId,
-              )}`,
-              session: null,
-            };
           }
 
           return {
