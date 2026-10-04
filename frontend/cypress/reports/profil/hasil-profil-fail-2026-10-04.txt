@@ -1,0 +1,71 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+====================================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (profile-fail.cy.js)                                                   │
+  │ Searched:       cypress/e2e/auth/profile-fail.cy.js                                            │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  profile-fail.cy.js                                                              (1 of 1)
+
+
+  Profil: tampilan (AKUN-01)
+    ✓ CY-PROFIL-019 istilah 'kata sandi' dipakai (bukan 'password') (2145ms)
+    ✓ CY-PROFIL-028 kata sandi tersembunyi secara default (2565ms)
+    ✓ CY-PROFIL-029 tampilkan dan sembunyikan kata sandi (3128ms)
+    ✓ CY-PROFIL-005 gagal mengambil data profil lalu coba lagi (1785ms)
+    ✓ CY-PROFIL-036 menu Keluar menampilkan konfirmasi keluar (1683ms)
+
+  Profil: Edit Profil (AKUN-08)
+    ✓ CY-PROFIL-009 mengubah jenjang dan materi BAB menyesuaikan (9352ms)
+    ✓ CY-PROFIL-010 mengganti avatar dari daftar sistem (5560ms)
+    ✓ CY-PROFIL-012 mengubah beberapa data sekaligus (7447ms)
+
+  Profil: Ganti Kata Sandi (AKUN-08)
+    ✓ CY-PROFIL-035 kata sandi baru sama dengan kata sandi saat ini (3948ms)
+
+
+  9 passing (38s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        9                                                                                │
+  │ Passing:      9                                                                                │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     37 seconds                                                                       │
+  │ Spec Ran:     profile-fail.cy.js                                                               │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+====================================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  profile-fail.cy.js                       00:37        9        9        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:37        9        9        -        -        -  
+

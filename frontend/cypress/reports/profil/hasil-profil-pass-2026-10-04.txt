@@ -1,0 +1,88 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (profile-pass.cy.js)                                                   │
+  │ Searched:       cypress/e2e/profil/profile-pass.cy.js                                          │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  profile-pass.cy.js                                                              (1 of 1)
+
+
+  Profil: tampilan (AKUN-01)
+    ✓ CY-PROFIL-001 membuka halaman Profil dari menu (3080ms)
+    ✓ CY-PROFIL-002 data di halaman Profil hanya bisa dibaca (1456ms)
+    ✓ CY-PROFIL-006 form Edit Profil menampilkan data saat ini (2029ms)
+    ✓ CY-PROFIL-007 email tidak dapat diubah (3533ms)
+    ✓ CY-PROFIL-011 tidak ada opsi unggah gambar sendiri (2513ms)
+    ✓ CY-PROFIL-018 form Ganti Kata Sandi tampil (1934ms)
+
+  Profil: tanpa login
+    ✓ CY-PROFIL-004 membuka halaman Profil tanpa login (376ms)
+
+  Profil: Edit Profil (AKUN-08)
+    ✓ CY-PROFIL-008 mengubah nama (7967ms)
+    ✓ CY-PROFIL-013 nama kosong (4365ms)
+    ✓ CY-PROFIL-014 nama hanya berisi spasi (4510ms)
+    ✓ CY-PROFIL-015 nama berisi tag HTML atau script (6887ms)
+    ✓ CY-PROFIL-016 batal mengedit profil (6080ms)
+    ✓ CY-PROFIL-017 gagal menyimpan perubahan profil (4542ms)
+
+  Profil: Ganti Kata Sandi (AKUN-08)
+    ✓ CY-PROFIL-020 ganti kata sandi berhasil (8751ms)
+    ✓ CY-PROFIL-021 kata sandi lama salah (4675ms)
+    ✓ CY-PROFIL-022 kata sandi baru kurang dari 8 karakter (2709ms)
+    ✓ CY-PROFIL-023 kata sandi baru tanpa huruf besar (3008ms)
+    ✓ CY-PROFIL-024 kata sandi baru tanpa huruf kecil (2925ms)
+    ✓ CY-PROFIL-025 kata sandi baru tanpa angka (2889ms)
+    ✓ CY-PROFIL-026 konfirmasi kata sandi tidak cocok (2792ms)
+    ✓ CY-PROFIL-027 field kata sandi kosong (2275ms)
+    ✓ CY-PROFIL-033 akun email: kolom kata sandi saat ini tampil dan wajib diisi (3721ms)
+    ✓ CY-PROFIL-030 batal mengganti kata sandi (4366ms)
+    ✓ CY-PROFIL-031 gagal menyimpan kata sandi baru (4163ms)
+
+
+  24 passing (2m)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        24                                                                               │
+  │ Passing:      24                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     1 minute, 31 seconds                                                             │
+  │ Spec Ran:     profile-pass.cy.js                                                               │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  profile-pass.cy.js                       01:31       24       24        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        01:31       24       24        -        -        -  
+

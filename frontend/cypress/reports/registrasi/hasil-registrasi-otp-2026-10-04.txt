@@ -1,0 +1,71 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+======================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Chrome 154                                                                     │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (registrasi-otp.cy.js)                                                 │
+  │ Searched:       cypress/e2e/registrasi/registrasi-otp.cy.js                                    │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  registrasi-otp.cy.js                                                            (1 of 1)
+
+
+  AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang
+    ✓ CY-REG-004 Registrasi lewat form dengan data valid (7621ms)
+    ✓ CY-REG-019 Kode OTP kurang dari 6 digit (547ms)
+    ✓ CY-REG-020 Kode OTP salah (2568ms)
+    ✓ CY-REG-006 Verifikasi OTP benar lalu masuk otomatis (OTP diketik tester) (73808ms)
+    ✓ CY-REG-009 Menyimpan tanpa memilih jenjang (154ms)
+    ✓ CY-REG-008 Melewati pemilihan jenjang (3172ms)
+    ✓ CY-REG-034 Data akun baru tampil di Profil dan bisa login manual (1466ms)
+    ✓ CY-REG-033 Istilah "kata sandi" di halaman Registrasi, Verifikasi, dan pemilihan jenjang (5ms)
+
+  AKUN-09: registrasi lewat form, OTP, lalu memilih jenjang SMP
+    ✓ Persiapan: daftarkan AKUN-09 dan verifikasi OTP (OTP diketik tester) (31382ms)
+    ✓ CY-REG-032 Gagal menyimpan jenjang (respons server tiruan 500) (300ms)
+    ✓ CY-REG-007 Memilih jenjang lalu materi BAB sesuai jenjang (4265ms)
+
+
+  11 passing (2m)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        11                                                                               │
+  │ Passing:      11                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     2 minutes, 5 seconds                                                             │
+  │ Spec Ran:     registrasi-otp.cy.js                                                             │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+======================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  registrasi-otp.cy.js                     02:05       11       11        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        02:05       11       11        -        -        -  
+

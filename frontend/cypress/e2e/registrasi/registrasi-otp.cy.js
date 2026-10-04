@@ -70,11 +70,12 @@ function daftarSampaiVerifikasi(akun) {
     isiForm({ nama: akun.nama, email: akun.email, sandi: akun.sandi, konfirmasi: akun.sandi })
     klikDaftarAkun()
     cy.wait('@kirimRegistrasi', { requestTimeout: 10000, responseTimeout: 60000 })
-        .its('response.statusCode')
-        .then((status) => {
+        .its('response')
+        .then((respons) => {
+            const pesan = respons.body && respons.body.message ? respons.body.message : '(tanpa pesan)'
             expect(
-                status,
-                `status registrasi ${akun.kode} (4xx biasanya karena email sudah ada: hapus ${akun.kode} dari MongoDB)`,
+                respons.statusCode,
+                `status registrasi ${akun.kode}; pesan server: "${pesan}" (400 dengan "sudah terdaftar" berarti ${akun.kode} masih ada di MongoDB; 429 berarti kena pembatas request: restart backend)`,
             ).to.be.within(200, 299)
         })
     cy.location('pathname', { timeout: 10000 }).should('eq', '/verify')
@@ -109,6 +110,45 @@ function klikSimpanJenjang() {
     cy.contains('button', 'Simpan & Mulai Belajar').click()
 }
 
+// Pastikan jenjang yang sedang terpilih di halaman Profil (area berlabel "Jenjang Belajar").
+// Mendukung <select> asli maupun dropdown buatan (teks tombol pemicunya).
+// Kalau area itu baru muncul setelah tombol edit diklik, tombolnya diklik dulu.
+function harusJenjangProfil(akun, pola, pesan) {
+    const adaLabelJenjang = ($body) =>
+        $body.find('label').filter((_, el) => /jenjang belajar/i.test(el.textContent)).length > 0
+    // Tunggu sampai halaman Profil selesai dimuat (ada label jenjang atau tombol edit).
+    cy.contains(/jenjang belajar|edit|ubah/i, { timeout: 10000 }).should('exist')
+    cy.get('body').then(($body) => {
+        if (adaLabelJenjang($body)) return
+        const tombol = $body.find('button, a').filter((_, el) => /edit|ubah/i.test(el.textContent))
+        const daftar = [...$body.find('button, a')].map((el) => el.textContent.trim()).filter(Boolean).join(' | ')
+        expect(tombol.length, `tombol edit profil (tombol yang ada di halaman: ${daftar})`).to.be.greaterThan(0)
+        const utama = tombol.filter((_, el) => /edit profil|ubah profil/i.test(el.textContent))
+        cy.wrap((utama.length ? utama : tombol).first()).click()
+    })
+    // Form Edit Profil menampilkan data bawaan ("Pelajar Tamu", guest@mathmentor.app,
+    // jenjang "Semua") sampai GET /api/profile selesai. Tunggu kolom Email berisi
+    // email akun ini dulu, baru jenjangnya dibaca.
+    cy.contains('label', /^\s*email\s*$/i, { timeout: 10000 })
+        .parent()
+        .find('input', { timeout: 30000 })
+        .should(($input) => {
+            expect($input.val(), `${akun.kode}: data profil termuat (kolom Email di Edit Profil)`).to.equal(akun.email)
+        })
+    cy.contains('label', /jenjang belajar/i, { timeout: 10000 })
+        .parent()
+        .should(($area) => {
+            const $select = $area.find('select')
+            let nilai
+            if ($select.length) nilai = $select.find('option:selected').text().trim()
+            else {
+                const $pemicu = $area.find('button, [role=combobox], [role=button], [aria-haspopup]').first()
+                nilai = ($pemicu.length ? $pemicu.text() : $area.text()).trim()
+            }
+            expect(nilai, pesan).to.match(pola)
+        })
+}
+
 describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', { testIsolation: false }, () => {
     const teksHalaman = {}
 
@@ -130,10 +170,18 @@ describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', {
         cy.contains(AKUN08.email).should('be.visible')
         kotakOtp().should('have.length', 6)
         cy.contains('button', 'Verifikasi OTP').should('be.visible')
-        cy.contains(/Kirim ulang OTP dalam \d{1,2}:\d{2}/).should('be.visible')
-        cy.contains('Kembali ke Login').should('be.visible')
+        // Rekam teks /verify lebih dulu, supaya CY-REG-033 tetap punya data walau pengecekan di bawah gagal.
         cy.document().then((doc) => {
             teksHalaman['/verify'] = teksTampil(doc)
+        })
+        cy.contains('Kembali ke Login').should('be.visible')
+        // Pengiriman OTP pertama tidak punya jeda: tautan "Kirim ulang OTP" langsung bisa diklik,
+        // tanpa hitung mundur. Hitung mundur baru muncul setelah kirim ulang (CY-REG-022).
+        // Tautannya tidak diklik di sini supaya OTP yang diketik tester di 006 tetap berlaku.
+        cy.contains('a, button', /^\s*Kirim ulang OTP\s*$/).should('be.visible').and('not.be.disabled')
+        cy.document().then((doc) => {
+            const baris = doc.body.innerText.split('\n').filter((s) => /ulang/i.test(s))
+            expect(baris.join(' | '), 'tidak ada hitung mundur pada pengiriman OTP pertama').not.to.match(/\d{1,2}:\d{2}/)
         })
     })
 
@@ -184,7 +232,7 @@ describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', {
         cy.contains(/Kelas 1\b/, { timeout: 15000 }).should('exist')
         cy.contains(/Kelas 7\b/).should('exist')
         cy.visit('/profile')
-        cy.contains('Semua', { timeout: 10000 }).should('be.visible')
+        harusJenjangProfil(AKUN08, /semua/i, 'jenjang di Profil setelah "Lewati"')
         cy.then(() => expect(tujuan, 'halaman tujuan setelah klik "Lewati"').to.equal('/topik'))
     })
 
@@ -192,7 +240,7 @@ describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', {
         cy.visit('/profile')
         cy.contains(AKUN08.nama, { timeout: 10000 }).should('be.visible')
         cy.contains(AKUN08.email).should('be.visible')
-        cy.contains('Semua').should('be.visible')
+        harusJenjangProfil(AKUN08, /semua/i, 'jenjang di Profil')
         cy.clearLocalStorage()
         cy.clearCookies()
         loginLewatForm(AKUN08.email, AKUN08.sandi)
@@ -259,7 +307,7 @@ describe('AKUN-09: registrasi lewat form, OTP, lalu memilih jenjang SMP', { test
         cy.contains(/Kelas 7\b/, { timeout: 15000 }).should('exist')
         cy.contains(/Kelas [1-6]\b/).should('not.exist')
         cy.visit('/profile')
-        cy.contains('SMP', { timeout: 10000 }).should('be.visible')
+        harusJenjangProfil(AKUN09, /smp/i, 'jenjang di Profil setelah memilih SMP')
         cy.then(() => expect(tujuan, 'halaman tujuan setelah "Simpan & Mulai Belajar"').to.equal('/topik'))
     })
 })

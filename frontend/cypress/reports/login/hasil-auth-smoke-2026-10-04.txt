@@ -1,0 +1,59 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (auth-smoke.cy.js)                                                     │
+  │ Searched:       cypress/e2e/login/auth-smoke.cy.js                                             │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  auth-smoke.cy.js                                                                (1 of 1)
+
+
+  Auth smoke test - halaman login
+    ✓ TC-AUTH-001: menampilkan halaman login dan elemen form utama (1425ms)
+
+
+  1 passing (1s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        1                                                                                │
+  │ Passing:      1                                                                                │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     1 second                                                                         │
+  │ Spec Ran:     auth-smoke.cy.js                                                                 │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  auth-smoke.cy.js                         00:01        1        1        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:01        1        1        -        -        -  
+

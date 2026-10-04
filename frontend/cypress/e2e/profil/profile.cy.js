@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
-// TC-Profil_NOLLA.xlsx: test yang belum Pass (019/028/029 bug UI; 005, 009, 010, 012 masih Blocked; 035 dan 036 baru, belum dijalankan). File mandiri, tanpa import.
-// Pindahkan blok it(...) ke profile-pass.cy.js setelah Pass.
+// TC-Profil_NOLLA.xlsx: seluruh test regresi Profil yang sudah Pass. File mandiri, tanpa import.
+// (4 Okt 2026: digabung dari profile-pass.cy.js + profile-fail.cy.js setelah semua test di
+// profile-fail.cy.js lulus, sesuai alur kerja yang didokumentasikan di file itu.)
 // Test case: TC-Profil_NOLLA.xlsx (CY-PROFIL-xxx). Acuan: UCS Mengelola Profil v1.2, SRS v1.3.
 // Backend asli. Request tidak di-mock, kecuali CY-PROFIL-005, 017, 031 (exception gagal server).
 // Kredensial dari frontend/cypress.env.json:
@@ -231,6 +232,62 @@ describe("Profil: tampilan (AKUN-01)", () => {
         login(EMAIL_01, PASS_01);
     });
 
+    it("CY-PROFIL-001 membuka halaman Profil dari menu", () => {
+        cy.contains("a, button", /^profil$/i).click();
+        cy.location("pathname").should("eq", PROFIL);
+        cy.contains(/nama lengkap/i).should("be.visible");
+        cy.contains(EMAIL_01).should("be.visible");
+        cy.contains(/jenjang belajar/i).should("be.visible");
+        cy.get("img").should("exist"); // avatar
+        cy.contains("Pelajar Tamu").should("not.exist"); // data contoh lama
+    });
+
+    it("CY-PROFIL-002 data di halaman Profil hanya bisa dibaca", () => {
+        cy.visit(PROFIL);
+        cy.contains(EMAIL_01).should("be.visible");
+        cy.get("input:not([type=hidden]), select, textarea").should("not.exist");
+        cy.contains("button, a", /edit profil/i).should("be.visible");
+    });
+
+    it("CY-PROFIL-006 form Edit Profil menampilkan data saat ini", () => {
+        cy.visit(PROFIL);
+        cy.contains("button, a", /edit profil/i).click();
+        cy.location("pathname").should("eq", EDIT);
+        inputNama().invoke("val").should("not.be.empty");
+        inputEmail().should("have.value", EMAIL_01);
+        cy.contains("button", /ganti avatar/i).should("be.visible");
+        cekOpsiJenjang(["SD", "SMP", "SMA", "Semua"]);
+        cy.contains(/terakhir diperbarui/i).should("be.visible");
+    });
+
+    it("CY-PROFIL-007 email tidak dapat diubah", () => {
+        bukaEdit();
+        inputEmail().then(($i) => {
+            const terkunci = $i.is(":disabled") || $i.is("[readonly]");
+            expect(terkunci, "field email nonaktif/read-only").to.equal(true);
+        });
+        inputEmail().should("have.value", EMAIL_01);
+        cy.contains(/permanen/i).should("be.visible");
+    });
+
+    it("CY-PROFIL-011 tidak ada opsi unggah gambar sendiri", () => {
+        bukaEdit();
+        cy.contains("button", /ganti avatar/i).click();
+        cy.get('input[type="file"]').should("not.exist");
+        cy.contains(/unggah|upload/i).should("not.exist");
+    });
+
+    it("CY-PROFIL-018 form Ganti Kata Sandi tampil", () => {
+        cy.visit(PROFIL);
+        cy.contains(/ganti (password|kata sandi)/i).click();
+        cy.location("pathname").should("eq", GANTI_SANDI);
+        fieldSandiLama().should("be.visible");
+        fieldSandiBaru().should("be.visible");
+        fieldKonfirmasi().should("be.visible");
+        cy.contains("button", /^batal$/i).should("be.visible");
+        tombolSimpan().should("be.visible");
+    });
+
     it("CY-PROFIL-019 istilah 'kata sandi' dipakai (bukan 'password')", () => {
         cy.visit(PROFIL);
         cy.get("body").invoke("text").should("not.match", /password/i);
@@ -291,6 +348,17 @@ describe("Profil: tampilan (AKUN-01)", () => {
     });
 });
 
+describe("Profil: tanpa login", () => {
+
+    it("CY-PROFIL-004 membuka halaman Profil tanpa login", () => {
+        cy.clearAllLocalStorage();
+        [PROFIL, EDIT, GANTI_SANDI].forEach((url) => {
+            cy.visit(url);
+            cy.location("pathname").should("eq", "/login");
+        });
+    });
+});
+
 describe("Profil: Edit Profil (AKUN-08)", () => {
     beforeEach(() => {
         alerts = [];
@@ -345,6 +413,86 @@ describe("Profil: Edit Profil (AKUN-08)", () => {
         kembalikanProfil08();
     });
 
+    it("CY-PROFIL-008 mengubah nama", () => {
+        const namaBaru = "QA Akun Delapan Edit";
+        bukaEdit();
+        inputNama().clear().type(namaBaru);
+        simpanProfil();
+        adaPesan(RE_BERHASIL);
+        cy.visit(PROFIL);
+        cy.contains(namaBaru).should("be.visible");
+        cy.reload();
+        cy.contains(namaBaru).should("be.visible");
+        // Langkah 5: buka Edit Profil lagi; tanggal "Terakhir diperbarui" = hari ini (format tampilan: "3 Okt 2026")
+        bukaEdit();
+        inputNama().should("have.value", namaBaru);
+        cy.contains(/terakhir diperbarui/i).should("contain.text", tanggalHariIni());
+        kembalikanProfil08();
+    });
+
+    it("CY-PROFIL-013 nama kosong", () => {
+        bukaEdit();
+        inputNama().clear();
+        tombolSimpan().click();
+        adaPesan(RE_NAMA_KOSONG);
+        cy.location("pathname").should("eq", EDIT);
+        cy.visit(PROFIL);
+        cy.contains(NAMA_08).should("be.visible");
+    });
+
+    it("CY-PROFIL-014 nama hanya berisi spasi", () => {
+        bukaEdit();
+        inputNama().clear().type("   ");
+        tombolSimpan().click();
+        adaPesan(RE_NAMA_KOSONG);
+        cy.visit(PROFIL);
+        cy.contains(NAMA_08).should("be.visible");
+    });
+
+    it("CY-PROFIL-015 nama berisi tag HTML atau script", () => {
+        const stub = cy.stub().as("alertXss");
+        cy.on("window:alert", (t) => { if (t === "1") stub(t); });
+        bukaEdit();
+        inputNama().clear().type("<script>alert(1)</script>", { parseSpecialCharSequences: false });
+        simpanProfil();
+        adaPesan(RE_BERHASIL); // tunggu simpan selesai sebelum pindah halaman
+        cy.visit(PROFIL);
+        cy.get("@alertXss").should("not.have.been.called");
+        // Aman bila tidak ada script yang berjalan dan tidak ada elemen <script> dari input.
+        // Teks nama boleh ditolak, tampil apa adanya, atau dibersihkan; lihat screenshot untuk isi sebenarnya.
+        cy.get("#root script").should("not.exist");
+        cy.get("main").invoke("text").then((t) => cy.log("Isi halaman Profil setelah simpan: " + t.slice(0, 200)));
+        kembalikanProfil08();
+    });
+
+    it("CY-PROFIL-016 batal mengedit profil", () => {
+        bukaEditDariProfil(); // masuk lewat Profil agar tombol kembali punya halaman asal
+        inputNama().clear().type("Tidak Disimpan");
+        pilihJenjang("SMA");
+        // Tombol "Simpan Perubahan" baru muncul setelah ada perubahan; Edit Profil tidak punya tombol Batal, hanya panah kembali
+        tombolSimpan().should("be.visible");
+        cy.get("body").then(($b) => {
+            const panah = $b.find('button:has(svg[class*="arrow-left" i]), a:has(svg[class*="arrow-left" i])');
+            if (panah.length) cy.wrap(panah.first()).click();
+            else cy.get("main button, main a").first().click();
+        });
+        cy.location("pathname").should("eq", PROFIL);
+        cy.contains("Tidak Disimpan").should("not.exist");
+        bukaEdit();
+        inputNama().should("have.value", NAMA_08);
+    });
+
+    it("CY-PROFIL-017 gagal menyimpan perubahan profil", () => {
+        cy.intercept({ method: /PUT|PATCH|POST/, url: /\/api\/.*profile/ }, { statusCode: 500, body: { message: "error" } }).as("simpanGagal");
+        bukaEdit();
+        inputNama().clear().type("Gagal Simpan");
+        tombolSimpan().click();
+        cy.wait("@simpanGagal");
+        adaPesan(RE_GAGAL);
+        cy.visit(PROFIL);
+        cy.contains("Gagal Simpan").should("not.exist");
+        cy.contains(NAMA_08).should("be.visible");
+    });
 });
 
 describe("Profil: Ganti Kata Sandi (AKUN-08)", () => {
@@ -354,6 +502,107 @@ describe("Profil: Ganti Kata Sandi (AKUN-08)", () => {
         cy.clearAllLocalStorage();
         login(EMAIL_08, PASS_08);
         cy.visit(GANTI_SANDI);
+    });
+
+    it("CY-PROFIL-020 ganti kata sandi berhasil", () => {
+        isiSandi(PASS_08, PASS_BARU_8, PASS_BARU_8);
+        tombolSimpan().click();
+        adaPesan(RE_BERHASIL);
+        cy.location("pathname").should("eq", PROFIL);
+        // Kata sandi lama sudah tidak berlaku
+        keluar();
+        cy.visit("/login");
+        cy.get('input[type="email"]').type(EMAIL_08);
+        cy.get('input[type="password"]').type(PASS_08, { log: false });
+        cy.contains("button", /^masuk$/i).click();
+        adaPesan(new RegExp(PESAN_GENERIK, "i"));
+        // Kata sandi baru berlaku
+        login(EMAIL_08, PASS_BARU_8);
+        // Kembalikan kata sandi AKUN-08
+        gantiSandiViaUi(PASS_BARU_8, PASS_08);
+        keluar();
+        login(EMAIL_08, PASS_08);
+    });
+
+    it("CY-PROFIL-021 kata sandi lama salah", () => {
+        isiSandi("SalahLama123", PASS_BARU, PASS_BARU);
+        tombolSimpan().click();
+        pesanErrorSandi().should("be.visible").invoke("text").then((t) => {
+            cy.log("Pesan aplikasi: " + t);
+            expect(t, "pesan soal kata sandi lama").to.match(/(salah|tidak sesuai|tidak cocok|keliru)/i);
+            expect(t, "bukan pesan syarat kata sandi baru").to.not.match(/belum memenuhi ketentuan/i);
+        });
+        cy.location("pathname").should("eq", GANTI_SANDI);
+        keluar();
+        login(EMAIL_08, PASS_08); // kata sandi tidak berubah
+    });
+
+    [
+        ["CY-PROFIL-022", "kurang dari 8 karakter", "Nolla12"],
+        ["CY-PROFIL-023", "tanpa huruf besar", "nolla1234"],
+        ["CY-PROFIL-024", "tanpa huruf kecil", "NOLLA1234"],
+        ["CY-PROFIL-025", "tanpa angka", "NollaNolla"],
+    ].forEach(([id, judul, sandi]) => {
+        it(`${id} kata sandi baru ${judul}`, () => {
+            isiSandi(PASS_08, sandi, sandi);
+            tombolSimpan().click();
+            pesanErrorSandi().should("be.visible").and("contain.text", "Kata sandi baru belum memenuhi ketentuan.");
+            cy.location("pathname").should("eq", GANTI_SANDI);
+        });
+    });
+
+    it("CY-PROFIL-026 konfirmasi kata sandi tidak cocok", () => {
+        isiSandi(PASS_08, "Nolla1234", "Nolla1235");
+        tombolSimpan().click();
+        pesanErrorSandi().should("be.visible").and("contain.text", "Konfirmasi kata sandi tidak sesuai.");
+        cy.location("pathname").should("eq", GANTI_SANDI);
+    });
+
+    it("CY-PROFIL-027 field kata sandi kosong", () => {
+        tombolSimpan().click();
+        cy.location("pathname").should("eq", GANTI_SANDI);
+        pesanErrorSandi().should("be.visible").and("contain.text", "Kata sandi baru belum memenuhi ketentuan.");
+        fieldSandiLama().type(PASS_08, { log: false });
+        tombolSimpan().click();
+        cy.location("pathname").should("eq", GANTI_SANDI);
+        pesanErrorSandi().should("be.visible");
+    });
+
+    it("CY-PROFIL-033 akun email: kolom kata sandi saat ini tampil dan wajib diisi", () => {
+        fieldSandiLama().should("be.visible").and("be.enabled"); // kolom ini hanya disembunyikan untuk akun tanpa kata sandi (AF 4b.1a)
+        isiSandi(null, PASS_BARU, PASS_BARU);
+        tombolSimpan().click();
+        cy.location("pathname").should("eq", GANTI_SANDI);
+        // Expected TC revisi 4 (Exc 4b.4b)
+        pesanErrorSandi().should("be.visible").and("contain.text", "Kata sandi baru belum memenuhi ketentuan.");
+        keluar();
+        login(EMAIL_08, PASS_08); // kata sandi tidak berubah
+    });
+
+    it("CY-PROFIL-030 batal mengganti kata sandi", () => {
+        bukaGantiSandiDariProfil();
+        isiSandi(PASS_08, PASS_BARU, PASS_BARU);
+        cy.contains("button", /^batal$/i).click();
+        // UCS 4b.2a: Batal mengosongkan form dan tetap di halaman; 4b.2b: tombol kembali ke Profil
+        cy.location("pathname").should("eq", GANTI_SANDI);
+        fieldSandiLama().should("have.value", "");
+        fieldSandiBaru().should("have.value", "");
+        fieldKonfirmasi().should("have.value", "");
+        cy.get('button[title="Kembali ke Profil"]').click();
+        cy.location("pathname").should("eq", PROFIL);
+        keluar();
+        login(EMAIL_08, PASS_08); // kata sandi lama masih berlaku
+    });
+
+    it("CY-PROFIL-031 gagal menyimpan kata sandi baru", () => {
+        cy.intercept({ method: /PUT|PATCH|POST/, url: /\/api\/.*(profile|password)/ }, { statusCode: 500, body: { message: "error" } }).as("sandiGagal");
+        isiSandi(PASS_08, PASS_BARU, PASS_BARU);
+        tombolSimpan().click();
+        cy.wait("@sandiGagal");
+        adaPesan(RE_GAGAL);
+        cy.location("pathname").should("eq", GANTI_SANDI);
+        keluar();
+        login(EMAIL_08, PASS_08); // kata sandi lama masih berlaku
     });
 
     it("CY-PROFIL-035 kata sandi baru sama dengan kata sandi saat ini", () => {

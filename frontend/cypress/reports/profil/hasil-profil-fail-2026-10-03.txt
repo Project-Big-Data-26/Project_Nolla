@@ -1,0 +1,86 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+======================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (profile-fail.cy.js)                                                   │
+  │ Searched:       cypress/e2e/auth/profile-fail.cy.js                                            │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  profile-fail.cy.js                                                              (1 of 1)
+
+
+  Profil: tampilan (AKUN-01)
+    1) CY-PROFIL-019 istilah 'kata sandi' dipakai (bukan 'password')
+    ✓ CY-PROFIL-028 kata sandi tersembunyi secara default (2694ms)
+    ✓ CY-PROFIL-029 tampilkan dan sembunyikan kata sandi (3328ms)
+    ✓ CY-PROFIL-005 gagal mengambil data profil lalu coba lagi (2124ms)
+    ✓ CY-PROFIL-036 menu Keluar menampilkan konfirmasi keluar (2028ms)
+
+  Profil: Edit Profil (AKUN-08)
+    ✓ CY-PROFIL-009 mengubah jenjang dan materi BAB menyesuaikan (12969ms)
+    ✓ CY-PROFIL-010 mengganti avatar dari daftar sistem (5793ms)
+    ✓ CY-PROFIL-012 mengubah beberapa data sekaligus (8065ms)
+
+  Profil: Ganti Kata Sandi (AKUN-08)
+    ✓ CY-PROFIL-035 kata sandi baru sama dengan kata sandi saat ini (4407ms)
+
+
+  8 passing (48s)
+  1 failing
+
+  1) Profil: tampilan (AKUN-01)
+       CY-PROFIL-019 istilah 'kata sandi' dipakai (bukan 'password'):
+     AssertionError: Timed out retrying after 4000ms: expected '\n    NOLLABig Data ProjectBab PembelajaranHasil BelajarProfil<script>alert(1)</script>qa.nolla.akun01@gmail.comGanti Kata SandiPerbarui kata sandi akunmu untuk menjaga keamanan akun.Kata Sandi Saat IniKata Sandi BaruKata sandi belum kuat. Harus memenuhi:Minimal 8 karakterMengandung huruf kecilMengandung huruf besarMengandung angkaTidak sama dengan password saat iniKonfirmasi Kata Sandi BaruBatalSimpan kata sandi\n    \n  \n\n' not to match /password/i
+      at Context.eval (webpack://client/./cypress/e2e/auth/profile-fail.cy.js:241:38)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        9                                                                                │
+  │ Passing:      8                                                                                │
+  │ Failing:      1                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  1                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     48 seconds                                                                       │
+  │ Spec Ran:     profile-fail.cy.js                                                               │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/profile-fa    (2560x1440)
+     il.cy.js/Profil tampilan (AKUN-01) -- CY-PROFIL-019 istilah 'kata sandi' dipakai               
+      (bukan 'password') (failed).png                                                               
+
+
+======================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  profile-fail.cy.js                       00:48        9        8        1        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:48        9        8        1        -        -  
+

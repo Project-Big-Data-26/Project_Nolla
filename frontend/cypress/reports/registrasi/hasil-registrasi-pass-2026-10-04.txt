@@ -1,0 +1,70 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+====================================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (registrasi-pass.cy.js)                                                │
+  │ Searched:       cypress/e2e/registrasi/registrasi-pass.cy.js                                   │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  registrasi-pass.cy.js                                                           (1 of 1)
+
+
+  TC-Registrasi: kasus yang diperkirakan Pass
+    ✓ CY-REG-001 Halaman Registrasi tampil lengkap (567ms)
+    ✓ CY-REG-002 Tautan "Masuk di sini" menuju halaman Login (214ms)
+    ✓ CY-REG-003 Kata sandi tersembunyi dan bisa ditampilkan (1018ms)
+    ✓ CY-REG-011 Field wajib kosong: Nama Lengkap (2673ms)
+    ✓ CY-REG-011 Field wajib kosong: Alamat Email (2356ms)
+    ✓ CY-REG-011 Field wajib kosong: Kata Sandi (2651ms)
+    ✓ CY-REG-011 Field wajib kosong: Konfirmasi Kata Sandi (2652ms)
+    ✓ CY-REG-012 Format email tidak valid (2968ms)
+    ✓ CY-REG-013 Kata sandi kurang dari 8 karakter (atribut minlength) (114ms)
+    ✓ CY-REG-018 Registrasi dengan email yang sudah terdaftar (AKUN-01) (2059ms)
+    ✓ CY-REG-031 Gagal menyimpan akun (respons server tiruan 500) (2018ms)
+    ✓ CY-REG-035 Registrasi lewat form dengan email yang terdaftar lewat Google (AKUN-07) (3306ms)
+
+
+  12 passing (23s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        12                                                                               │
+  │ Passing:      12                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     22 seconds                                                                       │
+  │ Spec Ran:     registrasi-pass.cy.js                                                            │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+====================================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  registrasi-pass.cy.js                    00:22       12       12        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:22       12       12        -        -        -  
+
