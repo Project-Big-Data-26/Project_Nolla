@@ -37,7 +37,7 @@ const chapter = {
   ],
 };
 
-const SearchAccordionHarness = () => {
+const SearchAccordionHarness = ({ handleViewPretestResult = vi.fn() }) => {
   const [collapsedChapters, setCollapsedChapters] = useState(new Set());
   const toggleChapter = (currentChapter, isExpanded) => {
     setCollapsedChapters((previous) => {
@@ -56,7 +56,7 @@ const SearchAccordionHarness = () => {
       collapsedSearchChapters={collapsedChapters}
       toggleChapter={toggleChapter}
       setPretestConfirmChapter={vi.fn()}
-      handleViewPretestResult={vi.fn()}
+      handleViewPretestResult={handleViewPretestResult}
       pretestLoading={false}
       selectedGrade="Kelas 12"
       handleSubtopicAction={vi.fn()}
@@ -69,6 +69,7 @@ describe("ChapterCard search accordion", () => {
     render(<SearchAccordionHarness />);
 
     expect(screen.getByText("1 dari 1 subbab dimulai")).toBeInTheDocument();
+    expect(screen.getByText("100%")).toBeInTheDocument();
     expect(screen.getByText("Aturan Perkalian")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Tutup Sub Bab" }));
 
@@ -76,5 +77,18 @@ describe("ChapterCard search accordion", () => {
     fireEvent.click(screen.getByRole("button", { name: "Lihat Sub Bab" }));
 
     expect(screen.getByText("Aturan Perkalian")).toBeInTheDocument();
+  });
+
+  it("loads the saved pretest result through its handler", () => {
+    const handleViewPretestResult = vi.fn();
+    render(
+      <SearchAccordionHarness
+        handleViewPretestResult={handleViewPretestResult}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Lihat Hasil Pretest" }));
+
+    expect(handleViewPretestResult).toHaveBeenCalledWith(chapter);
   });
 });

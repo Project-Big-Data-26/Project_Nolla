@@ -4,80 +4,11 @@ import SearchBar from "../../../components/SearchBar";
 import TopHeaderIllustration from "../../../components/TopHeaderIllustration";
 import Navbar from "../../../components/Navbar";
 import { CheckCircle2, Clock3, Target } from "lucide-react";
-
-const dataBab = [
-  {
-    _id: "bab-001",
-    kelas_id: "sd",
-    name: "Pecahan Dasar",
-    description:
-      "Memahami konsep dasar pecahan, jenis pecahan, serta penerapannya dalam kehidupan sehari-hari.",
-    display_order: 1,
-    progress: 100,
-    totalMateri: 5,
-    materiSelesai: 5,
-    classReference: "Kelas 4",
-  },
-  {
-    _id: "bab-002",
-    kelas_id: "sd",
-    name: "Operasi Pecahan",
-    description:
-      "Mempelajari penjumlahan, pengurangan, perkalian, dan pembagian pada bilangan pecahan.",
-    display_order: 2,
-    progress: 65,
-    totalMateri: 8,
-    materiSelesai: 5,
-    classReference: "Kelas 5",
-  },
-  {
-    _id: "bab-003",
-    kelas_id: "sd",
-    name: "Pecahan Desimal",
-    description:
-      "Mengenal bilangan desimal serta hubungan antara pecahan biasa, pecahan desimal, dan persen.",
-    display_order: 3,
-    progress: 30,
-    totalMateri: 6,
-    materiSelesai: 2,
-    classReference: "Kelas 5",
-  },
-  {
-    _id: "bab-004",
-    kelas_id: "sd",
-    name: "Persentase",
-    description:
-      "Memahami konsep persentase dan menyelesaikan berbagai permasalahan persentase sederhana.",
-    display_order: 4,
-    progress: 0,
-    totalMateri: 7,
-    materiSelesai: 65,
-    classReference: "Kelas 6",
-  },
-  {
-    _id: "bab-005",
-    kelas_id: "sd",
-    name: "Perbandingan",
-    description:
-      "Mempelajari konsep perbandingan dan penggunaannya dalam menyelesaikan masalah matematika.",
-    display_order: 5,
-    progress: 50,
-    totalMateri: 6,
-    materiSelesai: 0,
-    classReference: "Kelas 6",
-  },
-];
+import API from "../../../api/axios";
 
 const progressFilters = ["Semua", "Selesai", "Sedang Dipelajari"];
 
-const localLearningSummary = {
-  selesai: dataBab.filter((bab) => bab.progress >= 100).length,
-  sedangDipelajari: dataBab.filter(
-    (bab) => bab.progress > 0 && bab.progress < 100,
-  ).length,
-};
-
-function LearningSummaryHeader() {
+function LearningSummaryHeader({ summary }) {
   return (
     <section className="mb-7" aria-label="Ringkasan hasil belajar">
       <div className="relative w-full overflow-hidden rounded-3xl border-b border-[#d6e5fb] bg-gradient-to-r from-[#eaf3fe] via-[#edf5fe] to-[#e5eefc] px-4 pb-4 pt-2 shadow-2xs sm:px-6 sm:pb-6 sm:pt-3">
@@ -108,7 +39,7 @@ function LearningSummaryHeader() {
               </p>
             </div>
             <p className="shrink-0 text-lg font-bold leading-none text-slate-900 sm:text-2xl">
-              {localLearningSummary.selesai}{" "}
+              {summary.completed_bab}{" "}
               <span className="text-[10px] font-semibold text-slate-500 sm:text-xs">
                 BAB
               </span>
@@ -125,7 +56,7 @@ function LearningSummaryHeader() {
               </p>
             </div>
             <p className="shrink-0 text-lg font-bold leading-none text-slate-900 sm:text-2xl">
-              {localLearningSummary.sedangDipelajari}{" "}
+              {summary.in_progress_bab}{" "}
               <span className="text-[10px] font-semibold text-slate-500 sm:text-xs">
                 BAB
               </span>
@@ -156,7 +87,7 @@ function BabCard({ bab }) {
         <div className="mb-5">
           <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-slate-700">
             <span>
-              {bab.materiSelesai} dari {bab.totalMateri} subbab dimulai
+              {bab.started_subbab} dari {bab.total_subbab} subbab dimulai
             </span>
             <span className="text-[11px] font-medium text-slate-400">
               {bab.progress}%
@@ -173,10 +104,10 @@ function BabCard({ bab }) {
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
           <div className="text-[11px] font-medium text-slate-400">
-            {bab.classReference || "Kurikulum Nasional"}
+            {bab.class_reference || "Kurikulum Nasional"}
           </div>
           <div className="text-[11px] font-medium text-slate-400">
-            {bab.materiSelesai} dari {bab.totalMateri} subbab selesai
+            {bab.completed_subbab} dari {bab.total_subbab} subbab selesai
           </div>
         </div>
       </div>
@@ -190,6 +121,50 @@ export default function TopikDetail() {
   const [selectedGrade, setSelectedGrade] = useState("Semua");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterDropdownRef = useRef(null);
+  const [babList, setBabList] = useState([]);
+  const [summary, setSummary] = useState({
+    completed_bab: 0,
+    in_progress_bab: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadLearningResults = async () => {
+      setIsLoading(true);
+      setLoadError("");
+
+      try {
+        const response = await API.get("/learning-results");
+        if (!isCurrent) return;
+
+        setBabList(response.data.data || []);
+        setSummary(
+          response.data.summary || {
+            completed_bab: 0,
+            in_progress_bab: 0,
+          },
+        );
+      } catch (error) {
+        if (!isCurrent) return;
+        setLoadError(
+          error.response?.data?.message ||
+            "Hasil pembelajaran gagal dimuat. Silakan coba lagi.",
+        );
+        setBabList([]);
+        setSummary({ completed_bab: 0, in_progress_bab: 0 });
+      } finally {
+        if (isCurrent) setIsLoading(false);
+      }
+    };
+
+    loadLearningResults();
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   // Click outside listener untuk menutup dropdown filter
   useEffect(() => {
@@ -209,23 +184,24 @@ export default function TopikDetail() {
 
   // 3. Filter data bab secara dinamis berdasarkan pencarian & pilihan kelas
   const filteredBab = useMemo(() => {
-    return dataBab
+    return [...babList]
       .sort((a, b) => a.display_order - b.display_order)
       .filter((bab) => {
+        const name = (bab.name || "").toLowerCase();
+        const description = (bab.description || "").toLowerCase();
         const matchesSearch =
-          bab.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          bab.description.toLowerCase().includes(searchQuery.toLowerCase());
+          name.includes(searchQuery.toLowerCase()) ||
+          description.includes(searchQuery.toLowerCase());
 
         const matchesGrade =
           selectedGrade === "Semua" ||
-          (selectedGrade === "Selesai" && bab.progress === 100) ||
+          (selectedGrade === "Selesai" && bab.status === "completed") ||
           (selectedGrade === "Sedang Dipelajari" &&
-            bab.progress > 0 &&
-            bab.progress < 100);
+            bab.status === "in_progress");
 
         return matchesSearch && matchesGrade;
       });
-  }, [searchQuery, selectedGrade]);
+  }, [babList, searchQuery, selectedGrade]);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -233,7 +209,7 @@ export default function TopikDetail() {
 
       <main className="min-w-0 flex-1">
         <div className="mx-auto max-w-6xl px-5 py-8 pb-24 sm:px-8 lg:px-10 md:pb-8">
-          <LearningSummaryHeader />
+          <LearningSummaryHeader summary={summary} />
 
           {/* Panggil SearchBar dengan props lengkap */}
           <SearchBar
@@ -249,8 +225,18 @@ export default function TopikDetail() {
             filterTitle="Filter Berdasarkan Progres"
           />
 
+          {loadError && (
+            <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {loadError}
+            </div>
+          )}
+
           <section className="mt-10">
-            {filteredBab.length === 0 ? (
+            {isLoading ? (
+              <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">
+                Memuat hasil pembelajaran...
+              </div>
+            ) : filteredBab.length === 0 ? (
               <div className="text-center py-12 px-4 bg-white rounded-2xl border border-slate-200">
                 <p className="text-sm font-semibold text-slate-700">
                   Tidak ada bab yang cocok dengan pencarian/filter.
@@ -259,7 +245,7 @@ export default function TopikDetail() {
             ) : (
               <div className="grid gap-5 lg:grid-cols-2">
                 {filteredBab.map((bab) => (
-                  <BabCard key={bab._id} bab={bab} />
+                  <BabCard key={bab.id} bab={bab} />
                 ))}
               </div>
             )}
