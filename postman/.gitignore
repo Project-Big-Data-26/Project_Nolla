@@ -1,0 +1,3 @@
+# Environment berisi kredensial/token asli
+environments/*.postman_environment.json
+!environments/*.example.json
