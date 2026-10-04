@@ -122,22 +122,22 @@ module.exports = {
       prasyarat: [],
       subbab: [
         {
-          name: "A. Menghitung, Membaca, dan Menulis Bilangan",
+          name: "Menghitung, Membaca, dan Menulis Bilangan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Membandingkan Banyak Benda",
+          name: "Membandingkan Banyak Benda",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Menghitung Maju dan Mundur",
+          name: "Menghitung Maju dan Mundur",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Pasangan Bilangan",
+          name: "Pasangan Bilangan",
           description: null,
           display_order: 4,
         },
@@ -152,17 +152,17 @@ module.exports = {
       prasyarat: ["SD1-B1"],
       subbab: [
         {
-          name: "A. Cerita Penjumlahan",
+          name: "Cerita Penjumlahan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Berbagai Cara Melakukan Penjumlahan",
+          name: "Berbagai Cara Melakukan Penjumlahan",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Soal Cerita Penjumlahan",
+          name: "Soal Cerita Penjumlahan",
           description: null,
           display_order: 3,
         },
@@ -177,22 +177,22 @@ module.exports = {
       prasyarat: ["SD1-B2"],
       subbab: [
         {
-          name: "A. Cerita Pengurangan",
+          name: "Cerita Pengurangan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Berbagai Cara Melakukan Pengurangan",
+          name: "Berbagai Cara Melakukan Pengurangan",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Hubungan Penjumlahan dan Pengurangan",
+          name: "Hubungan Penjumlahan dan Pengurangan",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Soal Cerita Pengurangan",
+          name: "Soal Cerita Pengurangan",
           description: null,
           display_order: 4,
         },
@@ -207,17 +207,17 @@ module.exports = {
       prasyarat: [],
       subbab: [
         {
-          name: "A. Mendeskripsikan Benda Berdasarkan Bentuk",
+          name: "Mendeskripsikan Benda Berdasarkan Bentuk",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Mengelompokkan Benda",
+          name: "Mengelompokkan Benda",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Menyusun dan Mengurai Bentuk Bangun",
+          name: "Menyusun dan Mengurai Bentuk Bangun",
           description: null,
           display_order: 3,
         },
@@ -232,22 +232,22 @@ module.exports = {
       prasyarat: ["SD1-B1"],
       subbab: [
         {
-          name: "A. Menghitung, Membaca, dan Menulis Bilangan",
+          name: "Menghitung, Membaca, dan Menulis Bilangan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Menghitung Maju dan Mundur",
+          name: "Menghitung Maju dan Mundur",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Nilai Tempat",
+          name: "Nilai Tempat",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Membandingkan Bilangan",
+          name: "Membandingkan Bilangan",
           description: null,
           display_order: 4,
         },
@@ -262,17 +262,17 @@ module.exports = {
       prasyarat: ["SD1-B2", "SD1-B3", "SD1-B5"],
       subbab: [
         {
-          name: "A. Mengenal Konsep Lebih dari, Kurang dari, dan Selisih",
+          name: "Mengenal Konsep Lebih dari, Kurang dari, dan Selisih",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Penjumlahan yang Hasilnya kurang dari 20",
+          name: "Penjumlahan yang Hasilnya kurang dari 20",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Pengurangan yang Hasilnya Kurang dari 20",
+          name: "Pengurangan yang Hasilnya Kurang dari 20",
           description: null,
           display_order: 3,
         },
@@ -287,12 +287,12 @@ module.exports = {
       prasyarat: ["SD1-B1"],
       subbab: [
         {
-          name: "A. Membandingkan dan Mengurutkan Panjang Benda",
+          name: "Membandingkan dan Mengurutkan Panjang Benda",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Mengukur Panjang Benda",
+          name: "Mengukur Panjang Benda",
           description: null,
           display_order: 2,
         },
@@ -307,12 +307,12 @@ module.exports = {
       prasyarat: ["SD1-B4"],
       subbab: [
         {
-          name: "A. Mengelompokkan Data",
+          name: "Mengelompokkan Data",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Diagram Gambar",
+          name: "Diagram Gambar",
           description: null,
           display_order: 2,
         },
@@ -327,17 +327,17 @@ module.exports = {
       prasyarat: ["SD1-B5"],
       subbab: [
         {
-          name: "A. Menghitung, Membaca, dan Menulis Bilangan sampai dengan 50",
+          name: "Menghitung, Membaca, dan Menulis Bilangan sampai dengan 50",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Nilai Tempat",
+          name: "Nilai Tempat",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Membandingkan Dua Bilangan atau Lebih",
+          name: "Membandingkan Dua Bilangan atau Lebih",
           description: null,
           display_order: 3,
         },
@@ -352,17 +352,17 @@ module.exports = {
       prasyarat: ["SD2-B1", "SD1-B6"],
       subbab: [
         {
-          name: "A. Berbagai Cara Melakukan Penjumlahan",
+          name: "Berbagai Cara Melakukan Penjumlahan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Berbagai Cara Melakukan Pengurangan",
+          name: "Berbagai Cara Melakukan Pengurangan",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Soal Cerita Penjumlahan dan Pengurangan",
+          name: "Soal Cerita Penjumlahan dan Pengurangan",
           description: null,
           display_order: 3,
         },
@@ -377,17 +377,17 @@ module.exports = {
       prasyarat: ["SD1-B4"],
       subbab: [
         {
-          name: "A. Bangun Datar",
+          name: "Bangun Datar",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Mengurai dan Menyusun Bangun Datar",
+          name: "Mengurai dan Menyusun Bangun Datar",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Bangun Ruang",
+          name: "Bangun Ruang",
           description: null,
           display_order: 3,
         },
@@ -402,12 +402,12 @@ module.exports = {
       prasyarat: ["SD2-B3"],
       subbab: [
         {
-          name: "A. Posisi Benda",
+          name: "Posisi Benda",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Pola",
+          name: "Pola",
           description: null,
           display_order: 2,
         },
@@ -422,17 +422,17 @@ module.exports = {
       prasyarat: ["SD2-B1"],
       subbab: [
         {
-          name: "A. Setengah dari Benda Utuh",
+          name: "Setengah dari Benda Utuh",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Setengah dari Kumpulan Benda",
+          name: "Setengah dari Kumpulan Benda",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Seperempat dari Benda Utuh",
+          name: "Seperempat dari Benda Utuh",
           description: null,
           display_order: 3,
         },
@@ -447,12 +447,12 @@ module.exports = {
       prasyarat: ["SD2-B1"],
       subbab: [
         {
-          name: "A. Berat",
+          name: "Berat",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Waktu",
+          name: "Waktu",
           description: null,
           display_order: 2,
         },
@@ -467,12 +467,12 @@ module.exports = {
       prasyarat: ["SD2-B1"],
       subbab: [
         {
-          name: "A. Menghitung, Membaca, dan Menulis Bilangan sampai dengan 100",
+          name: "Menghitung, Membaca, dan Menulis Bilangan sampai dengan 100",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Membandingkan Bilangan",
+          name: "Membandingkan Bilangan",
           description: null,
           display_order: 2,
         },
@@ -487,12 +487,12 @@ module.exports = {
       prasyarat: ["SD1-B8"],
       subbab: [
         {
-          name: "A. Diagram Turus",
+          name: "Diagram Turus",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Diagram Gambar",
+          name: "Diagram Gambar",
           description: null,
           display_order: 2,
         },
@@ -507,37 +507,37 @@ module.exports = {
       prasyarat: ["SD2-B2", "SD2-B7"],
       subbab: [
         {
-          name: "A. Bilangan dan Lambang Bilangan Cacah sampai 1.000",
+          name: "Bilangan dan Lambang Bilangan Cacah sampai 1.000",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Nilai Tempat Bilangan Cacah sampai 1.000",
+          name: "Nilai Tempat Bilangan Cacah sampai 1.000",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Membandingkan dan Mengurutkan Bilangan Cacah sampai 1.000",
+          name: "Membandingkan dan Mengurutkan Bilangan Cacah sampai 1.000",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Penjumlahan Bilangan Cacah sampai 100",
+          name: "Penjumlahan Bilangan Cacah sampai 100",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Pengurangan Bilangan Cacah sampai 100",
+          name: "Pengurangan Bilangan Cacah sampai 100",
           description: null,
           display_order: 5,
         },
         {
-          name: "F. Perkalian Bilangan Cacah sampai 100",
+          name: "Perkalian Bilangan Cacah sampai 100",
           description: null,
           display_order: 6,
         },
         {
-          name: "G. Pembagian Bilangan Cacah sampai 100",
+          name: "Pembagian Bilangan Cacah sampai 100",
           description: null,
           display_order: 7,
         },
@@ -552,12 +552,12 @@ module.exports = {
       prasyarat: ["SD3-B1"],
       subbab: [
         {
-          name: "A. Kalimat Matematika Berkaitan dengan Penjumlahan Bilangan Cacah",
+          name: "Kalimat Matematika Berkaitan dengan Penjumlahan Bilangan Cacah",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Kalimat Matematika Berkaitan dengan Pengurangan Bilangan Cacah",
+          name: "Kalimat Matematika Berkaitan dengan Pengurangan Bilangan Cacah",
           description: null,
           display_order: 2,
         },
@@ -572,22 +572,22 @@ module.exports = {
       prasyarat: ["SD3-B1", "SD2-B6", "SD1-B7"],
       subbab: [
         {
-          name: "A. Pengukuran Panjang dengan Satuan Baku",
+          name: "Pengukuran Panjang dengan Satuan Baku",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Hubungan Antarsatuan Baku Panjang",
+          name: "Hubungan Antarsatuan Baku Panjang",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Pengukuran Berat dengan Satuan Baku",
+          name: "Pengukuran Berat dengan Satuan Baku",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Hubungan Antarsatuan Baku Berat",
+          name: "Hubungan Antarsatuan Baku Berat",
           description: null,
           display_order: 4,
         },
@@ -602,17 +602,17 @@ module.exports = {
       prasyarat: ["SD2-B3"],
       subbab: [
         {
-          name: "A. Sisi Pada Bangun Datar",
+          name: "Sisi Pada Bangun Datar",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Sudut Pada Bidang Datar",
+          name: "Sudut Pada Bidang Datar",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Garis-Garis Tegak Lurus dan Garis-Garis Sejajar",
+          name: "Garis-Garis Tegak Lurus dan Garis-Garis Sejajar",
           description: null,
           display_order: 3,
         },
@@ -627,12 +627,12 @@ module.exports = {
       prasyarat: ["SD2-B8"],
       subbab: [
         {
-          name: "A. Mengurutkan dan Membandingkan Data",
+          name: "Mengurutkan dan Membandingkan Data",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Menyajikan Data dalam Bentuk Tabel",
+          name: "Menyajikan Data dalam Bentuk Tabel",
           description: null,
           display_order: 2,
         },
@@ -647,47 +647,47 @@ module.exports = {
       prasyarat: ["SD3-B1"],
       subbab: [
         {
-          name: "A. Membaca dan Menulis Bilangan Cacah sampai 10.000",
+          name: "Membaca dan Menulis Bilangan Cacah sampai 10.000",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Menentukan dan Menggunakan Nilai Tempat Bilangan Cacah sampai 10.000",
+          name: "Menentukan dan Menggunakan Nilai Tempat Bilangan Cacah sampai 10.000",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Membandingkan dan Mengurutkan Bilangan Cacah sampai 10.000",
+          name: "Membandingkan dan Mengurutkan Bilangan Cacah sampai 10.000",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Komposisi dan Dekomposisi Bilangan Cacah sampai 10.000",
+          name: "Komposisi dan Dekomposisi Bilangan Cacah sampai 10.000",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Penjumlahan Bilangan Cacah sampai 1.000",
+          name: "Penjumlahan Bilangan Cacah sampai 1.000",
           description: null,
           display_order: 5,
         },
         {
-          name: "F. Pengurangan Bilangan Cacah sampai 1.000",
+          name: "Pengurangan Bilangan Cacah sampai 1.000",
           description: null,
           display_order: 6,
         },
         {
-          name: "G. Perkalian Bilangan Cacah Sampai 100",
+          name: "Perkalian Bilangan Cacah Sampai 100",
           description: null,
           display_order: 7,
         },
         {
-          name: "H. Pembagian Bilangan Cacah Sampai 100",
+          name: "Pembagian Bilangan Cacah Sampai 100",
           description: null,
           display_order: 8,
         },
         {
-          name: "I. Faktor dan Kelipatan",
+          name: "Faktor dan Kelipatan",
           description: null,
           display_order: 9,
         },
@@ -702,27 +702,27 @@ module.exports = {
       prasyarat: ["SD2-B5", "SD4-B1"],
       subbab: [
         {
-          name: "A. Pecahan dengan Pembilang Satu",
+          name: "Pecahan dengan Pembilang Satu",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Pecahan dengan Penyebut Sama",
+          name: "Pecahan dengan Penyebut Sama",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Pecahan Senilai",
+          name: "Pecahan Senilai",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Pecahan Desimal Persepuluhan dan Perseratusan",
+          name: "Pecahan Desimal Persepuluhan dan Perseratusan",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Menghubungkan Pecahan Desimal Perseratusan dengan Konsep Persen",
+          name: "Menghubungkan Pecahan Desimal Perseratusan dengan Konsep Persen",
           description: null,
           display_order: 5,
         },
@@ -737,12 +737,12 @@ module.exports = {
       prasyarat: ["SD2-B4", "SD4-B1"],
       subbab: [
         {
-          name: "A. Pola Gambar",
+          name: "Pola Gambar",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Pola Bilangan",
+          name: "Pola Bilangan",
           description: null,
           display_order: 2,
         },
@@ -757,12 +757,12 @@ module.exports = {
       prasyarat: ["SD3-B3", "SD4-B1"],
       subbab: [
         {
-          name: "A. Pengukuran Luas",
+          name: "Pengukuran Luas",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Pengukuran Volume",
+          name: "Pengukuran Volume",
           description: null,
           display_order: 2,
         },
@@ -777,12 +777,12 @@ module.exports = {
       prasyarat: ["SD3-B4"],
       subbab: [
         {
-          name: "A. Ciri-Ciri Bangun Datar",
+          name: "Ciri-Ciri Bangun Datar",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Komposisi dan Dekomposisi Bangun Datar",
+          name: "Komposisi dan Dekomposisi Bangun Datar",
           description: null,
           display_order: 2,
         },
@@ -797,12 +797,12 @@ module.exports = {
       prasyarat: ["SD3-B5"],
       subbab: [
         {
-          name: "A. Piktogram",
+          name: "Piktogram",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Diagram Batang",
+          name: "Diagram Batang",
           description: null,
           display_order: 2,
         },
@@ -817,22 +817,22 @@ module.exports = {
       prasyarat: ["SD4-B1"],
       subbab: [
         {
-          name: "A. Membaca dan Menulis Bilangan Cacah Sampai 100.000 dan Menentukan Nilai Tempatnya",
+          name: "Membaca dan Menulis Bilangan Cacah Sampai 100.000 dan Menentukan Nilai Tempatnya",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Membandingkan dan Mengurutkan Bilangan Cacah Sampai 100.000",
+          name: "Membandingkan dan Mengurutkan Bilangan Cacah Sampai 100.000",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Komposisi dan Dekomposisi Bilangan Sampai 100.000",
+          name: "Komposisi dan Dekomposisi Bilangan Sampai 100.000",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Operasi Hitung pada Bilangan Cacah Sampai 100.000",
+          name: "Operasi Hitung pada Bilangan Cacah Sampai 100.000",
           description: null,
           display_order: 4,
         },
@@ -847,27 +847,27 @@ module.exports = {
       prasyarat: ["SD4-B1"],
       subbab: [
         {
-          name: "A. Kelipatan",
+          name: "Kelipatan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Kelipatan Persekutuan",
+          name: "Kelipatan Persekutuan",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Faktor",
+          name: "Faktor",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Faktor Persekutuan",
+          name: "Faktor Persekutuan",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Menentukan KPK dan FPB dengan Menggunakan Faktor Prima",
+          name: "Menentukan KPK dan FPB dengan Menggunakan Faktor Prima",
           description: null,
           display_order: 5,
         },
@@ -882,17 +882,17 @@ module.exports = {
       prasyarat: ["SD4-B2"],
       subbab: [
         {
-          name: "A. Membandingkan dan Mengurutkan Pecahan",
+          name: "Membandingkan dan Mengurutkan Pecahan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Penjumlahan Bilangan Pecahan",
+          name: "Penjumlahan Bilangan Pecahan",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Pengurangan Bilangan Pecahan",
+          name: "Pengurangan Bilangan Pecahan",
           description: null,
           display_order: 3,
         },
@@ -907,27 +907,27 @@ module.exports = {
       prasyarat: ["SD4-B5"],
       subbab: [
         {
-          name: "A. Apakah Keliling Bangun Datar Itu?",
+          name: "Apakah Keliling Bangun Datar Itu?",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Keliling Segitiga",
+          name: "Keliling Segitiga",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Keliling Segi Empat",
+          name: "Keliling Segi Empat",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Keliling Segi Banyak",
+          name: "Keliling Segi Banyak",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Keliling Bangun Gabungan",
+          name: "Keliling Bangun Gabungan",
           description: null,
           display_order: 5,
         },
@@ -942,22 +942,22 @@ module.exports = {
       prasyarat: ["SD4-B4", "SD5-B4"],
       subbab: [
         {
-          name: "A. Konsep Luas Daerah Bangun Datar",
+          name: "Konsep Luas Daerah Bangun Datar",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Luas Daerah Bangun Datar",
+          name: "Luas Daerah Bangun Datar",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Luas Daerah Bangun Gabungan",
+          name: "Luas Daerah Bangun Gabungan",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Hubungan Keliling dan Luas Daerah Bangun Datar",
+          name: "Hubungan Keliling dan Luas Daerah Bangun Datar",
           description: null,
           display_order: 4,
         },
@@ -972,22 +972,22 @@ module.exports = {
       prasyarat: ["SD3-B4"],
       subbab: [
         {
-          name: "A. Sudut Siku-Siku",
+          name: "Sudut Siku-Siku",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Pengertian Sudut",
+          name: "Pengertian Sudut",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Mengukur dan Membandingkan Sudut",
+          name: "Mengukur dan Membandingkan Sudut",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Melukis Sudut",
+          name: "Melukis Sudut",
           description: null,
           display_order: 4,
         },
@@ -1002,12 +1002,12 @@ module.exports = {
       prasyarat: ["SD4-B5", "SD5-B6"],
       subbab: [
         {
-          name: "A. Membandingkan Ciri-Ciri Segitiga",
+          name: "Membandingkan Ciri-Ciri Segitiga",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Membandingkan Ciri-Ciri Segi Empat",
+          name: "Membandingkan Ciri-Ciri Segi Empat",
           description: null,
           display_order: 2,
         },
@@ -1022,17 +1022,17 @@ module.exports = {
       prasyarat: ["SD4-B6"],
       subbab: [
         {
-          name: "A. Mengumpulkan Data",
+          name: "Mengumpulkan Data",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Piktogram",
+          name: "Piktogram",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Diagram Batang",
+          name: "Diagram Batang",
           description: null,
           display_order: 3,
         },
@@ -1047,17 +1047,17 @@ module.exports = {
       prasyarat: ["SD5-B1"],
       subbab: [
         {
-          name: "A. Membaca dan Menulis Bilangan Cacah Sampai 1.000.000 dan Menentukan Nilai Tempatnya",
+          name: "Membaca dan Menulis Bilangan Cacah Sampai 1.000.000 dan Menentukan Nilai Tempatnya",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Mengurutkan dan Membandingkan Bilangan Sampai 1.000.000",
+          name: "Mengurutkan dan Membandingkan Bilangan Sampai 1.000.000",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Komposisi dan Dekomposisi Bilangan Sampai 1.000.000",
+          name: "Komposisi dan Dekomposisi Bilangan Sampai 1.000.000",
           description: null,
           display_order: 3,
         },
@@ -1072,17 +1072,17 @@ module.exports = {
       prasyarat: ["SD5-B3"],
       subbab: [
         {
-          name: "A. Perkalian Pecahan",
+          name: "Perkalian Pecahan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Pembagian Pecahan",
+          name: "Pembagian Pecahan",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Bilangan Desimal",
+          name: "Bilangan Desimal",
           description: null,
           display_order: 3,
         },
@@ -1097,17 +1097,17 @@ module.exports = {
       prasyarat: ["SD5-B3"],
       subbab: [
         {
-          name: "A. Konsep Rasio",
+          name: "Konsep Rasio",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Konsep Kesamaan Rasio",
+          name: "Konsep Kesamaan Rasio",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Penerapan Rasio",
+          name: "Penerapan Rasio",
           description: null,
           display_order: 3,
         },
@@ -1122,17 +1122,17 @@ module.exports = {
       prasyarat: ["SD2-B4", "SD4-B5", "SD5-B7"],
       subbab: [
         {
-          name: "A. Mengonstruksi dan Mengurai",
+          name: "Mengonstruksi dan Mengurai",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Visualisasi Spasial",
+          name: "Visualisasi Spasial",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Lokasi",
+          name: "Lokasi",
           description: null,
           display_order: 3,
         },
@@ -1147,12 +1147,12 @@ module.exports = {
       prasyarat: ["SD6-B1"],
       subbab: [
         {
-          name: "A. Skala Peluang",
+          name: "Skala Peluang",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Membandingkan Peluang Kejadian",
+          name: "Membandingkan Peluang Kejadian",
           description: null,
           display_order: 2,
         },
@@ -1167,17 +1167,17 @@ module.exports = {
       prasyarat: ["SD5-B2", "SD5-B9"],
       subbab: [
         {
-          name: "A. Memahami Bilangan Bulat",
+          name: "Memahami Bilangan Bulat",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Operasi Hitung Bilangan Bulat",
+          name: "Operasi Hitung Bilangan Bulat",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Faktor Bilangan Bulat",
+          name: "Faktor Bilangan Bulat",
           description: null,
           display_order: 3,
         },
@@ -1192,17 +1192,17 @@ module.exports = {
       prasyarat: ["SD6-B1", "SMP7-B1"],
       subbab: [
         {
-          name: "A. Di Antara Dua Bilangan Bulat",
+          name: "Di Antara Dua Bilangan Bulat",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Membandingkan Bilangan Rasional",
+          name: "Membandingkan Bilangan Rasional",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Operasi Hitung Bilangan Rasional",
+          name: "Operasi Hitung Bilangan Rasional",
           description: null,
           display_order: 3,
         },
@@ -1217,17 +1217,17 @@ module.exports = {
       prasyarat: ["SD6-B2"],
       subbab: [
         {
-          name: "A. Konsep Rasio",
+          name: "Konsep Rasio",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Skala",
+          name: "Skala",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Laju Perubahan Satuan",
+          name: "Laju Perubahan Satuan",
           description: null,
           display_order: 3,
         },
@@ -1242,17 +1242,17 @@ module.exports = {
       prasyarat: ["SMP7-B1"],
       subbab: [
         {
-          name: "A. Unsur-Unsur Bentuk Aljabar",
+          name: "Unsur-Unsur Bentuk Aljabar",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Sifat-Sifat dan Operasi Aljabar",
+          name: "Sifat-Sifat dan Operasi Aljabar",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Pemodelan dengan Bentuk Aljabar",
+          name: "Pemodelan dengan Bentuk Aljabar",
           description: null,
           display_order: 3,
         },
@@ -1267,17 +1267,17 @@ module.exports = {
       prasyarat: ["SD5-B6", "SD5-B7"],
       subbab: [
         {
-          name: "A. Hubungan Antar Sudut",
+          name: "Hubungan Antar Sudut",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Arti Kesebangunan",
+          name: "Arti Kesebangunan",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Kesebangunan pada Segitiga",
+          name: "Kesebangunan pada Segitiga",
           description: null,
           display_order: 3,
         },
@@ -1292,32 +1292,32 @@ module.exports = {
       prasyarat: ["SD5-B8"],
       subbab: [
         {
-          name: "A. Investigasi Statistika",
+          name: "Investigasi Statistika",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Macam-Macam Data",
+          name: "Macam-Macam Data",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Diagram dalam Statistika",
+          name: "Diagram dalam Statistika",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Diagram Batang",
+          name: "Diagram Batang",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Diagram Lingkaran",
+          name: "Diagram Lingkaran",
           description: null,
           display_order: 5,
         },
         {
-          name: "F. Memilih Diagram yang Tepat",
+          name: "Memilih Diagram yang Tepat",
           description: null,
           display_order: 6,
         },
@@ -1332,17 +1332,17 @@ module.exports = {
       prasyarat: ["SMP7-B2"],
       subbab: [
         {
-          name: "A. Bilangan Berpangkat Bulat",
+          name: "Bilangan Berpangkat Bulat",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Bilangan Bentuk Akar",
+          name: "Bilangan Bentuk Akar",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Penulisan Bentuk Baku",
+          name: "Penulisan Bentuk Baku",
           description: null,
           display_order: 3,
         },
@@ -1357,27 +1357,27 @@ module.exports = {
       prasyarat: ["SMP7-B5"],
       subbab: [
         {
-          name: "A. Menemukan Konsep Pythagoras",
+          name: "Menemukan Konsep Pythagoras",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Tripel Pythagoras",
+          name: "Tripel Pythagoras",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Segitiga Istimewa",
+          name: "Segitiga Istimewa",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Penerapan Teorema Pythagoras",
+          name: "Penerapan Teorema Pythagoras",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Rumus Jarak (Pengayaan)",
+          name: "Rumus Jarak (Pengayaan)",
           description: null,
           display_order: 5,
         },
@@ -1392,22 +1392,22 @@ module.exports = {
       prasyarat: ["SMP7-B4"],
       subbab: [
         {
-          name: "A. Memahami Konsep Persamaan Linier Satu Variabel",
+          name: "Memahami Konsep Persamaan Linier Satu Variabel",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Menyelesaikan Persamaan Linier Satu Variabel",
+          name: "Menyelesaikan Persamaan Linier Satu Variabel",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Menemukan Konsep Pertidaksamaan Linier Satu Variabel",
+          name: "Menemukan Konsep Pertidaksamaan Linier Satu Variabel",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Menyelesaikan Masalah terkait Pertidaksamaan Linier Satu Variabel",
+          name: "Menyelesaikan Masalah terkait Pertidaksamaan Linier Satu Variabel",
           description: null,
           display_order: 4,
         },
@@ -1422,17 +1422,17 @@ module.exports = {
       prasyarat: ["SMP7-B4"],
       subbab: [
         {
-          name: "A. Memahami Relasi",
+          name: "Memahami Relasi",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Memahami Fungsi",
+          name: "Memahami Fungsi",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Korespondensi Satu-satu (Pengayaan)",
+          name: "Korespondensi Satu-satu (Pengayaan)",
           description: null,
           display_order: 3,
         },
@@ -1447,12 +1447,12 @@ module.exports = {
       prasyarat: ["SMP8-B3", "SMP8-B4"],
       subbab: [
         {
-          name: "A. Grafik Persamaan Garis Lurus",
+          name: "Grafik Persamaan Garis Lurus",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Pengertian Kemiringan",
+          name: "Pengertian Kemiringan",
           description: null,
           display_order: 2,
         },
@@ -1467,12 +1467,12 @@ module.exports = {
       prasyarat: ["SMP7-B6"],
       subbab: [
         {
-          name: "A. Pemusatan Data",
+          name: "Pemusatan Data",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Penyebaran Data",
+          name: "Penyebaran Data",
           description: null,
           display_order: 2,
         },
@@ -1487,12 +1487,12 @@ module.exports = {
       prasyarat: ["SMP8-B3", "SMP8-B5"],
       subbab: [
         {
-          name: "A. Persamaan Linear Dua Variabel",
+          name: "Persamaan Linear Dua Variabel",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Sistem Persamaan Linear Dua Variabel",
+          name: "Sistem Persamaan Linear Dua Variabel",
           description: null,
           display_order: 2,
         },
@@ -1507,32 +1507,32 @@ module.exports = {
       prasyarat: ["SD4-B4", "SD5-B5", "SD6-B3"],
       subbab: [
         {
-          name: "A. Klasifikasi Bangun Ruang dan Jaring-Jaring",
+          name: "Klasifikasi Bangun Ruang dan Jaring-Jaring",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Luas Permukaan Bangun Ruang Sisi Datar",
+          name: "Luas Permukaan Bangun Ruang Sisi Datar",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Volume Bangun Ruang Sisi Datar",
+          name: "Volume Bangun Ruang Sisi Datar",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Lingkaran",
+          name: "Lingkaran",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Luas Permukaan Bangun Ruang Sisi Lengkung",
+          name: "Luas Permukaan Bangun Ruang Sisi Lengkung",
           description: null,
           display_order: 5,
         },
         {
-          name: "F. Volume Bangun Ruang Sisi Lengkung",
+          name: "Volume Bangun Ruang Sisi Lengkung",
           description: null,
           display_order: 6,
         },
@@ -1547,27 +1547,27 @@ module.exports = {
       prasyarat: ["SMP7-B5", "SMP8-B5"],
       subbab: [
         {
-          name: "A. Translasi (Pergeseran)",
+          name: "Translasi (Pergeseran)",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Refleksi (Pencerminan)",
+          name: "Refleksi (Pencerminan)",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Rotasi (Perputaran)",
+          name: "Rotasi (Perputaran)",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Kekongruenan",
+          name: "Kekongruenan",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Dilatasi",
+          name: "Dilatasi",
           description: null,
           display_order: 5,
         },
@@ -1582,22 +1582,22 @@ module.exports = {
       prasyarat: ["SD6-B4", "SMP8-B6"],
       subbab: [
         {
-          name: "A. Peluang",
+          name: "Peluang",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Peluang Empiris",
+          name: "Peluang Empiris",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Frekuensi Harapan",
+          name: "Frekuensi Harapan",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Pemilihan Sampel",
+          name: "Pemilihan Sampel",
           description: null,
           display_order: 4,
         },
@@ -1612,22 +1612,22 @@ module.exports = {
       prasyarat: ["SMP8-B1"],
       subbab: [
         {
-          name: "A. Definisi Eksponen",
+          name: "Definisi Eksponen",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Sifat-Sifat Eksponen",
+          name: "Sifat-Sifat Eksponen",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Fungsi Eksponensial",
+          name: "Fungsi Eksponensial",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Bentuk Akar",
+          name: "Bentuk Akar",
           description: null,
           display_order: 4,
         },
@@ -1642,17 +1642,17 @@ module.exports = {
       prasyarat: ["SMP7-B3", "SMP8-B1"],
       subbab: [
         {
-          name: "A. Barisan",
+          name: "Barisan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Deret",
+          name: "Deret",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Bunga",
+          name: "Bunga",
           description: null,
           display_order: 3,
         },
@@ -1667,12 +1667,12 @@ module.exports = {
       prasyarat: ["SMP8-B2"],
       subbab: [
         {
-          name: "A. Perbandingan Trigonometri",
+          name: "Perbandingan Trigonometri",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Pemanfaatan Perbandingan Trigonometri",
+          name: "Pemanfaatan Perbandingan Trigonometri",
           description: null,
           display_order: 2,
         },
@@ -1687,12 +1687,12 @@ module.exports = {
       prasyarat: ["SMP9-B1"],
       subbab: [
         {
-          name: "A. Sistem Persamaan Linear",
+          name: "Sistem Persamaan Linear",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Sistem Pertidaksamaan Linear",
+          name: "Sistem Pertidaksamaan Linear",
           description: null,
           display_order: 2,
         },
@@ -1707,12 +1707,12 @@ module.exports = {
       prasyarat: ["SMP8-B3", "SMP8-B4"],
       subbab: [
         {
-          name: "A. Persamaan Kuadrat",
+          name: "Persamaan Kuadrat",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Fungsi Kuadrat",
+          name: "Fungsi Kuadrat",
           description: null,
           display_order: 2,
         },
@@ -1727,17 +1727,17 @@ module.exports = {
       prasyarat: ["SMP8-B6"],
       subbab: [
         {
-          name: "A. Representasi Data",
+          name: "Representasi Data",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Statistik Deskriptif",
+          name: "Statistik Deskriptif",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Representasi Data Lanjutan",
+          name: "Representasi Data Lanjutan",
           description: null,
           display_order: 3,
         },
@@ -1752,17 +1752,17 @@ module.exports = {
       prasyarat: ["SMP9-B4"],
       subbab: [
         {
-          name: "A. Distribusi Peluang",
+          name: "Distribusi Peluang",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Aturan Penjumlahan",
+          name: "Aturan Penjumlahan",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Aturan Perkalian",
+          name: "Aturan Perkalian",
           description: null,
           display_order: 3,
         },
@@ -1777,27 +1777,27 @@ module.exports = {
       prasyarat: ["SMP9-B1"],
       subbab: [
         {
-          name: "A. Jenis-Jenis Matriks",
+          name: "Jenis-Jenis Matriks",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Kesamaan Dua Matriks",
+          name: "Kesamaan Dua Matriks",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Penjumlahan dan Pengurangan Antarmatriks",
+          name: "Penjumlahan dan Pengurangan Antarmatriks",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Perkalian Matriks",
+          name: "Perkalian Matriks",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Determinan Matriks dan Invers Matriks",
+          name: "Determinan Matriks dan Invers Matriks",
           description: null,
           display_order: 5,
         },
@@ -1812,27 +1812,27 @@ module.exports = {
       prasyarat: ["SMA10-B5"],
       subbab: [
         {
-          name: "A. Polinomial dan Fungsi Polinomial",
+          name: "Polinomial dan Fungsi Polinomial",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Penjumlahan, Pengurangan, dan Perkalian Polinomial",
+          name: "Penjumlahan, Pengurangan, dan Perkalian Polinomial",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Pembagian Polinomial",
+          name: "Pembagian Polinomial",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Faktor dan Pembuat Nol Polinomial",
+          name: "Faktor dan Pembuat Nol Polinomial",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Identitas Polinomial",
+          name: "Identitas Polinomial",
           description: null,
           display_order: 5,
         },
@@ -1847,27 +1847,27 @@ module.exports = {
       prasyarat: ["SMA10-B3"],
       subbab: [
         {
-          name: "A. Fungsi Trigonometri dan Lingkaran Satuan",
+          name: "Fungsi Trigonometri dan Lingkaran Satuan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Grafik Fungsi Trigonometri",
+          name: "Grafik Fungsi Trigonometri",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Identitas Trigonometri",
+          name: "Identitas Trigonometri",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Aturan Sinus",
+          name: "Aturan Sinus",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Aturan Kosinus",
+          name: "Aturan Kosinus",
           description: null,
           display_order: 5,
         },
@@ -1882,17 +1882,17 @@ module.exports = {
       prasyarat: ["SMP7-B5", "SMP9-B3"],
       subbab: [
         {
-          name: "A. Vektor pada Bidang",
+          name: "Vektor pada Bidang",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Hasil Kali Titik",
+          name: "Hasil Kali Titik",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Pembuktian Geometris",
+          name: "Pembuktian Geometris",
           description: null,
           display_order: 3,
         },
@@ -1907,17 +1907,17 @@ module.exports = {
       prasyarat: ["SMA11L-B1", "SMP9-B3"],
       subbab: [
         {
-          name: "A. Transformasi pada Bidang Kartesius",
+          name: "Transformasi pada Bidang Kartesius",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Kaitan Matriks dengan Transformasi",
+          name: "Kaitan Matriks dengan Transformasi",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Komposisi Transformasi dengan Matriks",
+          name: "Komposisi Transformasi dengan Matriks",
           description: null,
           display_order: 3,
         },
@@ -1932,17 +1932,17 @@ module.exports = {
       prasyarat: ["SMA10-B1", "SMP8-B4"],
       subbab: [
         {
-          name: "A. Fungsi Logaritma",
+          name: "Fungsi Logaritma",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Fungsi Aljabar",
+          name: "Fungsi Aljabar",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Fungsi Non-aljabar",
+          name: "Fungsi Non-aljabar",
           description: null,
           display_order: 3,
         },
@@ -1957,17 +1957,17 @@ module.exports = {
       prasyarat: ["SMA10-B5", "SMP8-B4"],
       subbab: [
         {
-          name: "A. Fungsi",
+          name: "Fungsi",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Komposisi Fungsi",
+          name: "Komposisi Fungsi",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Fungsi Invers",
+          name: "Fungsi Invers",
           description: null,
           display_order: 3,
         },
@@ -1982,17 +1982,17 @@ module.exports = {
       prasyarat: ["SMP9-B2"],
       subbab: [
         {
-          name: "A. Lingkaran dan Busur Lingkaran",
+          name: "Lingkaran dan Busur Lingkaran",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Lingkaran dan Garis Singgung",
+          name: "Lingkaran dan Garis Singgung",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Lingkaran dan Tali Busur",
+          name: "Lingkaran dan Tali Busur",
           description: null,
           display_order: 3,
         },
@@ -2007,17 +2007,17 @@ module.exports = {
       prasyarat: ["SMA10-B6"],
       subbab: [
         {
-          name: "A. Diagram Pencar atau Diagram Scatter",
+          name: "Diagram Pencar atau Diagram Scatter",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Regresi Linear",
+          name: "Regresi Linear",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Analisis Korelasi",
+          name: "Analisis Korelasi",
           description: null,
           display_order: 3,
         },
@@ -2032,22 +2032,22 @@ module.exports = {
       prasyarat: ["SMA11U-B2"],
       subbab: [
         {
-          name: "A. Lingkaran",
+          name: "Lingkaran",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Elips",
+          name: "Elips",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Kedudukan Titik dan Garis terhadap Lingkaran",
+          name: "Kedudukan Titik dan Garis terhadap Lingkaran",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Persamaan Garis Singgung Lingkaran",
+          name: "Persamaan Garis Singgung Lingkaran",
           description: null,
           display_order: 4,
         },
@@ -2062,22 +2062,22 @@ module.exports = {
       prasyarat: ["SMA11U-B1"],
       subbab: [
         {
-          name: "A. Definisi Turunan Fungsi",
+          name: "Definisi Turunan Fungsi",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Sifat-Sifat Turunan Fungsi",
+          name: "Sifat-Sifat Turunan Fungsi",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Aplikasi Turunan Fungsi",
+          name: "Aplikasi Turunan Fungsi",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Aplikasi Turunan Fungsi di Berbagai Bidang Ilmu",
+          name: "Aplikasi Turunan Fungsi di Berbagai Bidang Ilmu",
           description: null,
           display_order: 4,
         },
@@ -2092,17 +2092,17 @@ module.exports = {
       prasyarat: ["SMA12L-B2"],
       subbab: [
         {
-          name: "A. Integral Tak Tentu",
+          name: "Integral Tak Tentu",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Integral Tentu",
+          name: "Integral Tentu",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Penerapan Integral",
+          name: "Penerapan Integral",
           description: null,
           display_order: 3,
         },
@@ -2117,37 +2117,37 @@ module.exports = {
       prasyarat: ["SMA10-B7", "SMA11U-B3", "SMA12U-B3"],
       subbab: [
         {
-          name: "A. Variabel Acak",
+          name: "Variabel Acak",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Variabel Acak Diskret",
+          name: "Variabel Acak Diskret",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Variabel Acak Kontinu",
+          name: "Variabel Acak Kontinu",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Fungsi Peluang",
+          name: "Fungsi Peluang",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Fungsi Densitas Peluang",
+          name: "Fungsi Densitas Peluang",
           description: null,
           display_order: 5,
         },
         {
-          name: "F. Distribusi Binomial",
+          name: "Distribusi Binomial",
           description: null,
           display_order: 6,
         },
         {
-          name: "G. Distribusi Normal",
+          name: "Distribusi Normal",
           description: null,
           display_order: 7,
         },
@@ -2162,17 +2162,17 @@ module.exports = {
       prasyarat: ["SMA10-B2"],
       subbab: [
         {
-          name: "A. Barisan",
+          name: "Barisan",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Deret",
+          name: "Deret",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Bunga Tunggal",
+          name: "Bunga Tunggal",
           description: null,
           display_order: 3,
         },
@@ -2187,32 +2187,32 @@ module.exports = {
       prasyarat: ["SMA12U-B1"],
       subbab: [
         {
-          name: "A. Suku Bunga Tunggal",
+          name: "Suku Bunga Tunggal",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Investasi Bunga Majemuk",
+          name: "Investasi Bunga Majemuk",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Investasi Anuitas",
+          name: "Investasi Anuitas",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Pinjaman Bunga Majemuk",
+          name: "Pinjaman Bunga Majemuk",
           description: null,
           display_order: 4,
         },
         {
-          name: "E. Pinjaman dengan Anuitas",
+          name: "Pinjaman dengan Anuitas",
           description: null,
           display_order: 5,
         },
         {
-          name: "F. Parameter Investasi dan Pinjaman",
+          name: "Parameter Investasi dan Pinjaman",
           description: null,
           display_order: 6,
         },
@@ -2227,22 +2227,22 @@ module.exports = {
       prasyarat: ["SMA10-B7"],
       subbab: [
         {
-          name: "A. Aturan Pengisian Tempat",
+          name: "Aturan Pengisian Tempat",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Permutasi",
+          name: "Permutasi",
           description: null,
           display_order: 2,
         },
         {
-          name: "C. Kombinasi",
+          name: "Kombinasi",
           description: null,
           display_order: 3,
         },
         {
-          name: "D. Penerapan Permutasi dan Kombinasi",
+          name: "Penerapan Permutasi dan Kombinasi",
           description: null,
           display_order: 4,
         },
@@ -2257,12 +2257,12 @@ module.exports = {
       prasyarat: ["SMA10-B7"],
       subbab: [
         {
-          name: "A. Peluang Suatu Kejadian",
+          name: "Peluang Suatu Kejadian",
           description: null,
           display_order: 1,
         },
         {
-          name: "B. Peluang Kejadian Majemuk",
+          name: "Peluang Kejadian Majemuk",
           description: null,
           display_order: 2,
         },

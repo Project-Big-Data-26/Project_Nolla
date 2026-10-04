@@ -38,7 +38,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public / Landing Route */}
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<Topics />} />
 
       {/* ========================================
           AUTH ROUTES
