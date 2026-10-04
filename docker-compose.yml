@@ -24,25 +24,6 @@ services:
       - mongodb
       - ai
 
-  ai:
-    build:
-      context: ../extraction_model
-      dockerfile: Dockerfile
-
-    container_name: project_assessment_ai
-
-    ports:
-      - "8000:8000"
-
-    volumes:
-      - ../extraction_model/data:/app/data
-      - ../extraction_model/models:/app/models
-
-    environment:
-      - APP_ENV=development
-
-    restart: unless-stopped
-
   frontend:
     build:
       context: ./frontend

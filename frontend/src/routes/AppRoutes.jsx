@@ -13,15 +13,12 @@ import Register from "../pages/Auth/Register";
 import VerifyEmail from "../pages/Auth/VerifyEmail";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
-<<<<<<< HEAD
 import GoogleAuthCallback from "../pages/Auth/GoogleAuthCallback";
-=======
 import AuthCallback from "../pages/Auth/AuthCallback";
 
 // ========================================
 // STUDENT PAGES
 // ========================================
->>>>>>> sprint-2
 
 import PersonalizationWizard from "../pages/Student/PersonalizationWizard";
 import Topics from "../pages/Student/Topics/Topics";
@@ -37,36 +34,30 @@ import ResultPage from "../pages/Student/ResultPage";
 const AppRoutes = () => {
   return (
     <Routes>
-<<<<<<< HEAD
-      {/* Auth Routes */}
-      <Route element={<GuestRoute />}>
-        <Route path="/login" element={<Login />} />
-      </Route>
-=======
       {/* ========================================
           AUTH ROUTES
       ======================================== */}
+      
+      {/* Logika GuestRoute milik Roma (PENTING: Mencegah user login masuk ke sini) */}
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<Login />} />
+      </Route>
 
-      <Route path="/login" element={<Login />} />
-
->>>>>>> sprint-2
       <Route path="/register" element={<Register />} />
-
       <Route path="/verify" element={<VerifyEmail />} />
-
       <Route path="/forgot-password" element={<ForgotPassword />} />
-
       <Route path="/reset" element={<ResetPassword />} />
+      
+      {/* Route dari branch integrasi-login-fix */}
       <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
 
       {/* ========================================
-          GOOGLE OAUTH CALLBACK
+          GOOGLE OAUTH CALLBACK (Dari sprint-2)
           
           JANGAN dimasukkan ke ProtectedRoute
           karena user belum dianggap login oleh
           AuthContext ketika pertama kali masuk.
       ======================================== */}
-
       <Route path="/auth/callback" element={<AuthCallback />} />
 
       {/* ========================================
@@ -75,25 +66,15 @@ const AppRoutes = () => {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/personalization" element={<PersonalizationWizard />} />
-
         <Route path="/" element={<Navigate to="/topik" replace />} />
-
         <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
-
         <Route path="/topik" element={<Topics />} />
-
         <Route path="/profile" element={<PersonalizationProfile />} />
-
         <Route path="/quiz" element={<QuestionPage />} />
-
         <Route path="/review-quiz" element={<QuestionReviewPage />} />
-
         <Route path="/dashboard" element={<Dashboard />} />
-
         <Route path="/settings" element={<Settings />} />
-
         <Route path="/evaluasi" element={<EvaluationPage />} />
-
         <Route path="/result" element={<ResultPage />} />
       </Route>
 
