@@ -731,6 +731,94 @@ const changePassword = async (req, res) => {
   }
 };
 
+// ========================================
+// UPDATE OWN PASSWORD
+// PATCH /api/auth/password
+// ========================================
+
+const updateOwnPassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: "error",
+        message: "User tidak ditemukan",
+      });
+    }
+
+    // Untuk sementara hanya akun yang memang sudah punya password
+    if (!user.password) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Akun ini belum memiliki password",
+      });
+    }
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message:
+          "Password lama, password baru, dan konfirmasi password wajib diisi",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Konfirmasi password tidak cocok",
+      });
+    }
+
+    if (!passwordIsValid(newPassword)) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message:
+          "Password minimal 8 karakter dan harus memiliki huruf besar, huruf kecil, serta angka.",
+      });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordMatch) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Password lama salah",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      message: "Password berhasil diubah",
+    });
+  } catch (error) {
+    console.error("Update own password error:", error);
+
+    return res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Terjadi kesalahan pada server",
+    });
+  }
+};
+
 const resendOTP = async (req, res) => {
   try {
     const { email, type } = req.body;
@@ -1075,6 +1163,7 @@ module.exports = {
   forgotPassword,
   verifyResetOTP,
   changePassword,
+  updateOwnPassword,
   resendOTP,
   getMe,
   refreshAccessToken,
