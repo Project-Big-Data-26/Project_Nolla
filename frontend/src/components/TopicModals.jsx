@@ -96,112 +96,162 @@ const TopicModals = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2.5 mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
-              <div>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Skor Pretest
-                </p>
-                <p className="text-xl font-extrabold text-primary mt-0.5">
-                  {activePretestResult.result?.score === null ||
-                  activePretestResult.result?.score === undefined
-                    ? "-"
-                    : `${activePretestResult.result.score}%`}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Benar / Salah
-                </p>
-                <p className="text-sm font-bold text-slate-800 mt-1">
-                  <span className="text-emerald-600">
-                    {activePretestResult.result?.correctCount ?? 0}
-                  </span>{" "}
-                  /{" "}
-                  <span className="text-red-500">
-                    {activePretestResult.result?.wrongCount ?? 0}
-                  </span>
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] text-slate-500 font-medium">Durasi</p>
-                <p className="text-xs font-bold text-slate-800 mt-1.5">
-                  {activePretestResult.result?.duration ?? "-"}
-                </p>
-              </div>
-            </div>
+            {/* STATISTIK HASIL PRETEST (Memakai UI baru, Data asli) */}
+            {(() => {
+              const correct = activePretestResult.result?.correctCount ?? 0;
+              const wrong = activePretestResult.result?.wrongCount ?? 0;
+              const total =
+                activePretestResult.result?.totalQuestions ||
+                (correct + wrong) ||
+                15;
+              const calculatedScore = activePretestResult.result?.score || 0;
 
-            {Array.isArray(
-              activePretestResult.result?.prerequisiteBreakdown,
-            ) && (
-              <div className="mb-5">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">
-                  Breakdown Materi Prasyarat
-                </h4>
-                <div className="space-y-2">
-                  {activePretestResult.result.prerequisiteBreakdown.length ? (
-                    activePretestResult.result.prerequisiteBreakdown.map(
-                      (item, idx) => {
-                        const isMet = item.status === "terpenuhi";
+              return (
+                <div className="grid grid-cols-3 gap-2.5 mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
+                  <div>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Skor Pretest
+                    </p>
+                    <p className="text-xl font-extrabold text-primary mt-0.5">
+                      {calculatedScore}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Benar / Salah
+                    </p>
+                    <p className="text-sm font-bold text-slate-800 mt-1">
+                      <span className="text-emerald-600 font-bold">
+                        {correct}
+                      </span>{" "}
+                      /{" "}
+                      <span className="text-red-500 font-bold">
+                        {wrong}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-slate-500 font-medium">Durasi</p>
+                    <p className="text-xs font-bold text-slate-800 mt-1.5">
+                      {activePretestResult.result?.duration || "-"}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* BREAKDOWN MATERI PRASYARAT (Memakai UI baru, Data asli) */}
+            {(() => {
+              const rawPrereqs =
+                activePretestResult.result?.prerequisiteBreakdown ||
+                activePretestResult.result?.prerequisites || [];
+
+              return (
+                <div className="mb-5">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">
+                    Breakdown Prasyarat
+                  </h4>
+                  <div className="space-y-2">
+                    {rawPrereqs.length > 0 ? (
+                      rawPrereqs.map((item, idx) => {
+                        const isMet =
+                          item.status === "Terpenuhi" ||
+                          item.status === "terpenuhi" ||
+                          item.isMet === true ||
+                          item.status === "completed";
                         return (
                           <div
-                            key={`${item.name}-${idx}`}
+                            key={idx}
                             className="flex items-center justify-between p-2.5 bg-slate-50/80 rounded-xl border border-slate-200 text-xs"
                           >
                             <span className="font-semibold text-slate-700">
-                              {item.name}
+                              {item.name || item.subtopic || item.title}
                             </span>
                             <span
                               className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                                 isMet
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                  : "bg-amber-50 text-amber-700 border border-amber-200"
+                                  : "bg-rose-50 text-rose-700 border border-rose-200"
                               }`}
                             >
-                              {isMet ? "Terpenuhi" : "Tidak terpenuhi"}
+                              {isMet ? "Terpenuhi" : "Tidak Terpenuhi"}
                             </span>
                           </div>
                         );
-                      },
-                    )
-                  ) : (
-                    <p className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 text-xs text-slate-500">
-                      Tidak ada materi prasyarat untuk bab ini.
-                    </p>
-                  )}
+                      })
+                    ) : (
+                      <p className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 text-xs text-slate-500">
+                        Tidak ada materi prasyarat untuk bab ini.
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
+            {/* BREAKDOWN PEMAHAMAN PER SUBBAB (Memakai UI baru, Data asli) */}
             {activePretestResult.result?.breakdown && (
               <div className="mb-5">
                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">
                   Breakdown Pemahaman per Subbab
                 </h4>
                 <div className="space-y-2">
-                  {activePretestResult.result.breakdown.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2.5 bg-slate-50/80 rounded-xl border border-slate-200 text-xs"
-                    >
-                      <span className="font-semibold text-slate-700">
-                        {item.subtopic}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-500 text-[11px]">
-                          {item.score}
+                  {activePretestResult.result.breakdown.map((item, idx) => {
+                    let elo = item.elo || item.score;
+                    if (typeof elo === "string" && elo.includes("%")) {
+                        const pct = parseInt(elo, 10);
+                        elo = Math.round((pct / 100) * 1400);
+                    }
+                    if (!elo || elo === "-") elo = 0;
+
+                    let difficulty = item.difficulty;
+                    if (!difficulty) {
+                      if (elo >= 1200) {
+                        difficulty = "Hard";
+                      } else if (elo >= 800) {
+                        difficulty = "Medium";
+                      } else {
+                        difficulty = "Easy";
+                      }
+                    }
+
+                    const diffLower = String(difficulty).toLowerCase();
+                    const diffLabel =
+                      diffLower === "hard"
+                        ? "Hard"
+                        : diffLower === "medium"
+                        ? "Medium"
+                        : "Easy";
+
+                    const diffBadgeClass =
+                      diffLower === "hard"
+                        ? "bg-rose-50 text-rose-700 border border-rose-200"
+                        : diffLower === "medium"
+                        ? "bg-amber-50 text-amber-700 border border-amber-200"
+                        : "bg-emerald-50 text-emerald-700 border border-emerald-200";
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2.5 bg-slate-50/80 rounded-xl border border-slate-200 text-xs"
+                      >
+                        <span className="font-semibold text-slate-700">
+                          {item.subtopic || item.name}
                         </span>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                            item.status === "Kuasai"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-600 text-[11px] font-medium">
+                            <span className="font-bold text-slate-800">{elo}</span>
+                            <span className="text-slate-400"> / 1400</span>
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${diffBadgeClass}`}
+                          >
+                            {diffLabel}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom"; // Ditambahkan Navigate
 import ProtectedRoute from "./ProtectedRoute";
 import GuestRoute from "./GuestRoute";
 
@@ -9,6 +9,7 @@ import Register from "../pages/Auth/Register";
 import VerifyEmail from "../pages/Auth/VerifyEmail";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
+import LandingPage from "../pages/Landing/LandingPage";
 import GoogleAuthCallback from "../pages/Auth/GoogleAuthCallback";
 import AuthCallback from "../pages/Auth/AuthCallback";
 
@@ -31,11 +32,14 @@ import QuestionReviewPage from "../pages/Student/QuestionReviewPage";
 import Dashboard from "../pages/Student/Dashboard";
 import EvaluationPage from "../pages/Student/EvaluationPage";
 import ResultPage from "../pages/Student/ResultPage";
+import Settings from "../pages/Student/Settings"; // Ditambahkan kembali Settings
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Auth Routes */}
+      {/* Public / Landing Route */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* ========================================
           AUTH ROUTES
       ======================================== */}
@@ -53,7 +57,6 @@ const AppRoutes = () => {
       {/* Route dari branch integrasi-login-fix */}
       <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
 
-      {/* Protected Student Routes */}
       {/* ========================================
           GOOGLE OAUTH CALLBACK (Dari sprint-2)
           
@@ -69,13 +72,11 @@ const AppRoutes = () => {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/personalization" element={<PersonalizationWizard />} />
-        <Route path="/" element={<Navigate to="/topik" replace />} />
         <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
         <Route path="/topik" element={<Topics />} />
         <Route path="/profile" element={<PersonalizationProfile />} />
         <Route path="/profile/edit" element={<EditProfile />} />
         <Route path="/profile/ganti-password" element={<ChangePassword />} />
-
         <Route path="/quiz" element={<QuestionPage />} />
         <Route path="/review-quiz" element={<QuestionReviewPage />} />
         <Route path="/dashboard" element={<Dashboard />} />

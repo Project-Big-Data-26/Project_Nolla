@@ -91,6 +91,7 @@ const normalizePretestResult = (data) => ({
     subtopic: item.subbab_name,
     status: item.current_cognitive_level || "Belum dinilai",
     score: item.current_cognitive_score ?? "-",
+    elo: item.current_cognitive_score, // Membantu UI baru untuk menampilkan elo
   })),
   recommendation: data.recommendation || "",
 });
@@ -376,6 +377,7 @@ const Topics = () => {
     );
     setActivePretestResult({
       chapterName: chapter.name,
+      chapter: chapter,
       result: normalizePretestResult(response.data.data),
     });
     setPriorityChapterId(String(chapter._id || chapter.id));
