@@ -22,6 +22,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.20.0",
     "katex": "^0.18.9",
+    "jsxgraph": "^1.11.1",
     "lucide-react": "^1.47.0",
     "pdfjs-dist": "^6.3.289",
     "react": "^19.2.8",

@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ArrowLeft,
+} from "lucide-react";
 import { toast, Toaster } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
@@ -101,6 +109,14 @@ const Register = () => {
       {/* LEFT COLUMN: FORM REGISTER */}
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-lg border border-neutral-border px-3 py-2 text-xs font-semibold text-neutral-muted transition-colors hover:border-primary hover:text-primary"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Kembali ke Beranda
+          </Link>
+
           {/* HEADER TEXT */}
           <div className="mt-2 sm:mt-4">
             <h1 className="font-heading text-xl sm:text-2xl font-bold text-neutral-text text-center">
