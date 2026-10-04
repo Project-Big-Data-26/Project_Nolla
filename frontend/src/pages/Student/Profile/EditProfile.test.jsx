@@ -1,8 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { AuthProvider } from "../../../context/AuthContext";
 import "@testing-library/jest-dom";
 import EditProfile from "./EditProfile";
+import API from "../../../api/axios";
+
+vi.mock("../../../api/axios", () => ({
+  default: { get: vi.fn(), patch: vi.fn() },
+}));
 
 const mockedNavigate = vi.fn();
 
@@ -31,13 +37,22 @@ function createLocalStorageMock() {
 }
 
 function renderWithRouter(ui) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  return render(<MemoryRouter><AuthProvider>{ui}</AuthProvider></MemoryRouter>);
+}
+
+// Jenjang dipilih lewat dropdown kustom (tombol + popover), bukan <select>
+function pilihJenjang(nama) {
+  fireEvent.click(screen.getByRole("button", { name: /Jenjang Belajar/i }));
+  fireEvent.click(screen.getByRole("button", { name: nama }));
 }
 
 describe("EditProfile Component", () => {
   beforeEach(() => {
     mockedNavigate.mockReset();
     vi.stubGlobal("localStorage", createLocalStorageMock());
+    // Profil dari server sama dengan data awal di localStorage (tidak ada perubahan)
+    API.get.mockReset().mockImplementation(() => new Promise(() => {}));
+    API.patch.mockReset();
   });
 
   afterEach(() => {
@@ -56,7 +71,6 @@ describe("EditProfile Component", () => {
 
     // Awalnya tidak ada perubahan sehingga tombol Simpan Perubahan tidak muncul
     expect(screen.queryByRole("button", { name: /Simpan Perubahan/i })).not.toBeInTheDocument();
-    expect(screen.getByText("Tidak ada perubahan data")).toBeInTheDocument();
   });
 
   it("menavigasi kembali ke /profile saat tombol panah kembali di pojok kiri atas card diklik", () => {
@@ -82,9 +96,7 @@ describe("EditProfile Component", () => {
 
   it("memperbarui pratinjau jenjang secara real-time saat dropdown diubah dan memunculkan tombol simpan", () => {
     renderWithRouter(<EditProfile />);
-    const selectEl = screen.getByLabelText("Jenjang Belajar");
-
-    fireEvent.change(selectEl, { target: { value: "SMA" } });
+    pilihJenjang("SMA");
     expect(screen.getByText("Siswa SMA")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Simpan Perubahan/i })).toBeInTheDocument();
   });
@@ -111,52 +123,62 @@ describe("EditProfile Component", () => {
 
   it("dapat memilih avatar yang disediakan dari preset", () => {
     renderWithRouter(<EditProfile />);
+    fireEvent.click(screen.getByRole("button", { name: "Ganti Avatar" }));
     expect(screen.getByText("Pilih Avatar Karakter")).toBeInTheDocument();
-    const avatar1Btn = screen.getByTitle("Gunakan Avatar 1");
-    fireEvent.click(avatar1Btn);
+    fireEvent.click(screen.getByTitle("Pilih Avatar 2"));
+    fireEvent.click(screen.getByRole("button", { name: "Pilih Avatar" }));
 
     // Memunculkan tombol Simpan Perubahan karena foto berubah
     expect(screen.getByRole("button", { name: /Simpan Perubahan/i })).toBeInTheDocument();
   });
 
-  it("menolak file foto dengan format tidak valid atau ukuran lebih dari 2MB", () => {
+  it("menyediakan 8 avatar preset dan tidak ada input unggah file", () => {
     renderWithRouter(<EditProfile />);
-    const fileInput = document.getElementById("photo-file-input");
+    fireEvent.click(screen.getByRole("button", { name: "Ganti Avatar" }));
 
-    // File pdf (format salah)
-    const invalidFile = new File(["dummy"], "file.pdf", { type: "application/pdf" });
-    fireEvent.change(fileInput, { target: { files: [invalidFile] } });
-    expect(screen.getByText("Format file harus JPG atau PNG.")).toBeInTheDocument();
-
-    // File gambar > 2MB
-    const bigFile = new File(["a".repeat(2.5 * 1024 * 1024)], "foto.png", {
-      type: "image/png",
-    });
-    fireEvent.change(fileInput, { target: { files: [bigFile] } });
-    expect(screen.getByText("Ukuran file maksimal 2MB.")).toBeInTheDocument();
+    for (let i = 1; i <= 8; i += 1) {
+      expect(screen.getByTitle(`Pilih Avatar ${i}`)).toBeInTheDocument();
+    }
+    expect(document.getElementById("photo-file-input")).toBeNull();
   });
 
-  it("menyimpan perubahan profil dan mengarahkan kembali ke /profile", async () => {
+  it("menyimpan perubahan profil lewat API dan memperbarui localStorage", async () => {
+    API.patch.mockResolvedValue({
+      data: {
+        data: {
+          name: "Budi Santoso",
+          email: "guest@mathmentor.app",
+          allJenjang: false,
+          jenjang_id: { name: "SMP" },
+          avatar: "avatar_1",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      },
+    });
     renderWithRouter(<EditProfile />);
     const nameInput = screen.getByPlaceholderText(/Contoh: MD Rafi Islam/i);
-    const selectEl = screen.getByLabelText("Jenjang Belajar");
 
     fireEvent.change(nameInput, { target: { value: "Budi Santoso" } });
-    fireEvent.change(selectEl, { target: { value: "SMP" } });
+    pilihJenjang("SMP");
 
-    const submitBtn = screen.getByRole("button", { name: /Simpan Perubahan/i });
-    fireEvent.click(submitBtn);
+    fireEvent.click(screen.getByRole("button", { name: /Simpan Perubahan/i }));
 
-    await waitFor(
-      () => {
-        expect(
-          screen.getByText(/Profil berhasil diperbarui!/i)
-        ).toBeInTheDocument();
-      },
-      { timeout: 2000 }
+    await waitFor(() => expect(API.patch).toHaveBeenCalledTimes(1));
+    expect(API.patch).toHaveBeenCalledWith(
+      "/profile",
+      expect.objectContaining({
+        name: "Budi Santoso",
+        allJenjang: false,
+        jenjang_id: "SMP",
+      }),
     );
 
-    expect(localStorage.getItem("user_name")).toBe("Budi Santoso");
+    await waitFor(() =>
+      expect(localStorage.getItem("user_name")).toBe("Budi Santoso"),
+    );
     expect(localStorage.getItem("user_education_level")).toBe("SMP");
+    await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith("/profile"), {
+      timeout: 2000,
+    });
   });
 });
