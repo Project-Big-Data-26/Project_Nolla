@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import "@testing-library/jest-dom";
 import PersonalizationWizard from "./PersonalizationWizard";
+import { AuthProvider } from "../../context/AuthContext";
 
 const mockedNavigate = vi.fn();
 const mockedToast = vi.hoisted(() => ({
@@ -23,9 +24,14 @@ vi.mock("sonner", () => ({
 
 function renderWizard() {
     return render(
-        <MemoryRouter>
-            <PersonalizationWizard />
-        </MemoryRouter>
+        <AuthProvider>
+            <MemoryRouter initialEntries={["/personalization"]}>
+                <Routes>
+                    <Route path="/personalization" element={<PersonalizationWizard />} />
+                    <Route path="/topik" element={<h1>Halaman Topik</h1>} />
+                </Routes>
+            </MemoryRouter>
+        </AuthProvider>
     );
 }
 
@@ -69,6 +75,13 @@ describe("PersonalizationWizard", () => {
         expect(
             screen.getByRole("button", { name: "Simpan & Mulai Belajar →" })
         ).toBeInTheDocument();
+    });
+
+    it("mengalihkan pengguna yang sudah menyelesaikan personalisasi ke topik", () => {
+        localStorage.setItem("user", JSON.stringify({ isProfileComplete: true }));
+        renderWizard();
+
+        expect(screen.getByRole("heading", { name: "Halaman Topik" })).toBeInTheDocument();
     });
 
     it("menampilkan peringatan dan tidak memanggil API bila belum memilih jenjang", () => {

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
+import { useAuth } from "../../context/AuthContext";
 
 import sdIcon from "../../assets/icon/SD.png";
 import smpIcon from "../../assets/icon/SMP.png";
@@ -32,8 +33,13 @@ const educationOptions = [
 
 export default function PersonalizationWizard() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const [educationLevel, setEducationLevel] = useState("");
   const [loading, setLoading] = useState(false);
+
+  if (auth?.user?.isProfileComplete) {
+    return <Navigate to="/topik" replace />;
+  }
 
   const handleSkip = async () => {
     setLoading(true);
@@ -54,6 +60,7 @@ export default function PersonalizationWizard() {
         return;
       }
 
+      auth?.updateUser?.(result.data?.user);
       navigate("/topik");
     } catch {
       toast.error("Gagal terhubung ke server.");
@@ -93,6 +100,7 @@ export default function PersonalizationWizard() {
       const result = await response.json();
 
       if (response.ok && result.status === "success") {
+        auth?.updateUser?.(result.data?.user);
         toast.success("Jenjang pendidikan berhasil disimpan!", {
           description: "Mengalihkan Anda ke Dashboard...",
         });

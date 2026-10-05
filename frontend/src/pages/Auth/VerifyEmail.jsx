@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import AuthCard from "../../components/AuthCard";
@@ -12,7 +12,7 @@ const VerifyEmail = () => {
   const { login } = useAuth();
 
   // Data dari navigate state
-  const email = location.state?.email || "user@example.com";
+  const email = location.state?.email || "";
   const action = location.state?.action || "register"; // 'register' atau 'reset-password'
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -190,6 +190,10 @@ const VerifyEmail = () => {
       setLoading(false);
     }
   };
+
+  if (!email) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <AuthCard>
