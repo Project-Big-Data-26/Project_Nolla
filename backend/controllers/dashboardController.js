@@ -107,6 +107,9 @@ const getBab = async (req, res) => {
     }
 
     const kelasIds = kelasData.map((item) => item._id);
+    const kelasOrder = new Map(
+      kelasData.map((item, index) => [item._id.toString(), index]),
+    );
 
     // =========================================================
     // 5. AMBIL BAB
@@ -118,6 +121,17 @@ const getBab = async (req, res) => {
       .select("_id kelas_id name description display_order")
       .sort({ kelas_id: 1, display_order: 1 })
       .lean();
+
+    babList.sort((babA, babB) => {
+      const kelasDifference =
+        kelasOrder.get(babA.kelas_id.toString()) -
+        kelasOrder.get(babB.kelas_id.toString());
+
+      return (
+        kelasDifference ||
+        (babA.display_order ?? 0) - (babB.display_order ?? 0)
+      );
+    });
 
     if (babList.length === 0) {
       return res.status(200).json({
@@ -213,7 +227,7 @@ const getBab = async (req, res) => {
     // 11. BENTUK RESPONSE BAB
     // =========================================================
 
-    const data = babList.map((bab) => {
+    const babData = babList.map((bab) => {
       const babId = bab._id.toString();
 
       const babSubbab = subbabList.filter(
@@ -300,6 +314,10 @@ const getBab = async (req, res) => {
         }),
       };
     });
+    const data = [
+      ...babData.filter((bab) => bab.progress !== 100),
+      ...babData.filter((bab) => bab.progress === 100),
+    ];
 
     // =========================================================
     // 12. RESPONSE SUCCESS
