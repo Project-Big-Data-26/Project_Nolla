@@ -102,7 +102,7 @@ const TopicModals = ({
               const wrong = activePretestResult.result?.wrongCount ?? 0;
               const total =
                 activePretestResult.result?.totalQuestions ||
-                (correct + wrong) ||
+                correct + wrong ||
                 15;
               const calculatedScore = activePretestResult.result?.score || 0;
 
@@ -124,14 +124,13 @@ const TopicModals = ({
                       <span className="text-emerald-600 font-bold">
                         {correct}
                       </span>{" "}
-                      /{" "}
-                      <span className="text-red-500 font-bold">
-                        {wrong}
-                      </span>
+                      / <span className="text-red-500 font-bold">{wrong}</span>
                     </p>
                   </div>
                   <div>
-                    <p className="text-[11px] text-slate-500 font-medium">Durasi</p>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Durasi
+                    </p>
                     <p className="text-xs font-bold text-slate-800 mt-1.5">
                       {activePretestResult.result?.duration || "-"}
                     </p>
@@ -144,7 +143,8 @@ const TopicModals = ({
             {(() => {
               const rawPrereqs =
                 activePretestResult.result?.prerequisiteBreakdown ||
-                activePretestResult.result?.prerequisites || [];
+                activePretestResult.result?.prerequisites ||
+                [];
 
               return (
                 <div className="mb-5">
@@ -197,38 +197,38 @@ const TopicModals = ({
                 </h4>
                 <div className="space-y-2">
                   {activePretestResult.result.breakdown.map((item, idx) => {
-                    let elo = item.elo || item.score;
-                    if (typeof elo === "string" && elo.includes("%")) {
-                        const pct = parseInt(elo, 10);
-                        elo = Math.round((pct / 100) * 1400);
-                    }
-                    if (!elo || elo === "-") elo = 0;
-
-                    let difficulty = item.difficulty;
-                    if (!difficulty) {
-                      if (elo >= 1200) {
-                        difficulty = "Hard";
-                      } else if (elo >= 800) {
-                        difficulty = "Medium";
-                      } else {
-                        difficulty = "Easy";
-                      }
-                    }
-
-                    const diffLower = String(difficulty).toLowerCase();
+                    const scoreValue = item.elo || item.score;
+                    const scoreText = String(scoreValue ?? "");
+                    const elo = scoreText.includes("%")
+                      ? Math.round(
+                          (Number.parseFloat(scoreText) / 100) * 1400,
+                        )
+                      : Number.parseFloat(scoreText.split("/")[0]) || 0;
+                    const rawDifficulty = String(
+                      item.difficulty || item.status || "",
+                    ).toLowerCase();
+                    const diffLower = ["easy", "medium", "hard"].includes(
+                      rawDifficulty,
+                    )
+                      ? rawDifficulty
+                      : elo >= 1200
+                        ? "hard"
+                        : elo >= 800
+                          ? "medium"
+                          : "easy";
                     const diffLabel =
                       diffLower === "hard"
                         ? "Hard"
                         : diffLower === "medium"
-                        ? "Medium"
-                        : "Easy";
+                          ? "Medium"
+                          : "Easy";
 
                     const diffBadgeClass =
                       diffLower === "hard"
                         ? "bg-rose-50 text-rose-700 border border-rose-200"
                         : diffLower === "medium"
-                        ? "bg-amber-50 text-amber-700 border border-amber-200"
-                        : "bg-emerald-50 text-emerald-700 border border-emerald-200";
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-emerald-50 text-emerald-700 border border-emerald-200";
 
                     return (
                       <div
@@ -240,8 +240,9 @@ const TopicModals = ({
                         </span>
                         <div className="flex items-center gap-2">
                           <span className="text-slate-600 text-[11px] font-medium">
-                            <span className="font-bold text-slate-800">{elo}</span>
-                            <span className="text-slate-400"> / 1400</span>
+                            <span className="font-bold text-slate-800">
+                              {elo}
+                            </span>
                           </span>
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${diffBadgeClass}`}

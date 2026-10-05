@@ -5,20 +5,12 @@ const Subbab = require("../models/Subbab");
 const Pretest = require("../models/MengerjakanPretest");
 const MengerjakanKuis = require("../models/MengerjakanKuis");
 const MendapatkanDifficulty = require("../models/MendapatkanDifficulty");
-
-const getCognitiveLevel = (score) => {
-  if (score >= 1400) return "hard";
-  if (score >= 1000) return "medium";
-  return "easy";
-};
-
-const getSubbabProgress = (score) => {
-  const numericScore = Number(score);
-  if (!Number.isFinite(numericScore) || numericScore <= 600) return 0;
-  if (numericScore >= 1600) return 100;
-
-  return Math.round(((numericScore - 600) / 1000) * 100);
-};
+const {
+  getBabProgress,
+  getCognitiveLevel,
+  getSubbabProgress,
+  isSubbabCompleted,
+} = require("../utils/learningProgress");
 
 const getBab = async (req, res) => {
   try {
@@ -185,6 +177,7 @@ const getBab = async (req, res) => {
 
     const unlockedSubbabIds = unlockedSubbabList.map((subbab) => subbab._id);
     const startedSubbabIds = new Set();
+    const quizzedSubbabIds = new Set();
     const difficultyBySubbabId = new Map();
 
     if (unlockedSubbabIds.length > 0) {
@@ -193,7 +186,7 @@ const getBab = async (req, res) => {
           user_id: userId,
           subbab_id: { $in: unlockedSubbabIds },
         })
-          .select("subbab_id")
+          .select("subbab_id completed_at")
           .lean(),
         MendapatkanDifficulty.find({
           user_id: userId,
@@ -204,7 +197,11 @@ const getBab = async (req, res) => {
       ]);
 
       for (const session of quizSessions) {
-        startedSubbabIds.add(session.subbab_id.toString());
+        const subbabId = session.subbab_id.toString();
+        startedSubbabIds.add(subbabId);
+        if (session.completed_at) {
+          quizzedSubbabIds.add(subbabId);
+        }
       }
 
       for (const record of difficultyRecords) {
@@ -252,22 +249,19 @@ const getBab = async (req, res) => {
         startedSubbabIds.has(subbab._id.toString()),
       ).length;
 
-      const progress =
-        totalSubbab === 0
-          ? 0
-          : Math.round(
-              babSubbab.reduce((total, subbab) => {
-                const score =
-                  difficultyBySubbabId.get(subbab._id.toString())
-                    ?.current_cognitive_score ?? 0;
-                return total + getSubbabProgress(score);
-              }, 0) / totalSubbab,
-            );
+      const progress = getBabProgress(
+        babSubbab,
+        difficultyBySubbabId,
+        quizzedSubbabIds,
+      );
       const completedCount = babSubbab.filter((subbab) => {
         const score = difficultyBySubbabId.get(
           subbab._id.toString(),
         )?.current_cognitive_score;
-        return Number.isFinite(Number(score)) && Number(score) >= 1600;
+        return (
+          quizzedSubbabIds.has(subbab._id.toString()) &&
+          isSubbabCompleted(score)
+        );
       }).length;
 
       return {
@@ -290,12 +284,12 @@ const getBab = async (req, res) => {
             description: subbab.description,
             display_order: subbab.display_order,
             started: startedSubbabIds.has(subbabId),
-            progress: getSubbabProgress(
-              difficulty?.current_cognitive_score ?? 0,
-            ),
+            progress: quizzedSubbabIds.has(subbabId)
+              ? getSubbabProgress(difficulty?.current_cognitive_score ?? 0)
+              : 0,
             completed:
-              Number.isFinite(Number(difficulty?.current_cognitive_score)) &&
-              Number(difficulty.current_cognitive_score) >= 1600,
+              quizzedSubbabIds.has(subbabId) &&
+              isSubbabCompleted(difficulty?.current_cognitive_score),
             current_cognitive_score: Math.round(
               Number(difficulty?.current_cognitive_score ?? 1000),
             ),

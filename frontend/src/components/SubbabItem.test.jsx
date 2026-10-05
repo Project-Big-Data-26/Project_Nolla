@@ -30,26 +30,25 @@ const renderSubbab = (status, cognitiveLevel = baseSubbab.current_cognitive_leve
 };
 
 describe("SubbabItem adaptive quiz actions", () => {
-  it("shows Mulai and the user's Elo for a not-yet-started subbab", () => {
+  it("shows Mulai and the user's Elo score and level for a not-yet-started subbab", () => {
     renderSubbab("not_started");
 
     expect(screen.getByRole("button", { name: "Mulai" })).toBeInTheDocument();
-    expect(screen.getByText("Level hard · Ambang Elo 1400")).toBeInTheDocument();
+    expect(screen.getByText(/1465\s*·\s*hard/)).toBeInTheDocument();
   });
 
-  it.each([
-    ["easy", "Ambang Elo 600"],
-    ["medium", "Ambang Elo 1000"],
-    ["hard", "Ambang Elo 1400"],
-  ])("uses the integer threshold for %s difficulty", (level, threshold) => {
-    renderSubbab("not_started", level);
-    expect(screen.getByText(new RegExp(threshold))).toBeInTheDocument();
-  });
+  it.each(["easy", "medium", "hard"])(
+    "shows the %s cognitive level next to the score",
+    (level) => {
+      renderSubbab("not_started", level);
+      expect(screen.getByText(new RegExp(`1465\\s*·\\s*${level}`))).toBeInTheDocument();
+    },
+  );
 
   it("shows Mulai for an active session so the backend can resume it", () => {
     renderSubbab("in_progress");
 
-    expect(screen.getByText("Sedang Dipelajari")).toBeInTheDocument();
+    expect(screen.getAllByText("Sedang Dipelajari").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Mulai" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Lanjutkan" })).not.toBeInTheDocument();
   });
