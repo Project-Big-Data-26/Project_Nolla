@@ -91,33 +91,43 @@ export default function PersonalizationProfile() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
+    let isLogoutSuccessful = false;
     let notification = {
       type: "error",
       message: "Access token tidak ditemukan",
     };
 
     try {
+      const accessToken = localStorage.getItem("accessToken");
       const refreshToken = localStorage.getItem("refreshToken");
-      if (refreshToken) {
-        const response = await API.post("/auth/logout", { refreshToken });
+      if (accessToken && refreshToken) {
+        const response = await fetch("http://localhost:5000/api/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+        const result = await response.json();
+        isLogoutSuccessful = response.ok;
         notification = {
-          type: "success",
-          message: response.data.message || "Logout berhasil",
+          type: isLogoutSuccessful ? "success" : "error",
+          message: result.message || "Gagal memproses logout.",
         };
-      } else {
+      } else if (!refreshToken) {
         notification.message = "Refresh token tidak ditemukan";
       }
     } catch (error) {
-      console.error("Gagal menghubungi server saat logout:", error);
-      notification = {
-        type: "error",
-        message:
-          error.response?.data?.message ||
-          "Gagal terhubung ke server saat logout.",
-      };
+      console.error("Gagal koneksi saat logout:", error);
+      notification.message = "Gagal terhubung ke server saat logout.";
     } finally {
       toast.dismiss();
       toast[notification.type](notification.message);
+      setIsLoggingOut(false);
+    }
+
+    if (isLogoutSuccessful) {
       logout();
       navigate("/login", { replace: true });
     }
