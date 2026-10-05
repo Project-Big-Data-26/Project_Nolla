@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -8,11 +8,19 @@ import Navbar from "../../components/Navbar";
 
 import API from "../../api/axios";
 import QuestionImage from "../../components/QuestionImage";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 
 import smaIcon from "../../assets/icon/SMA.png";
 
-import { InlineMath, BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
+
+const remarkPlugins = [remarkMath];
+const rehypePlugins = [rehypeKatex];
+const inlineMarkdownComponents = {
+  p: ({ children }) => <span>{children}</span>,
+};
 
 const reviewQuestions = [
   {
@@ -70,66 +78,6 @@ const reviewQuestions = [
       "Samakan penyebut kedua pecahan menjadi 4: ½ diubah menjadi 2/4. Kemudian 2/4 + 1/4 = 3/4.",
   },
 ];
-
-/**
- * Render text yang mengandung LaTeX.
- *
- * Format yang didukung:
- * $x^2$
- * $$x^2 + y^2 = z^2$$
- * \(x^2\)
- * \[x^2 + y^2 = z^2\]
- *
- * Text biasa tetap akan ditampilkan seperti semula.
- */
-const renderLatexText = (text) => {
-  if (text === null || text === undefined) {
-    return null;
-  }
-
-  const value = String(text);
-
-  const parts = value.split(
-    /(\$\$[\s\S]*?\$\$|\$[^$]+\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/g,
-  );
-
-  return parts.map((part, index) => {
-    if (!part) {
-      return null;
-    }
-
-    // Block LaTeX: $$ ... $$
-    if (part.startsWith("$$") && part.endsWith("$$")) {
-      return <BlockMath key={index}>{part.slice(2, -2).trim()}</BlockMath>;
-    }
-
-    // Inline LaTeX: $ ... $
-    if (part.startsWith("$") && part.endsWith("$")) {
-      return (
-        <InlineMath key={index}>
-          {part.slice(1, -1).trim().replace(/\\frac\b/g, "\\dfrac")}
-        </InlineMath>
-      );
-    }
-
-    // Inline LaTeX: \( ... \)
-    if (part.startsWith("\\(") && part.endsWith("\\)")) {
-      return (
-        <InlineMath key={index}>
-          {part.slice(2, -2).trim().replace(/\\frac\b/g, "\\dfrac")}
-        </InlineMath>
-      );
-    }
-
-    // Block LaTeX: \[ ... \]
-    if (part.startsWith("\\[") && part.endsWith("\\]")) {
-      return <BlockMath key={index}>{part.slice(2, -2).trim()}</BlockMath>;
-    }
-
-    // Text biasa
-    return <React.Fragment key={index}>{part}</React.Fragment>;
-  });
-};
 
 const readPretestReview = (sessionId) => {
   if (!sessionId) return null;
@@ -495,9 +443,14 @@ const QuestionReviewPage = () => {
                 {/* KIRI: TEKS & GAMBAR SOAL */}
                 <div className="flex flex-col gap-2.5 sm:gap-4">
                   <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shrink-0">
-                    <p className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
-                      {renderLatexText(question.question)}
-                    </p>
+                    <div className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
+                      <ReactMarkdown
+                        remarkPlugins={remarkPlugins}
+                        rehypePlugins={rehypePlugins}
+                      >
+                        {String(question.question ?? "")}
+                      </ReactMarkdown>
+                    </div>
                   </div>
 
                   <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 flex items-center justify-center flex-1 overflow-hidden">
@@ -565,7 +518,13 @@ const QuestionReviewPage = () => {
                           </div>
 
                           <span className="text-xs sm:text-sm font-semibold flex-1">
-                            {renderLatexText(opt.value)}
+                            <ReactMarkdown
+                              remarkPlugins={remarkPlugins}
+                              rehypePlugins={rehypePlugins}
+                              components={inlineMarkdownComponents}
+                            >
+                              {String(opt.value ?? "")}
+                            </ReactMarkdown>
                           </span>
 
                           {isCorrectAnswer && (
@@ -624,9 +583,14 @@ const QuestionReviewPage = () => {
               /* ================= CONDITIONAL 2: TANPA GAMBAR ================= */
               <div className="flex flex-col gap-3 sm:gap-4 h-auto">
                 <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shrink-0">
-                  <p className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
-                    {renderLatexText(question.question)}
-                  </p>
+                  <div className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
+                    <ReactMarkdown
+                      remarkPlugins={remarkPlugins}
+                      rehypePlugins={rehypePlugins}
+                    >
+                      {String(question.question ?? "")}
+                    </ReactMarkdown>
+                  </div>
                 </div>
 
                 <div className="bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-5 flex flex-col gap-4">
@@ -679,7 +643,13 @@ const QuestionReviewPage = () => {
                           </div>
 
                           <span className="text-xs sm:text-sm font-semibold flex-1">
-                            {renderLatexText(opt.value)}
+                            <ReactMarkdown
+                              remarkPlugins={remarkPlugins}
+                              rehypePlugins={rehypePlugins}
+                              components={inlineMarkdownComponents}
+                            >
+                              {String(opt.value ?? "")}
+                            </ReactMarkdown>
                           </span>
 
                           {isCorrectAnswer && (
