@@ -20,9 +20,8 @@
     "test:landing": "NO_COLOR=1 cypress run --spec 'cypress/e2e/landing/landing.cy.js' 2>&1 | tee cypress/reports/landing/hasil-landing-$(date +%F).txt",
     "test:bab": "NO_COLOR=1 cypress run --spec 'cypress/e2e/bab/bab-pembelajaran.cy.js' 2>&1 | tee cypress/reports/bab/hasil-bab-$(date +%F).txt",
     "test:hasil": "NO_COLOR=1 cypress run --spec 'cypress/e2e/hasil-pembelajaran/hasil-pembelajaran.cy.js' 2>&1 | tee cypress/reports/hasil-pembelajaran/hasil-hasil-$(date +%F).txt",
-    "cy:registrasi:pass": "NO_COLOR=1 cypress run --spec 'cypress/e2e/registrasi/registrasi-pass.cy.js' 2>&1 | tee cypress/reports/registrasi/hasil-registrasi-pass-$(date +%F).txt",
-    "cy:registrasi:fail": "NO_COLOR=1 cypress run --spec 'cypress/e2e/registrasi/registrasi-fail.cy.js' 2>&1 | tee cypress/reports/registrasi/hasil-registrasi-fail-$(date +%F).txt",
-    "cy:registrasi:otp": "NO_COLOR=1 cypress run --headed --browser chrome --spec 'cypress/e2e/registrasi/registrasi-otp.cy.js' 2>&1 | tee cypress/reports/registrasi/hasil-registrasi-otp-$(date +%F).txt"
+    "test:registrasi": "NO_COLOR=1 cypress run --spec 'cypress/e2e/registrasi/registrasi.cy.js' 2>&1 | tee cypress/reports/registrasi/hasil-registrasi-$(date +%F).txt",
+    "test:registrasi:otp": "NO_COLOR=1 cypress run --headed --browser chrome --spec 'cypress/e2e/registrasi/registrasi-otp.cy.js' 2>&1 | tee cypress/reports/registrasi/hasil-registrasi-otp-$(date +%F).txt"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

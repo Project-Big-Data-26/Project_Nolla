@@ -12,12 +12,12 @@ export const FIELD = {
 export const TEKS = {
     petunjukSandi: 'Minimal 8 karakter, mencakup huruf besar, huruf kecil, dan angka.',
     emailTerdaftar: 'Email sudah terdaftar',
-    daftarBerhasil: 'Pendaftaran Berhasil!',
-    otpTerkirim: 'Kode verifikasi OTP telah dikirimkan ke email Anda.',
+    // Notifikasi kini memakai pesan dari backend (authController.js), bukan teks tetap di frontend.
+    daftarBerhasil: 'Registrasi berhasil',
+    otpTerkirim: 'Silakan cek email Anda untuk kode verifikasi',
     otpKurang: 'Harap masukkan 6 digit kode OTP secara lengkap!',
     otpSalah: 'Kode OTP salah atau sudah kedaluwarsa',
-    verifikasiBerhasil: 'Verifikasi Berhasil!',
-    akunAktif: 'Akun Anda telah aktif.',
+    verifikasiBerhasil: 'Email berhasil diverifikasi',
     judulJenjang: 'Pilih Jenjang Pendidikanmu',
     peringatanJenjang: 'Harap pilih salah satu jenjang pendidikan sebelum melanjutkan.',
     loginGagal: 'Email atau kata sandi salah',

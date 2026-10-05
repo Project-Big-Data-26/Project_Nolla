@@ -1,11 +1,11 @@
 // TC-Registrasi (Melakukan Registrasi Akun): alur lengkap dengan OTP asli.
 // Kode OTP diketik tester dari email; sisanya otomatis.
-//   AKUN-08: CY-REG-004, 019, 020, 006, 009, 008, 034, 033
-//   AKUN-09: CY-REG-032, 007 (bagian ini dilewati kalau AKUN09_* belum diisi)
+//   AKUN-02: CY-REG-004, 019, 020, 006, 009, 008, 034, 033
+//   AKUN-03: CY-REG-032, 007 (bagian ini dilewati kalau AKUN03_* belum diisi)
 // Jalankan: npm run cy:registrasi:otp   (browser Chrome terbuka; jangan ditutup)
-// Butuh di cypress.env.json: AKUN08_EMAIL, AKUN08_PASSWORD, AKUN09_EMAIL, AKUN09_PASSWORD
+// Butuh di cypress.env.json: AKUN02_EMAIL, AKUN02_PASSWORD, AKUN03_EMAIL, AKUN03_PASSWORD
 //
-// Sebelum run: hapus AKUN-08 dan AKUN-09 dari MongoDB.
+// Sebelum run: hapus AKUN-02 dan AKUN-03 dari MongoDB.
 // Saat Command Log menampilkan "Ketik kode OTP…": buka email akun itu, ketik
 // 6 digit kode di kotak OTP pada browser Cypress, lalu klik "Verifikasi OTP".
 // Batas waktunya 9 menit.
@@ -15,7 +15,9 @@
 //   dari email ikut ditolak setelah 020, itu temuan: catat dan laporkan.
 // - 032 memakai respons server tiruan (500) untuk simpan jenjang, lalu halaman
 //   dimuat ulang dan 007 menyimpan jenjang SMP dengan backend asli.
-// - Setelah run, AKUN-08 siap dipakai TC-Profil (jenjang "Semua").
+// - Setelah run, AKUN-02 siap dipakai TC-Profil (jenjang "Semua").
+//   AKUN-03 (jenjang SMP) siap dipakai TC-Memulihkan Kata Sandi.
+// - Kode akun mengikuti Daftar_Akun_Uji_NOLLA.xlsx (AKUN-02 dan AKUN-03 dulu ditulis AKUN-08 dan AKUN-09).
 
 import {
     TEKS,
@@ -30,17 +32,17 @@ import {
 
 const BATAS_TUNGGU_OTP = 9 * 60 * 1000
 
-const AKUN08 = {
-    kode: 'AKUN-08',
-    nama: 'QA Akun Delapan',
-    email: Cypress.env('AKUN08_EMAIL'),
-    sandi: Cypress.env('AKUN08_PASSWORD'),
+const AKUN02 = {
+    kode: 'AKUN-02',
+    nama: 'QA Akun Dua',
+    email: Cypress.env('AKUN02_EMAIL'),
+    sandi: Cypress.env('AKUN02_PASSWORD'),
 }
-const AKUN09 = {
-    kode: 'AKUN-09',
-    nama: 'QA Akun Sembilan',
-    email: Cypress.env('AKUN09_EMAIL'),
-    sandi: Cypress.env('AKUN09_PASSWORD'),
+const AKUN03 = {
+    kode: 'AKUN-03',
+    nama: 'QA Akun Tiga',
+    email: Cypress.env('AKUN03_EMAIL'),
+    sandi: Cypress.env('AKUN03_PASSWORD'),
 }
 
 function cekEnvAkun(akun) {
@@ -149,11 +151,11 @@ function harusJenjangProfil(akun, pola, pesan) {
         })
 }
 
-describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', { testIsolation: false }, () => {
+describe('AKUN-02: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', { testIsolation: false }, () => {
     const teksHalaman = {}
 
     before(() => {
-        cekEnvAkun(AKUN08)
+        cekEnvAkun(AKUN02)
         cy.clearLocalStorage()
         cy.clearCookies()
     })
@@ -163,11 +165,11 @@ describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', {
         cy.document().then((doc) => {
             teksHalaman['/register'] = teksTampil(doc)
         })
-        daftarSampaiVerifikasi(AKUN08)
+        daftarSampaiVerifikasi(AKUN02)
         cy.contains(TEKS.daftarBerhasil).should('be.visible')
         cy.contains(TEKS.otpTerkirim).should('be.visible')
         cy.contains('Verifikasi Kode OTP').should('be.visible')
-        cy.contains(AKUN08.email).should('be.visible')
+        cy.contains(AKUN02.email).should('be.visible')
         kotakOtp().should('have.length', 6)
         cy.contains('button', 'Verifikasi OTP').should('be.visible')
         // Rekam teks /verify lebih dulu, supaya CY-REG-033 tetap punya data walau pengecekan di bawah gagal.
@@ -202,9 +204,9 @@ describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', {
     })
 
     it('CY-REG-006 Verifikasi OTP benar lalu masuk otomatis (OTP diketik tester)', () => {
-        tungguOtpDariTester(AKUN08)
+        tungguOtpDariTester(AKUN02)
         cy.contains(TEKS.verifikasiBerhasil).should('be.visible')
-        cy.contains(TEKS.akunAktif).should('be.visible')
+        // Teks "Akun Anda telah aktif." sudah tidak ada di UI; pesan sukses kini dari backend (verifikasiBerhasil).
         cekTokenTersimpan()
         cy.contains(TEKS.judulJenjang).should('be.visible')
         cy.document().then((doc) => {
@@ -232,18 +234,18 @@ describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', {
         cy.contains(/Kelas 1\b/, { timeout: 15000 }).should('exist')
         cy.contains(/Kelas 7\b/).should('exist')
         cy.visit('/profile')
-        harusJenjangProfil(AKUN08, /semua/i, 'jenjang di Profil setelah "Lewati"')
+        harusJenjangProfil(AKUN02, /semua/i, 'jenjang di Profil setelah "Lewati"')
         cy.then(() => expect(tujuan, 'halaman tujuan setelah klik "Lewati"').to.equal('/topik'))
     })
 
     it('CY-REG-034 Data akun baru tampil di Profil dan bisa login manual', () => {
         cy.visit('/profile')
-        cy.contains(AKUN08.nama, { timeout: 10000 }).should('be.visible')
-        cy.contains(AKUN08.email).should('be.visible')
-        harusJenjangProfil(AKUN08, /semua/i, 'jenjang di Profil')
+        cy.contains(AKUN02.nama, { timeout: 10000 }).should('be.visible')
+        cy.contains(AKUN02.email).should('be.visible')
+        harusJenjangProfil(AKUN02, /semua/i, 'jenjang di Profil')
         cy.clearLocalStorage()
         cy.clearCookies()
-        loginLewatForm(AKUN08.email, AKUN08.sandi)
+        loginLewatForm(AKUN02.email, AKUN02.sandi)
     })
 
     it('CY-REG-033 Istilah "kata sandi" di halaman Registrasi, Verifikasi, dan pemilihan jenjang', () => {
@@ -256,17 +258,17 @@ describe('AKUN-08: registrasi lewat form, OTP, lalu lewati pemilihan jenjang', {
     })
 })
 
-describe('AKUN-09: registrasi lewat form, OTP, lalu memilih jenjang SMP', { testIsolation: false }, () => {
+describe('AKUN-03: registrasi lewat form, OTP, lalu memilih jenjang SMP', { testIsolation: false }, () => {
     before(function () {
-        if (!AKUN09.email || !AKUN09.sandi) this.skip()
+        if (!AKUN03.email || !AKUN03.sandi) this.skip()
         cy.clearLocalStorage()
         cy.clearCookies()
     })
 
-    it('Persiapan: daftarkan AKUN-09 dan verifikasi OTP (OTP diketik tester)', () => {
+    it('Persiapan: daftarkan AKUN-03 dan verifikasi OTP (OTP diketik tester)', () => {
         cy.visit('/register')
-        daftarSampaiVerifikasi(AKUN09)
-        tungguOtpDariTester(AKUN09)
+        daftarSampaiVerifikasi(AKUN03)
+        tungguOtpDariTester(AKUN03)
     })
 
     it('CY-REG-032 Gagal menyimpan jenjang (respons server tiruan 500)', () => {
@@ -307,7 +309,9 @@ describe('AKUN-09: registrasi lewat form, OTP, lalu memilih jenjang SMP', { test
         cy.contains(/Kelas 7\b/, { timeout: 15000 }).should('exist')
         cy.contains(/Kelas [1-6]\b/).should('not.exist')
         cy.visit('/profile')
-        harusJenjangProfil(AKUN09, /smp/i, 'jenjang di Profil setelah memilih SMP')
-        cy.then(() => expect(tujuan, 'halaman tujuan setelah "Simpan & Mulai Belajar"').to.equal('/topik'))
+        harusJenjangProfil(AKUN03, /smp/i, 'jenjang di Profil setelah memilih SMP')
+        // "/" dan "/topik" sama-sama merender halaman Topik untuk siswa yang sudah login, jadi keduanya diterima.
+        // (Tombol "Simpan & Mulai Belajar" mengarah ke "/", tombol "Lewati" ke "/topik".)
+        cy.then(() => expect(tujuan, 'halaman tujuan setelah "Simpan & Mulai Belajar"').to.be.oneOf(['/', '/topik']))
     })
 })

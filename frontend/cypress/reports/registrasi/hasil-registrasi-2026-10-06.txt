@@ -14,47 +14,66 @@ Learn more: https://on.cypress.io/cypress-env-migration
   │ Cypress:        15.21.1                                                                        │
   │ Browser:        Electron 138 (headless)                                                        │
   │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
-  │ Specs:          1 found (registrasi-pass.cy.js)                                                │
-  │ Searched:       cypress/e2e/registrasi/registrasi-pass.cy.js                                   │
+  │ Specs:          1 found (registrasi.cy.js)                                                     │
+  │ Searched:       cypress/e2e/registrasi/registrasi.cy.js                                        │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────
                                                                                                     
-  Running:  registrasi-pass.cy.js                                                           (1 of 1)
+  Running:  registrasi.cy.js                                                                (1 of 1)
 
 
-  TC-Registrasi: kasus yang diperkirakan Pass
-    ✓ CY-REG-001 Halaman Registrasi tampil lengkap (567ms)
-    ✓ CY-REG-002 Tautan "Masuk di sini" menuju halaman Login (214ms)
-    ✓ CY-REG-003 Kata sandi tersembunyi dan bisa ditampilkan (1018ms)
-    ✓ CY-REG-011 Field wajib kosong: Nama Lengkap (2673ms)
-    ✓ CY-REG-011 Field wajib kosong: Alamat Email (2356ms)
-    ✓ CY-REG-011 Field wajib kosong: Kata Sandi (2651ms)
-    ✓ CY-REG-011 Field wajib kosong: Konfirmasi Kata Sandi (2652ms)
-    ✓ CY-REG-012 Format email tidak valid (2968ms)
-    ✓ CY-REG-013 Kata sandi kurang dari 8 karakter (atribut minlength) (114ms)
-    ✓ CY-REG-018 Registrasi dengan email yang sudah terdaftar (AKUN-01) (2059ms)
-    ✓ CY-REG-031 Gagal menyimpan akun (respons server tiruan 500) (2018ms)
-    ✓ CY-REG-035 Registrasi lewat form dengan email yang terdaftar lewat Google (AKUN-07) (3306ms)
+  TC-Registrasi: form, validasi, dan akses halaman (tanpa OTP)
+    ✓ CY-REG-001 Halaman Registrasi tampil lengkap (648ms)
+    ✓ CY-REG-002 Tautan "Masuk di sini" menuju halaman Login (243ms)
+    ✓ CY-REG-003 Kata sandi tersembunyi dan bisa ditampilkan (1024ms)
+    ✓ CY-REG-011 Field wajib kosong: Nama Lengkap (2697ms)
+    ✓ CY-REG-011 Field wajib kosong: Alamat Email (2419ms)
+    ✓ CY-REG-011 Field wajib kosong: Kata Sandi (2721ms)
+    ✓ CY-REG-011 Field wajib kosong: Konfirmasi Kata Sandi (2701ms)
+    ✓ CY-REG-012 Format email tidak valid (2991ms)
+    ✓ CY-REG-013 Kata sandi kurang dari 8 karakter (atribut minlength) (181ms)
+    ✓ CY-REG-018 Registrasi dengan email yang sudah terdaftar (AKUN-01) (2047ms)
+    ✓ CY-REG-031 Gagal menyimpan akun (respons server tiruan 500) (2060ms)
+    ✓ CY-REG-035 Registrasi lewat form dengan email yang terdaftar lewat Google (AKUN-05) (3469ms)
+    ✓ CY-REG-014 Kata sandi tanpa huruf besar (2744ms)
+    ✓ CY-REG-015 Kata sandi tanpa huruf kecil (2639ms)
+    ✓ CY-REG-016 Kata sandi tanpa angka (2726ms)
+    ✓ CY-REG-017 Konfirmasi kata sandi tidak cocok (2673ms)
+    ✓ CY-REG-025 Membuka halaman verifikasi tanpa registrasi (222ms)
+    ✓ CY-REG-030 Membuka halaman Registrasi saat sudah login (AKUN-01) (1636ms)
+    ✓ CY-REG-010 Halaman pemilihan jenjang hanya tampil sekali (AKUN-01) (1556ms)
 
 
-  12 passing (23s)
+  19 passing (38s)
 
 
   (Results)
 
   ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ Tests:        12                                                                               │
-  │ Passing:      12                                                                               │
+  │ Tests:        19                                                                               │
+  │ Passing:      19                                                                               │
   │ Failing:      0                                                                                │
   │ Pending:      0                                                                                │
   │ Skipped:      0                                                                                │
-  │ Screenshots:  0                                                                                │
+  │ Screenshots:  4                                                                                │
   │ Video:        false                                                                            │
-  │ Duration:     22 seconds                                                                       │
-  │ Spec Ran:     registrasi-pass.cy.js                                                            │
+  │ Duration:     37 seconds                                                                       │
+  │ Spec Ran:     registrasi.cy.js                                                                 │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/registrasi    (2000x1436)
+     .cy.js/CY-REG-014.png                                                                          
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/registrasi    (2000x1436)
+     .cy.js/CY-REG-015.png                                                                          
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/registrasi    (2000x1436)
+     .cy.js/CY-REG-016.png                                                                          
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/registrasi    (2000x1436)
+     .cy.js/CY-REG-017.png                                                                          
 
 
 ====================================================================================================
@@ -64,7 +83,7 @@ Learn more: https://on.cypress.io/cypress-env-migration
 
        Spec                                              Tests  Passing  Failing  Pending  Skipped  
   ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ ✔  registrasi-pass.cy.js                    00:22       12       12        -        -        - │
+  │ ✔  registrasi.cy.js                         00:37       19       19        -        -        - │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
-    ✔  All specs passed!                        00:22       12       12        -        -        -  
+    ✔  All specs passed!                        00:37       19       19        -        -        -  
 
