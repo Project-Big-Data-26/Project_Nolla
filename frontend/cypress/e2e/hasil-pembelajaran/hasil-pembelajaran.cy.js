@@ -266,3 +266,68 @@ describe("Hasil Pembelajaran: kondisi memuat dan gagal (data tiruan)", () => {
         cy.contains("article", "BAB Selesai Dipelajari").should("contain.text", "0");
     });
 });
+
+describe("Hasil Pembelajaran: beberapa kelas dan data kosong (data tiruan)", () => {
+    beforeEach(() => {
+        cy.viewport(1280, 900);
+        cy.clearAllLocalStorage();
+        loginViaUi(AKUN01.email, AKUN01.password);
+    });
+
+    function babKelas(id, nama, nomorBab, nomorKelas, status, progress) {
+        return {
+            id,
+            name: nama,
+            description: `Deskripsi ${nama}.`,
+            display_order: nomorBab,
+            kelas: { id: `mock-kelas-${nomorKelas}`, name: `Kelas ${nomorKelas}`, nomor_kelas: nomorKelas },
+            class_reference: `Kelas ${nomorKelas}`,
+            progress,
+            total_subbab: 2,
+            started_subbab: 2,
+            completed_subbab: status === "completed" ? 2 : 1,
+            status,
+        };
+    }
+
+    // Nomor BAB di data asli mulai dari 1 lagi di tiap kelas, dan backend (learningResultsController)
+    // mengirim data terurut: kelas dulu, baru nomor BAB. Test ini memeriksa urutan itu terjaga di layar.
+    // Catatan: TopicDetailPage.jsx mengurutkan ulang hanya dengan display_order, jadi BAB dari kelas
+    // berbeda bisa bercampur (BAB 1 Kelas 1, BAB 1 Kelas 2, lalu BAB 2 Kelas 1). Jika test ini gagal,
+    // itu temuan tampilan, bukan kesalahan test.
+    it("CY-HASIL-017 BAB dari beberapa kelas tetap dikelompokkan per kelas (urutan sama dengan backend)", () => {
+        const urutanBackend = [
+            babKelas("mock-k1-b1", "BAB Tiruan K1 Satu", 1, 1, "completed", 100),
+            babKelas("mock-k1-b2", "BAB Tiruan K1 Dua", 2, 1, "in_progress", 50),
+            babKelas("mock-k2-b1", "BAB Tiruan K2 Satu", 1, 2, "in_progress", 30),
+        ];
+        cy.intercept("GET", "**/api/learning-results", {
+            statusCode: 200,
+            body: {
+                statusCode: 200,
+                success: true,
+                summary: { completed_bab: 1, in_progress_bab: 2 },
+                data: urutanBackend,
+            },
+        }).as("hasil");
+        cy.visit("/hasil-pembelajaran");
+        cy.wait("@hasil");
+        cy.get("section article h3").then(($judul) => {
+            const urutanLayar = [...$judul].map((el) => el.textContent.trim());
+            expect(urutanLayar, "urutan kartu di layar").to.deep.equal(urutanBackend.map((bab) => bab.name));
+        });
+    });
+
+    it("CY-HASIL-018 belum ada BAB berprogres: ringkasan 0 dan pesan kosong tampil", () => {
+        cy.intercept("GET", "**/api/learning-results", {
+            statusCode: 200,
+            body: { statusCode: 200, success: true, summary: { completed_bab: 0, in_progress_bab: 0 }, data: [] },
+        }).as("hasil");
+        cy.visit("/hasil-pembelajaran");
+        cy.wait("@hasil");
+        cy.contains(PESAN_KOSONG).should("be.visible");
+        cy.contains("article", "BAB Selesai Dipelajari").should("contain.text", "0");
+        cy.contains("article", "BAB Sedang Dipelajari").should("contain.text", "0");
+        cy.get("section article h3").should("not.exist");
+    });
+});

@@ -6,7 +6,7 @@ Warning: The allowCypressEnv configuration option is enabled. This allows any br
 Learn more: https://on.cypress.io/cypress-env-migration
 
 
-================================================================================
+====================================================================================================
 
   (Run Starting)
 
@@ -25,58 +25,90 @@ Learn more: https://on.cypress.io/cypress-env-migration
 
 
   Hasil Pembelajaran: tampilan umum (data asli AKUN-01)
-    ✓ CY-HASIL-001 halaman tidak bisa dibuka tanpa login (549ms)
-    ✓ CY-HASIL-002 halaman menampilkan judul & ringkasan hasil belajar (F05.1) (2829ms)
+    ✓ CY-HASIL-001 halaman tidak bisa dibuka tanpa login (533ms)
+    ✓ CY-HASIL-002 halaman menampilkan judul & ringkasan hasil belajar (F05.1) (2794ms)
 
   Hasil Pembelajaran: kartu BAB (data tiruan)
-    ✓ CY-HASIL-003 setiap kartu BAB menampilkan nomor, nama, deskripsi, progres, jumlah subbab, dan kelas (F05.1) (1589ms)
-    ✓ CY-HASIL-004 kartu BAB diurutkan menurut nomor BAB (1623ms)
-    ✓ CY-HASIL-005 ringkasan BAB Selesai & Sedang Dipelajari sesuai data (F05.1) (1544ms)
+    ✓ CY-HASIL-003 setiap kartu BAB menampilkan nomor, nama, deskripsi, progres, jumlah subbab, dan kelas (F05.1) (1653ms)
+    ✓ CY-HASIL-004 kartu BAB diurutkan menurut nomor BAB (1617ms)
+    ✓ CY-HASIL-005 ringkasan BAB Selesai & Sedang Dipelajari sesuai data (F05.1) (1566ms)
 
   Hasil Pembelajaran: pencarian (data tiruan)
-    ✓ CY-HASIL-006 pencarian menyaring daftar BAB berdasarkan nama (1926ms)
-    ✓ CY-HASIL-007 pencarian juga mencocokkan deskripsi BAB (1813ms)
-    ✓ CY-HASIL-008 pencarian tidak membedakan huruf besar/kecil (1927ms)
-    ✓ CY-HASIL-009 pencarian tanpa hasil menampilkan pesan yang sesuai (2061ms)
+    ✓ CY-HASIL-006 pencarian menyaring daftar BAB berdasarkan nama (1953ms)
+    ✓ CY-HASIL-007 pencarian juga mencocokkan deskripsi BAB (1862ms)
+    ✓ CY-HASIL-008 pencarian tidak membedakan huruf besar/kecil (1946ms)
+    ✓ CY-HASIL-009 pencarian tanpa hasil menampilkan pesan yang sesuai (2056ms)
 
   Hasil Pembelajaran: filter status pembelajaran (data tiruan, F05.2, F05.3)
-    ✓ CY-HASIL-010 filter menyediakan 3 pilihan: Semua, Selesai, Sedang Dipelajari (F05.3) (1619ms)
-    ✓ CY-HASIL-011 filter "Selesai" hanya menampilkan BAB berstatus selesai (F05.2) (1673ms)
-    ✓ CY-HASIL-012 filter "Sedang Dipelajari" hanya menampilkan BAB yang sedang dipelajari (F05.2) (1766ms)
-    ✓ CY-HASIL-013 filter bisa dikembalikan ke "Semua" lewat "Kembalikan ke Default" (1908ms)
-    ✓ CY-HASIL-014 filter dan pencarian bekerja bersamaan (1992ms)
+    ✓ CY-HASIL-010 filter menyediakan 3 pilihan: Semua, Selesai, Sedang Dipelajari (F05.3) (1603ms)
+    ✓ CY-HASIL-011 filter "Selesai" hanya menampilkan BAB berstatus selesai (F05.2) (1731ms)
+    ✓ CY-HASIL-012 filter "Sedang Dipelajari" hanya menampilkan BAB yang sedang dipelajari (F05.2) (1731ms)
+    ✓ CY-HASIL-013 filter bisa dikembalikan ke "Semua" lewat "Kembalikan ke Default" (1888ms)
+    ✓ CY-HASIL-014 filter dan pencarian bekerja bersamaan (2020ms)
 
   Hasil Pembelajaran: kondisi memuat dan gagal (data tiruan)
-    ✓ CY-HASIL-015 saat memuat tampil teks "Memuat hasil pembelajaran..." lalu diganti kartu BAB (4520ms)
-    ✓ CY-HASIL-016 gagal memuat data menampilkan pesan error dan ringkasan 0 (1544ms)
+    ✓ CY-HASIL-015 saat memuat tampil teks "Memuat hasil pembelajaran..." lalu diganti kartu BAB (4630ms)
+    ✓ CY-HASIL-016 gagal memuat data menampilkan pesan error dan ringkasan 0 (1550ms)
+
+  Hasil Pembelajaran: beberapa kelas dan data kosong (data tiruan)
+    1) CY-HASIL-017 BAB dari beberapa kelas tetap dikelompokkan per kelas (urutan sama dengan backend)
+    ✓ CY-HASIL-018 belum ada BAB berprogres: ringkasan 0 dan pesan kosong tampil (1534ms)
 
 
-  16 passing (31s)
+  17 passing (35s)
+  1 failing
+
+  1) Hasil Pembelajaran: beberapa kelas dan data kosong (data tiruan)
+       CY-HASIL-017 BAB dari beberapa kelas tetap dikelompokkan per kelas (urutan sama dengan backend):
+
+      urutan kartu di layar
+      + expected - actual
+
+       [ 'BAB Tiruan K1 Satu',
+      -  'BAB Tiruan K2 Satu',
+      -  'BAB Tiruan K1 Dua' ]
+      +  'BAB Tiruan K1 Dua',
+      +  'BAB Tiruan K2 Satu' ]
+      
+      at Context.eval (webpack://client/./cypress/e2e/hasil-pembelajaran/hasil-pembelajaran.cy.js:317:65)
+      at getRet (http://localhost:5173/__cypress/runner/cypress_runner.js:121394:20)
+      at tryCatcher (http://localhost:5173/__cypress/runner/cypress_runner.js:1780:23)
+      at Promise.attempt.Promise.try (http://localhost:5173/__cypress/runner/cypress_runner.js:4288:29)
+
+
 
 
   (Results)
 
   ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ Tests:        16                                                                               │
-  │ Passing:      16                                                                               │
-  │ Failing:      0                                                                                │
+  │ Tests:        18                                                                               │
+  │ Passing:      17                                                                               │
+  │ Failing:      1                                                                                │
   │ Pending:      0                                                                                │
   │ Skipped:      0                                                                                │
-  │ Screenshots:  0                                                                                │
+  │ Screenshots:  1                                                                                │
   │ Video:        false                                                                            │
-  │ Duration:     31 seconds                                                                       │
+  │ Duration:     34 seconds                                                                       │
   │ Spec Ran:     hasil-pembelajaran.cy.js                                                         │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 
-================================================================================
+  (Screenshots)
+
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/hasil-pemb    (2560x1440)
+     elajaran.cy.js/Hasil Pembelajaran beberapa kelas dan data kosong (data tiruan) -               
+     - CY-HASIL-017 BAB dari beberapa kelas tetap dikelompokkan per kelas (urutan sam               
+     a dengan backend) (failed).png                                                                 
+
+
+====================================================================================================
 
   (Run Finished)
 
 
        Spec                                              Tests  Passing  Failing  Pending  Skipped  
   ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ ✔  hasil-pembelajaran.cy.js                 00:31       16       16        -        -        - │
+  │ ✖  hasil-pembelajaran.cy.js                 00:34       18       17        1        -        - │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
-    ✔  All specs passed!                        00:31       16       16        -        -        -  
+    ✖  1 of 1 failed (100%)                     00:34       18       17        1        -        -  
 
