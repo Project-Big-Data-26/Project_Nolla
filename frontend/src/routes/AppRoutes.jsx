@@ -38,7 +38,6 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public / Landing Route */}
-      <Route path="/" element={<Topics />} />
       <Route path="/nolla" element={<LandingPage />} />
 
       {/* ========================================
@@ -48,9 +47,9 @@ const AppRoutes = () => {
       {/* Logika GuestRoute milik Roma (PENTING: Mencegah user login masuk ke sini) */}
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Route>
 
-      <Route path="/register" element={<Register />} />
       <Route path="/verify" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset" element={<ResetPassword />} />
@@ -72,6 +71,7 @@ const AppRoutes = () => {
       ======================================== */}
 
       <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<Topics />} />
         <Route path="/personalization" element={<PersonalizationWizard />} />
         <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
         <Route path="/topik" element={<Topics />} />

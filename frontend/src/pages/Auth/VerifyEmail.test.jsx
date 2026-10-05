@@ -11,11 +11,18 @@ vi.mock("../../context/AuthContext", () => ({
 afterEach(() => vi.unstubAllGlobals());
 
 function renderWithRoutes(initialEntries) {
+    const entries = initialEntries.map((entry) =>
+        typeof entry === "string" && entry === "/verify-email"
+            ? { pathname: entry, state: { email: "budi@example.com" } }
+            : entry,
+    );
+
     return render(
-        <MemoryRouter initialEntries={initialEntries}>
+        <MemoryRouter initialEntries={entries}>
             <Routes>
                 <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/topik" element={<div>Halaman Pilihan Bab</div>} />
+                <Route path="/login" element={<div>Halaman Login</div>} />
             </Routes>
         </MemoryRouter>
     );
@@ -36,9 +43,9 @@ describe("VerifyEmail", () => {
         expect(screen.getByRole("heading", { name: "Verifikasi Kode OTP" })).toBeInTheDocument();
     });
 
-    it("menampilkan email default kalau tidak ada state yang dikirim", () => {
-        renderWithRoutes(["/verify-email"]);
-        expect(screen.getByText("user@example.com")).toBeInTheDocument();
+    it("mengalihkan ke login kalau dibuka tanpa email dari alur sebelumnya", () => {
+        renderWithRoutes([{ pathname: "/verify-email" }]);
+        expect(screen.getByText("Halaman Login")).toBeInTheDocument();
     });
 
     it("menampilkan email dari location state kalau ada", () => {

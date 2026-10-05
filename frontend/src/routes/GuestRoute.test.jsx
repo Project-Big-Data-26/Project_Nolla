@@ -10,13 +10,14 @@ afterEach(() => {
   localStorage.clear();
 });
 
-const renderLoginRoute = () =>
+const renderGuestRoute = (path = "/login") =>
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={["/login"]}>
+      <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route element={<GuestRoute />}>
             <Route path="/login" element={<h1>Form Login</h1>} />
+            <Route path="/register" element={<h1>Form Registrasi</h1>} />
           </Route>
           <Route path="/topik" element={<h1>Halaman Topik</h1>} />
         </Routes>
@@ -26,14 +27,21 @@ const renderLoginRoute = () =>
 
 describe("GuestRoute", () => {
   it("menampilkan halaman login untuk pengguna yang belum login", () => {
-    renderLoginRoute();
+    renderGuestRoute();
 
     expect(screen.getByRole("heading", { name: "Form Login" })).toBeInTheDocument();
   });
 
   it("mengalihkan pengguna yang sudah login ke halaman topik", () => {
     localStorage.setItem("accessToken", "valid-access-token");
-    renderLoginRoute();
+    renderGuestRoute();
+
+    expect(screen.getByRole("heading", { name: "Halaman Topik" })).toBeInTheDocument();
+  });
+
+  it("mengalihkan pengguna yang sudah login dari halaman registrasi", () => {
+    localStorage.setItem("accessToken", "valid-access-token");
+    renderGuestRoute("/register");
 
     expect(screen.getByRole("heading", { name: "Halaman Topik" })).toBeInTheDocument();
   });
