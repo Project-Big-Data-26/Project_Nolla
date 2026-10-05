@@ -51,6 +51,20 @@ const getQuestionRating = (question) => {
 const calculateExpectedScore = (studentRating, questionRating) =>
   1 / (1 + 10 ** ((questionRating - studentRating) / 400));
 
+const shuffleQuestions = (questions) => {
+  const shuffled = [...questions];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+};
+
 const getUpdatedLevel = (score) => getDifficultyFromScore(score);
 
 const serializeQuestion = (question, req) => ({
@@ -218,7 +232,6 @@ const startQuiz = async (req, res) => {
       subbab_id: subbabId,
       status: { $ne: "inactive" },
     })
-      .sort({ created_at: 1, _id: 1 })
       .lean();
 
     const trackQuestions = questionCandidates.filter(
@@ -246,7 +259,10 @@ const startQuiz = async (req, res) => {
       });
     }
 
-    const questions = availableQuestions.slice(0, requiredQuestionCount);
+    const questions = shuffleQuestions(availableQuestions).slice(
+      0,
+      requiredQuestionCount,
+    );
 
     const latestSession = await MengerjakanKuis.findOne({
       user_id: userId,

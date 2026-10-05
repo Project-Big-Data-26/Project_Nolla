@@ -5,12 +5,10 @@ import { useAuth } from "../context/AuthContext";
 const ProtectedRoute = () => {
   const auth = useAuth();
 
-  // BACAKAN JUGA DARI LOCALSTORAGE SEBAGAI SECONDARY CHECK
-  const hasAccessToken = localStorage.getItem("accessToken");
+  const hasAccessToken =
+    localStorage.getItem("accessToken") || localStorage.getItem("token");
 
-  // Jika token di LocalStorage TIDAK ADA ATAU auth context menyatakan belum login:
   if (!hasAccessToken || !auth?.isAuthenticated) {
-    // Tendang paksa ke login
     return <Navigate to="/login" replace />;
   }
 

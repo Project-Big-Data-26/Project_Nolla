@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const RevokedToken = require("../models/RevokedToken");
+const User = require("../models/User");
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -39,7 +40,45 @@ const authMiddleware = async (req, res, next) => {
     // VERIFY JWT
     // ========================================
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      console.error("Auth token verification error:", error.message);
+      return res.status(401).json({
+        statusCode: 401,
+        status: "error",
+        message: "Token tidak valid atau sudah kedaluwarsa",
+      });
+    }
+
+    if (!decoded.id) {
+      return res.status(401).json({
+        statusCode: 401,
+        status: "error",
+        message: "Token tidak memiliki identitas user yang valid",
+      });
+    }
+
+    let userExists;
+    try {
+      userExists = await User.exists({ _id: decoded.id });
+    } catch (error) {
+      console.error("Auth user lookup error:", error);
+      return res.status(500).json({
+        statusCode: 500,
+        status: "error",
+        message: "Gagal memvalidasi user",
+      });
+    }
+
+    if (!userExists) {
+      return res.status(401).json({
+        statusCode: 401,
+        status: "error",
+        message: "User tidak ditemukan",
+      });
+    }
 
     // ========================================
     // SIMPAN USER KE REQUEST

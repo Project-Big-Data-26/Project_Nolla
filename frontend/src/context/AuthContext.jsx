@@ -27,6 +27,10 @@ export const AuthProvider = ({ children }) => {
     const handleSessionExpiry = () => {
       setUser(null);
       setToken(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
     };
 
     window.addEventListener("auth:refreshed", handleTokenRefresh);
@@ -58,6 +62,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
   };
 

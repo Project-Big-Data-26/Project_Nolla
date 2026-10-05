@@ -74,4 +74,43 @@ describe("API token refresh", () => {
     expect(localStorage.getItem("accessToken")).toBe("fresh-access");
     expect(localStorage.getItem("refreshToken")).toBe("fresh-refresh");
   });
+
+  it("clears stored credentials and emits session expiry when refresh fails", async () => {
+    localStorage.setItem("accessToken", "expired-access");
+    localStorage.setItem("token", "legacy-access");
+    localStorage.setItem("refreshToken", "invalid-refresh");
+    localStorage.setItem("user", JSON.stringify({ id: "user-1" }));
+
+    API.defaults.adapter = vi.fn(async (config) => {
+      const response = {
+        data: { success: false },
+        status: 401,
+        statusText: "Unauthorized",
+        headers: {},
+        config,
+      };
+      throw new AxiosError(
+        "Unauthorized",
+        AxiosError.ERR_BAD_REQUEST,
+        config,
+        null,
+        response,
+      );
+    });
+
+    vi.spyOn(axios, "post").mockRejectedValue(
+      new AxiosError("Invalid refresh token"),
+    );
+    const onExpired = vi.fn();
+    window.addEventListener("auth:expired", onExpired);
+
+    await expect(API.get("/private-resource")).rejects.toThrow();
+
+    expect(localStorage.getItem("accessToken")).toBeNull();
+    expect(localStorage.getItem("token")).toBeNull();
+    expect(localStorage.getItem("refreshToken")).toBeNull();
+    expect(localStorage.getItem("user")).toBeNull();
+    expect(onExpired).toHaveBeenCalledTimes(1);
+    window.removeEventListener("auth:expired", onExpired);
+  });
 });

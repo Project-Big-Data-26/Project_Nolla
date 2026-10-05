@@ -13,7 +13,7 @@ services:
       - ./backend/.env
 
     environment:
-      - MONGO_URI=mongodb+srv://romadhonim1_db_user:cEaG3NBp2wKc99VF@cluster0.nn1euxs.mongodb.net/math_learning_db?retryWrites=true&w=majority
+      - MONGO_URI=mongodb://mongodb:27017/project_assessment
 
     volumes:
       - ./backend:/app

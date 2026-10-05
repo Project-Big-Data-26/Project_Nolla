@@ -1,4 +1,4 @@
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom";
@@ -8,7 +8,23 @@ vi.mock("../../context/AuthContext", () => ({
     useAuth: () => ({ login: vi.fn() }),
 }));
 
-afterEach(() => vi.unstubAllGlobals());
+const makeJsonResponse = (data, ok = true, status = 200) => ({
+    ok,
+    status,
+    json: async () => data,
+});
+
+beforeEach(() => {
+    vi.stubGlobal(
+        "fetch",
+        vi.fn(() => new Promise(() => {})),
+    );
+});
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+    sessionStorage.clear();
+});
 
 function renderWithRoutes(initialEntries) {
     const entries = initialEntries.map((entry) =>
@@ -53,6 +69,62 @@ describe("VerifyEmail", () => {
             { pathname: "/verify-email", state: { email: "budi@example.com" } },
         ]);
         expect(screen.getByText("budi@example.com")).toBeInTheDocument();
+    });
+
+    it("mengambil sisa cooldown dari backend saat halaman verify dibuka", async () => {
+        const fetchMock = vi.fn().mockResolvedValue(
+            makeJsonResponse({
+                status: "success",
+                data: { canResend: false, resendAfterSeconds: 42 },
+            }),
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        renderWithRoutes([
+            { pathname: "/verify-email", state: { email: "budi@example.com" } },
+        ]);
+
+        expect(await screen.findByRole("button", {
+            name: "Kirim ulang OTP dalam 0:42",
+        })).toBeDisabled();
+        expect(fetchMock).toHaveBeenCalledWith(
+            expect.stringMatching(/\/api\/auth\/otp-resend-status$/),
+            expect.objectContaining({
+                method: "POST",
+                body: JSON.stringify({
+                    email: "budi@example.com",
+                    type: "EMAIL_VERIFICATION",
+                }),
+            }),
+        );
+    });
+
+    it("memulihkan email dan jenis verifikasi dari session storage setelah refresh", async () => {
+        sessionStorage.setItem("otpVerificationEmail", "budi@example.com");
+        sessionStorage.setItem("otpVerificationAction", "reset-password");
+        const fetchMock = vi.fn().mockResolvedValue(
+            makeJsonResponse({
+                status: "success",
+                data: { canResend: false, resendAfterSeconds: 12 },
+            }),
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        renderWithRoutes([{ pathname: "/verify-email" }]);
+
+        expect(screen.getByText("budi@example.com")).toBeInTheDocument();
+        expect(await screen.findByRole("button", {
+            name: "Kirim ulang OTP dalam 0:12",
+        })).toBeDisabled();
+        expect(fetchMock).toHaveBeenCalledWith(
+            expect.stringMatching(/\/api\/auth\/otp-resend-status$/),
+            expect.objectContaining({
+                body: JSON.stringify({
+                    email: "budi@example.com",
+                    type: "PASSWORD_RESET",
+                }),
+            }),
+        );
     });
 
     it("menampilkan 6 kotak input OTP", () => {
@@ -111,19 +183,32 @@ describe("VerifyEmail", () => {
     });
 
     it("mengirim ulang OTP dengan jenis reset dan menerapkan cooldown dari API", async () => {
-        const fetchMock = vi.fn().mockResolvedValue({
-            ok: true,
-            json: async () => ({
-                status: "success",
-                data: { resendAfterSeconds: 60 },
-            }),
-        });
+        const fetchMock = vi.fn((url) =>
+            url.endsWith("/otp-resend-status")
+                ? Promise.resolve(
+                    makeJsonResponse({
+                        status: "success",
+                        data: { canResend: true, resendAfterSeconds: 0 },
+                    }),
+                )
+                : Promise.resolve(
+                    makeJsonResponse({
+                        status: "success",
+                        data: { resendAfterSeconds: 60 },
+                    }),
+                ),
+        );
         vi.stubGlobal("fetch", fetchMock);
         renderWithRoutes([{
             pathname: "/verify-email",
             state: { email: "budi@example.com", action: "reset-password" },
         }]);
 
+        await waitFor(() =>
+            expect(
+                screen.getByRole("button", { name: "Kirim ulang OTP" }),
+            ).toBeEnabled(),
+        );
         fireEvent.click(screen.getByRole("button", { name: "Kirim ulang OTP" }));
 
         await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(

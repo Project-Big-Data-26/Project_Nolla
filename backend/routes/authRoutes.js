@@ -11,6 +11,7 @@ const {
   changePassword,
   updateOwnPassword,
   resendOTP,
+  getOtpResendStatus,
   getMe,
   refreshAccessToken,
   googleLogin,
@@ -219,6 +220,36 @@ router.post("/forgot-password", forgotPassword);
  *         description: Cooldown pengiriman OTP masih aktif
  */
 router.post("/send-otp", resendOTP);
+
+/**
+ * @swagger
+ * /api/auth/otp-resend-status:
+ *   post:
+ *     summary: Mendapatkan sisa waktu sebelum OTP dapat dikirim ulang
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, type]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               type:
+ *                 type: string
+ *                 enum: [EMAIL_VERIFICATION, PASSWORD_RESET]
+ *     responses:
+ *       200:
+ *         description: Status cooldown berhasil diambil
+ *       400:
+ *         description: Email atau jenis OTP tidak valid
+ *       500:
+ *         description: Server error
+ */
+router.post("/otp-resend-status", getOtpResendStatus);
 
 router.post("/verify-reset-otp", verifyResetOTP);
 router.post("/verify-otp", verifyResetOTP);

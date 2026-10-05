@@ -7,7 +7,10 @@ const User = require("../models/User");
 const OTP = require("../models/OTP");
 const RefreshToken = require("../models/RefreshToken");
 const RevokedToken = require("../models/RevokedToken");
-const { sendOtp } = require("../services/otpService");
+const {
+  sendOtp,
+  getOtpResendStatus: getOtpResendStatusFromService,
+} = require("../services/otpService");
 
 const googleOAuth2Client = require("../config/google");
 
@@ -883,6 +886,39 @@ const resendOTP = async (req, res) => {
   }
 };
 
+const getOtpResendStatus = async (req, res) => {
+  try {
+    const { email, type } = req.body;
+    if (
+      typeof email !== "string" ||
+      !email.trim() ||
+      !["EMAIL_VERIFICATION", "PASSWORD_RESET"].includes(type)
+    ) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Email dan jenis OTP wajib diisi",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const data = await getOtpResendStatusFromService(normalizedEmail);
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      message: "Status pengiriman OTP berhasil diambil",
+      data,
+    });
+  } catch (error) {
+    console.error("Get OTP resend status error:", error);
+    return res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Terjadi kesalahan saat mengambil status OTP",
+    });
+  }
+};
+
 // ========================================
 // GET ME
 // GET /api/auth/me
@@ -1157,6 +1193,7 @@ module.exports = {
   changePassword,
   updateOwnPassword,
   resendOTP,
+  getOtpResendStatus,
   getMe,
   refreshAccessToken,
   googleLogin,
