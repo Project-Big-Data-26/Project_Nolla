@@ -60,6 +60,7 @@ describe("PersonalizationProfile", () => {
 
     renderProfile();
 
+    await waitFor(() => expect(API.get).toHaveBeenCalledTimes(1));
     expect(await screen.findByText("Server Profile Name")).toBeInTheDocument();
     expect(screen.getByText("server@example.com")).toBeInTheDocument();
     expect(screen.getByText("SMA")).toBeInTheDocument();
@@ -87,6 +88,7 @@ describe("PersonalizationProfile", () => {
       });
 
     renderProfile();
+  await waitFor(() => expect(API.get).toHaveBeenCalledTimes(1));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Profil tidak dapat dimuat.",
     );
