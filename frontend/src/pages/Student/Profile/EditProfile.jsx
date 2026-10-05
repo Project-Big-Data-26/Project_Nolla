@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import API from "../../../api/axios";
 import { useAuth } from "../../../context/AuthContext";
 import {
@@ -300,12 +300,14 @@ export default function EditProfile() {
       localStorage.setItem("user_jenjang", savedJenjang);
       localStorage.setItem("user_photo", savedPhoto);
       updateUser(profile);
-      const editToastId = toast.success("Profil berhasil diperbarui!");
+      const successMessage = data.message;
+      toast.dismiss();
+      const editToastId = toast.success(successMessage);
       setTimeout(() => {
         toast.dismiss(editToastId);
         sessionStorage.setItem(
           "profileRedirectToastMessage",
-          "Profil berhasil diperbarui!",
+          successMessage,
         );
         navigate("/profile");
       }, 1000);
@@ -327,7 +329,6 @@ export default function EditProfile() {
 
   return (
     <div className="flex min-h-screen bg-neutral-bg font-sans text-neutral-text">
-      <Toaster position="top-center" richColors closeButton />
       {/* Sidebar Navigation */}
       <Navbar activePage="Profil" />
 

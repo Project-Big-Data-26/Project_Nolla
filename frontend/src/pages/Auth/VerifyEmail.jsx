@@ -1,19 +1,35 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import { useAuth } from "../../context/AuthContext";
+
+const configuredApiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE_URL = `${
+  /^https?:\/\//i.test(configuredApiBaseUrl)
+    ? configuredApiBaseUrl
+    : `http://${configuredApiBaseUrl}`
+}`.replace(/\/+$/, "");
+const API_ROOT = API_BASE_URL.endsWith("/api")
+  ? API_BASE_URL
+  : `${API_BASE_URL}/api`;
+const OTP_EMAIL_KEY = "otpVerificationEmail";
+const OTP_ACTION_KEY = "otpVerificationAction";
 
 const VerifyEmail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Data dari navigate state
-  const email = location.state?.email || "";
-  const action = location.state?.action || "register"; // 'register' atau 'reset-password'
+  const email =
+    location.state?.email || sessionStorage.getItem(OTP_EMAIL_KEY) || "";
+  const action =
+    location.state?.action ||
+    sessionStorage.getItem(OTP_ACTION_KEY) ||
+    "register";
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -21,8 +37,73 @@ const VerifyEmail = () => {
   const [resendCountdown, setResendCountdown] = useState(
     location.state?.resendAfterSeconds || 0,
   );
+  const [isCooldownLoading, setIsCooldownLoading] = useState(Boolean(email));
+  const [cooldownStatusError, setCooldownStatusError] = useState("");
+  const [cooldownRetryKey, setCooldownRetryKey] = useState(0);
   const [resending, setResending] = useState(false);
   const inputRefs = useRef([]);
+
+  useEffect(() => {
+    if (!email) return;
+
+    sessionStorage.setItem(OTP_EMAIL_KEY, email);
+    sessionStorage.setItem(OTP_ACTION_KEY, action);
+  }, [email, action]);
+
+  useEffect(() => {
+    if (!email) return undefined;
+
+    let isActive = true;
+    const loadCooldownStatus = async () => {
+      setIsCooldownLoading(true);
+      setCooldownStatusError("");
+
+      try {
+        const response = await fetch(`${API_ROOT}/auth/otp-resend-status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            type:
+              action === "reset-password"
+                ? "PASSWORD_RESET"
+                : "EMAIL_VERIFICATION",
+          }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.message || "Status pengiriman OTP gagal diperiksa.",
+          );
+        }
+
+        const remainingSeconds = Number(result.data?.resendAfterSeconds);
+        if (
+          !Number.isFinite(remainingSeconds) ||
+          remainingSeconds < 0 ||
+          typeof result.data?.canResend !== "boolean" ||
+          result.data.canResend !== (remainingSeconds === 0)
+        ) {
+          throw new Error("Respons status OTP dari server tidak valid.");
+        }
+        if (isActive) setResendCountdown(Math.ceil(remainingSeconds));
+      } catch (error) {
+        if (isActive) {
+          setCooldownStatusError(
+            error.message || "Status pengiriman OTP gagal diperiksa.",
+          );
+        }
+      } finally {
+        if (isActive) setIsCooldownLoading(false);
+      }
+    };
+
+    loadCooldownStatus();
+    return () => {
+      isActive = false;
+    };
+  }, [email, action, cooldownRetryKey]);
 
   useEffect(() => {
     if (resendCountdown <= 0) return undefined;
@@ -37,7 +118,7 @@ const VerifyEmail = () => {
     setResending(true);
     setErrorMessage("");
     try {
-      const response = await fetch("http://localhost:5000/api/auth/send-otp", {
+      const response = await fetch(`${API_ROOT}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -55,7 +136,9 @@ const VerifyEmail = () => {
       }
       setOtp(["", "", "", "", "", ""]);
       setResendCountdown(result.data?.resendAfterSeconds || 0);
-      toast.success("OTP baru telah dikirim ke email Anda.");
+      setCooldownStatusError("");
+      toast.dismiss();
+      toast.success(result.message);
     } catch {
       setErrorMessage("Gagal terhubung ke server untuk mengirim OTP.");
     } finally {
@@ -124,9 +207,10 @@ const VerifyEmail = () => {
         const result = await response.json();
 
         if (response.ok && result.status === "success") {
-          toast.success("Kode OTP Valid!", {
-            description: "Silakan buat kata sandi baru Anda.",
-          });
+          toast.dismiss();
+          toast.success(result.message);
+          sessionStorage.removeItem(OTP_EMAIL_KEY);
+          sessionStorage.removeItem(OTP_ACTION_KEY);
 
           setTimeout(() => {
             navigate("/reset", {
@@ -156,9 +240,8 @@ const VerifyEmail = () => {
         const result = await response.json();
 
         if (response.ok && result.status === "success") {
-          toast.success("Verifikasi Berhasil!", {
-            description: "Akun Anda telah aktif.",
-          });
+          toast.dismiss();
+          toast.success(result.message);
 
           localStorage.setItem("accessToken", result.data.accessToken);
           localStorage.setItem("refreshToken", result.data.refreshToken);
@@ -166,6 +249,8 @@ const VerifyEmail = () => {
           const verifiedUser = result.data.user;
           login(verifiedUser, result.data.accessToken);
           localStorage.setItem("refreshToken", result.data.refreshToken);
+          sessionStorage.removeItem(OTP_EMAIL_KEY);
+          sessionStorage.removeItem(OTP_ACTION_KEY);
           const isProfileComplete = verifiedUser?.isProfileComplete;
 
           setTimeout(() => {
@@ -197,8 +282,6 @@ const VerifyEmail = () => {
 
   return (
     <AuthCard>
-      <Toaster position="top-center" richColors closeButton />
-
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
           <div className="mt-2 sm:mt-4">
@@ -245,13 +328,32 @@ const VerifyEmail = () => {
             </button>
           </form>
           <div className="mt-4 text-center">
+            {cooldownStatusError && (
+              <div className="mb-3 text-xs text-red-600" role="alert">
+                <p>{cooldownStatusError}</p>
+                <button
+                  type="button"
+                  onClick={() => setCooldownRetryKey((key) => key + 1)}
+                  className="mt-1 font-semibold underline"
+                >
+                  Coba periksa lagi
+                </button>
+              </div>
+            )}
             <button
               type="button"
               onClick={handleResend}
-              disabled={resending || resendCountdown > 0}
+              disabled={
+                resending ||
+                isCooldownLoading ||
+                Boolean(cooldownStatusError) ||
+                resendCountdown > 0
+              }
               className="text-xs font-semibold text-primary hover:text-primary-hover disabled:cursor-not-allowed disabled:text-neutral-muted"
             >
-              {resending
+              {isCooldownLoading
+                ? "Memeriksa batas kirim OTP..."
+                : resending
                 ? "Mengirim OTP..."
                 : resendCountdown > 0
                   ? `Kirim ulang OTP dalam ${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, "0")}`
@@ -263,6 +365,10 @@ const VerifyEmail = () => {
         <div className="mt-6 sm:mt-8 text-center">
           <Link
             to="/login"
+            onClick={() => {
+              sessionStorage.removeItem(OTP_EMAIL_KEY);
+              sessionStorage.removeItem(OTP_ACTION_KEY);
+            }}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />

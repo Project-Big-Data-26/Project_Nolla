@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const AuthContext = createContext(null);
 
@@ -27,6 +33,10 @@ export const AuthProvider = ({ children }) => {
     const handleSessionExpiry = () => {
       setUser(null);
       setToken(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
     };
 
     window.addEventListener("auth:refreshed", handleTokenRefresh);
@@ -45,19 +55,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   // 💡 TAMBAHAN FUNGSI: Untuk update data user secara parsial (misal nama/profile)
-  const updateUser = (newUserData) => {
+  const updateUser = useCallback((newUserData) => {
     setUser((prev) => {
       const updated = { ...prev, ...newUserData };
       localStorage.setItem("user", JSON.stringify(updated));
       return updated;
     });
-  };
+  }, []);
 
   const logout = () => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
   };
 

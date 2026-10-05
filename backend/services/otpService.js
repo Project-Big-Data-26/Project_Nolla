@@ -8,6 +8,33 @@ const cooldowns = [0, 0, 60_000, 60 * 60_000, 2 * 60_000, 5 * 60_000, 10 * 60_00
 const cooldownFor = (sendCount) =>
   cooldowns[Math.min(sendCount, cooldowns.length - 1)];
 
+const getRemainingCooldownSeconds = (sendCount, lastSentAt, now = new Date()) =>
+  Math.max(
+    0,
+    Math.ceil(
+      (lastSentAt.getTime() + cooldownFor(sendCount) - now.getTime()) / 1000,
+    ),
+  );
+
+const getOtpResendStatus = async (email) => {
+  const rateLimit = await OtpRateLimit.findOne({ email })
+    .select("sendCount lastSentAt")
+    .lean();
+
+  if (!rateLimit) {
+    return { canResend: true, resendAfterSeconds: 0 };
+  }
+
+  const resendAfterSeconds = getRemainingCooldownSeconds(
+    rateLimit.sendCount,
+    rateLimit.lastSentAt,
+  );
+  return {
+    canResend: resendAfterSeconds === 0,
+    resendAfterSeconds,
+  };
+};
+
 const reserveSend = async (email) => {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     let rateLimit = await OtpRateLimit.findOne({ email });
@@ -22,14 +49,16 @@ const reserveSend = async (email) => {
     }
 
     const now = new Date();
-    const cooldownMs = cooldownFor(rateLimit.sendCount);
-    const remainingMs =
-      rateLimit.lastSentAt.getTime() + cooldownMs - now.getTime();
+    const retryAfterSeconds = getRemainingCooldownSeconds(
+      rateLimit.sendCount,
+      rateLimit.lastSentAt,
+      now,
+    );
 
-    if (remainingMs > 0) {
+    if (retryAfterSeconds > 0) {
       const error = new Error("Terlalu banyak permintaan OTP. Coba lagi nanti.");
       error.statusCode = 429;
-      error.retryAfterSeconds = Math.ceil(remainingMs / 1000);
+      error.retryAfterSeconds = retryAfterSeconds;
       throw error;
     }
 
@@ -74,4 +103,4 @@ const sendOtp = async (email, type) => {
   return { resendAfterSeconds };
 };
 
-module.exports = { sendOtp };
+module.exports = { sendOtp, getOtpResendStatus };

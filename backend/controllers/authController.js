@@ -7,7 +7,10 @@ const User = require("../models/User");
 const OTP = require("../models/OTP");
 const RefreshToken = require("../models/RefreshToken");
 const RevokedToken = require("../models/RevokedToken");
-const { sendOtp } = require("../services/otpService");
+const {
+  sendOtp,
+  getOtpResendStatus: getOtpResendStatusFromService,
+} = require("../services/otpService");
 
 const googleOAuth2Client = require("../config/google");
 
@@ -247,6 +250,7 @@ const verifyEmail = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          avatar: user.avatar,
           isProfileComplete: user.isProfileComplete,
           allJenjang: user.allJenjang,
         },
@@ -360,6 +364,7 @@ const login = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          avatar: user.avatar,
           isProfileComplete: user.isProfileComplete,
           allJenjang: user.allJenjang,
         },
@@ -883,6 +888,39 @@ const resendOTP = async (req, res) => {
   }
 };
 
+const getOtpResendStatus = async (req, res) => {
+  try {
+    const { email, type } = req.body;
+    if (
+      typeof email !== "string" ||
+      !email.trim() ||
+      !["EMAIL_VERIFICATION", "PASSWORD_RESET"].includes(type)
+    ) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Email dan jenis OTP wajib diisi",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const data = await getOtpResendStatusFromService(normalizedEmail);
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      message: "Status pengiriman OTP berhasil diambil",
+      data,
+    });
+  } catch (error) {
+    console.error("Get OTP resend status error:", error);
+    return res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Terjadi kesalahan saat mengambil status OTP",
+    });
+  }
+};
+
 // ========================================
 // GET ME
 // GET /api/auth/me
@@ -891,7 +929,7 @@ const resendOTP = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
-      "_id name email jenjang_id role isProfileComplete isVerified allJenjang",
+      "_id name email avatar jenjang_id role isProfileComplete isVerified allJenjang",
     );
 
     if (!user) {
@@ -911,6 +949,7 @@ const getMe = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          avatar: user.avatar,
           jenjangId: user.jenjang_id,
           isProfileComplete: user.isProfileComplete,
           isVerified: user.isVerified,
@@ -1157,6 +1196,7 @@ module.exports = {
   changePassword,
   updateOwnPassword,
   resendOTP,
+  getOtpResendStatus,
   getMe,
   refreshAccessToken,
   googleLogin,

@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   BookOpen,
   User,
   LogOut,
-  GraduationCap,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
+import API from "../api/axios";
 import LogoutConfirmModal from "./LogoutConfirmModal";
+import nollaMain from "../assets/nolla_main.png";
 import avatar1 from "../assets/avatar/avatar1.svg";
 import avatar2 from "../assets/avatar/avatar2.svg";
 import avatar3 from "../assets/avatar/avatar3.svg";
@@ -32,19 +34,36 @@ const avatarSources = {
 
 const Navbar = ({ activePage = "Dashboard" }) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [serverAvatar, setServerAvatar] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    API.get("/profile")
+      .then(({ data }) => {
+        if (isMounted && data?.data) {
+          setServerAvatar(data.data.avatar);
+          updateUser(data.data);
+        }
+      })
+      .catch((error) => {
+        console.error("Gagal memuat avatar profil:", error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [updateUser]);
 
   const displayName = user?.name || "User";
   const displayEmail = user?.email || "User@gmail.com";
 
-  const storedPhoto =
-    typeof window !== "undefined" ? localStorage.getItem("user_photo") : null;
   const avatarSource =
-    avatarSources[user?.avatar] ||
-    (user?.avatar && !/^avatar_\d+$/.test(user.avatar) ? user.avatar : null) ||
-    storedPhoto ||
+    avatarSources[serverAvatar] ||
+    (serverAvatar && !/^avatar_\d+$/.test(serverAvatar) ? serverAvatar : null) ||
     avatar1;
 
   const menuItems = [
@@ -59,13 +78,17 @@ const Navbar = ({ activePage = "Dashboard" }) => {
 
   const handleLogout = async () => {
     setIsLoading(true);
+    let notification = {
+      type: "error",
+      message: "Access token tidak ditemukan",
+    };
 
     try {
       const accessToken = localStorage.getItem("accessToken");
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (accessToken && refreshToken) {
-        await fetch("http://localhost:5000/api/auth/logout", {
+        const response = await fetch("http://localhost:5000/api/auth/logout", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -73,16 +96,22 @@ const Navbar = ({ activePage = "Dashboard" }) => {
           },
           body: JSON.stringify({ refreshToken }),
         });
+        const result = await response.json();
+        notification = {
+          type: response.ok ? "success" : "error",
+          message: result.message || "Gagal memproses logout.",
+        };
+      } else if (!refreshToken) {
+        notification.message = "Refresh token tidak ditemukan";
       }
     } catch (error) {
       console.error("Gagal koneksi saat logout:", error);
+      notification.message = "Gagal terhubung ke server saat logout.";
     } finally {
-      // 1. Panggil logout dari AuthContext (Reset State Global)
+      toast.dismiss();
+      toast[notification.type](notification.message);
       logout();
-
       setIsLoading(false);
-
-      // 2. Redirect ke /login dengan replace: true agar history browser bersih
       navigate("/login", { replace: true });
     }
   };
@@ -91,16 +120,11 @@ const Navbar = ({ activePage = "Dashboard" }) => {
     <>
       <aside className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full flex-row items-center border-t border-neutral-border bg-neutral-card px-2 shadow-lg md:sticky md:top-0 md:h-screen md:w-64 md:flex-col md:border-r md:border-t-0 md:px-0 md:shadow-none">
         {/* Brand / Logo (Desktop) */}
-        <div className="hidden border-b border-neutral-border p-6 md:flex md:w-full md:items-center md:gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
-            <GraduationCap className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="font-heading text-lg font-bold leading-none text-neutral-text">
-              NOLLA
-            </h1>
-            <span className="text-xs text-neutral-muted">Big Data Project</span>
-          </div>
+        <div className="hidden border-b border-neutral-border p-6 md:flex md:w-full md:flex-col md:items-center md:justify-center md:gap-1">
+          <img src={nollaMain} alt="" aria-hidden="true" className="h-12 w-12 shrink-0 object-contain" />
+          <h1 className="translate-y-0.5 font-heading text-2xl font-bold leading-none text-neutral-text">
+            NOLLA
+          </h1>
         </div>
 
         {/* Navigasi Menu */}

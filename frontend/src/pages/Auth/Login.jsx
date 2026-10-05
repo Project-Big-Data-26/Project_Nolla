@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
@@ -18,7 +18,6 @@ const Login = () => {
     password: "",
     rememberMe: false,
   });
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (errorMessage) setErrorMessage("");
@@ -64,7 +63,8 @@ const Login = () => {
           localStorage.setItem("refreshToken", result.data.refreshToken);
         }
 
-        toast.success("Login Berhasil!");
+        toast.dismiss();
+        toast.success(result.message);
 
         const isProfileComplete = result.data.user?.isProfileComplete;
 
@@ -89,35 +89,31 @@ const Login = () => {
           return;
         }
         setErrorMessage(msg);
-        toast.error("Login Gagal", {
-          description: msg,
-        });
+        toast.error(msg);
       }
     } catch (error) {
       console.error("Error saat login:", error);
       const connError = "Gagal terhubung ke server. Pastikan backend menyala.";
       setErrorMessage(connError);
-      toast.error("Masalah Jaringan", {
-        description: connError,
-      });
+      toast.error(connError);
     }
   };
 
   return (
-    <AuthCard>
-      <Toaster position="top-center" richColors closeButton />
-
+    <AuthCard
+      topAction={(
+        <Link
+          to="/nolla"
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-border bg-neutral-card px-3 py-2 text-xs font-semibold text-neutral-muted shadow-sm transition-colors hover:border-primary hover:text-primary"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Kembali ke Beranda
+        </Link>
+      )}
+    >
       {/* LEFT COLUMN: FORM LOGIN */}
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
-          <Link
-            to="/nolla"
-            className="inline-flex items-center gap-2 rounded-lg border border-neutral-border px-3 py-2 text-xs font-semibold text-neutral-muted transition-colors hover:border-primary hover:text-primary"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Kembali ke Beranda
-          </Link>
-
           <div className="mt-2 sm:mt-4">
             <h1 className="font-heading text-xl sm:text-2xl font-bold text-neutral-text text-center">
               Masuk ke Akun Anda

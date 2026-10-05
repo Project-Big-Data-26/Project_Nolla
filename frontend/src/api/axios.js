@@ -16,6 +16,14 @@ const API = axios.create({
 
 let refreshPromise = null;
 
+const clearAuthSession = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user");
+  window.dispatchEvent(new Event("auth:expired"));
+};
+
 API.interceptors.request.use((config) => {
   const accessToken =
     localStorage.getItem("accessToken") || localStorage.getItem("token");
@@ -46,10 +54,7 @@ API.interceptors.response.use(
     const refreshToken = localStorage.getItem("refreshToken");
 
     if (!refreshToken) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.dispatchEvent(new Event("auth:expired"));
+      clearAuthSession();
       return Promise.reject(error);
     }
 
@@ -69,11 +74,7 @@ API.interceptors.response.use(
           return accessToken;
         })
         .catch((refreshError) => {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("token");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
-          window.dispatchEvent(new Event("auth:expired"));
+          clearAuthSession();
           throw refreshError;
         })
         .finally(() => {

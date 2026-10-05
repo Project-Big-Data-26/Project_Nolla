@@ -4,12 +4,44 @@ import { ArrowLeft, Check, LockKeyhole } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import API from "../../api/axios";
 import QuestionImage from "../../components/QuestionImage";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 
-// ================================
-// LATEX
-// ================================
-import { InlineMath, BlockMath } from "react-katex";
-import "katex/dist/katex.min.css";
+import "katex-v016/dist/katex.min.css";
+
+const remarkPlugins = [remarkMath, remarkGfm];
+const rehypePlugins = [rehypeKatex];
+const inlineMarkdownComponents = {
+  p: ({ children }) => <span>{children}</span>,
+};
+const markdownComponents = {
+  p: ({ children }) => <p className="my-2 first:mt-0 last:mb-0">{children}</p>,
+  h1: ({ children }) => <h1 className="my-2 text-lg font-bold">{children}</h1>,
+  h2: ({ children }) => <h2 className="my-2 text-base font-bold">{children}</h2>,
+  h3: ({ children }) => <h3 className="my-2 text-sm font-bold">{children}</h3>,
+  ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>,
+  ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>,
+  table: ({ children }) => (
+    <div className="my-3 overflow-x-auto">
+      <table className="w-full border-collapse text-left">{children}</table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th className="border border-slate-300 bg-slate-50 px-2 py-1 font-bold">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border border-slate-300 px-2 py-1">{children}</td>
+  ),
+};
+const normalizeMarkdown = (content) =>
+  String(content ?? "")
+    .replace(/\\r\\n|\\n|\\r/g, "\n")
+    .replace(/\\\(([\s\S]*?)\\\)/g, (_, math) => `$${math}$`)
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_, math) => `$$\n${math}\n$$`);
 
 // ================================
 // SESSION STORAGE
@@ -21,114 +53,6 @@ const readSessionValue = (key, fallback) => {
   } catch {
     return fallback;
   }
-};
-
-// ================================
-// LATEX TEXT RENDERER
-// ================================
-// Mendukung:
-// - Teks biasa
-// - $...$       -> inline LaTeX
-// - $$...$$     -> block LaTeX
-//
-// Contoh:
-// "Hitung $x^2 + 2x + 1$"
-// "Hitung $$\\frac{a}{b}$$"
-// ================================
-const renderLatexText = (text) => {
-  if (text === null || text === undefined) {
-    return null;
-  }
-
-  const value = String(text);
-
-  if (!value.trim()) {
-    return null;
-  }
-
-  const parts = [];
-  let currentText = "";
-  let index = 0;
-
-  const pushText = () => {
-    if (currentText) {
-      parts.push({
-        type: "text",
-        value: currentText,
-      });
-
-      currentText = "";
-    }
-  };
-
-  while (index < value.length) {
-    // ================================
-    // BLOCK LATEX: $$ ... $$
-    // ================================
-    if (value.startsWith("$$", index)) {
-      const endIndex = value.indexOf("$$", index + 2);
-
-      if (endIndex !== -1) {
-        pushText();
-
-        const latex = value.slice(index + 2, endIndex);
-
-        parts.push({
-          type: "block",
-          value: latex,
-        });
-
-        index = endIndex + 2;
-        continue;
-      }
-    }
-
-    // ================================
-    // INLINE LATEX: $ ... $
-    // ================================
-    if (value[index] === "$") {
-      const endIndex = value.indexOf("$", index + 1);
-
-      if (endIndex !== -1) {
-        pushText();
-
-        const latex = value.slice(index + 1, endIndex);
-
-        parts.push({
-          type: "inline",
-          value: latex,
-        });
-
-        index = endIndex + 1;
-        continue;
-      }
-    }
-
-    currentText += value[index];
-    index += 1;
-  }
-
-  pushText();
-
-  return parts.map((part, partIndex) => {
-    if (part.type === "block") {
-      return (
-        <BlockMath key={`latex-block-${partIndex}`}>{part.value}</BlockMath>
-      );
-    }
-
-    if (part.type === "inline") {
-      return (
-        <InlineMath key={`latex-inline-${partIndex}`}>
-          {part.value.replace(/\\frac\b/g, "\\dfrac")}
-        </InlineMath>
-      );
-    }
-
-    return (
-      <React.Fragment key={`text-${partIndex}`}>{part.value}</React.Fragment>
-    );
-  });
 };
 
 // ================================
@@ -1151,7 +1075,13 @@ const QuestionPage = () => {
                 OPTION TEXT + LATEX
                 ========================================== */}
           <span className="flex-1 text-xs font-semibold sm:text-sm">
-            {renderLatexText(option.text)}
+            <ReactMarkdown
+              remarkPlugins={remarkPlugins}
+              rehypePlugins={rehypePlugins}
+              components={inlineMarkdownComponents}
+            >
+              {normalizeMarkdown(option.text)}
+            </ReactMarkdown>
           </span>
         </button>
       );
@@ -1310,12 +1240,18 @@ const QuestionPage = () => {
                     ====================================== */}
                 <div className="flex flex-col gap-2.5 sm:gap-4">
                   <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
-                    <p className="whitespace-pre-wrap text-xs font-semibold leading-relaxed text-slate-800 sm:text-sm md:text-base">
+                    <div className="whitespace-pre-wrap text-xs font-semibold leading-relaxed text-slate-800 sm:text-sm md:text-base">
                       {/* ==================================
                           QUESTION TEXT + LATEX
                           ================================== */}
-                      {renderLatexText(question.text)}
-                    </p>
+                      <ReactMarkdown
+                        remarkPlugins={remarkPlugins}
+                        rehypePlugins={rehypePlugins}
+                        components={markdownComponents}
+                      >
+                        {normalizeMarkdown(question.text)}
+                      </ReactMarkdown>
+                    </div>
                   </div>
 
                   {/* ====================================
@@ -1352,12 +1288,18 @@ const QuestionPage = () => {
                     QUESTION WITHOUT IMAGE
                     ==================================== */}
                 <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
-                  <p className="whitespace-pre-wrap text-xs font-semibold leading-relaxed text-slate-800 sm:text-sm md:text-base">
+                  <div className="whitespace-pre-wrap text-xs font-semibold leading-relaxed text-slate-800 sm:text-sm md:text-base">
                     {/* ==================================
                         QUESTION TEXT + LATEX
                         ================================== */}
-                    {renderLatexText(question.text)}
-                  </p>
+                    <ReactMarkdown
+                      remarkPlugins={remarkPlugins}
+                      rehypePlugins={rehypePlugins}
+                      components={markdownComponents}
+                    >
+                      {normalizeMarkdown(question.text)}
+                    </ReactMarkdown>
+                  </div>
                 </div>
 
                 {/* ====================================

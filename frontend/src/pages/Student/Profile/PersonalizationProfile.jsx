@@ -1,19 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import API from "../../../api/axios";
 import { useAuth } from "../../../context/AuthContext";
 import Navbar from "../../../components/Navbar";
 import SectionCard from "../../../components/SectionCard";
 import LogoutConfirmModal from "../../../components/LogoutConfirmModal";
 import {
-  Target,
-  TrendingUp,
-  Flame,
-  Trophy,
-  Award,
   ChevronRight,
-  BookOpen,
   User as UserIcon,
   Mail,
   GraduationCap,
@@ -21,65 +15,71 @@ import {
   LogOut,
   Loader2,
   Pencil,
+  RefreshCw,
 } from "lucide-react";
 import defaultAvatar from "../../../assets/avatar/avatar-deafult.png";
+import avatar1 from "../../../assets/avatar/avatar1.svg";
+import avatar2 from "../../../assets/avatar/avatar2.svg";
+import avatar3 from "../../../assets/avatar/avatar3.svg";
+import avatar4 from "../../../assets/avatar/avatar4.svg";
+import avatar5 from "../../../assets/avatar/avatar5.svg";
+import avatar6 from "../../../assets/avatar/avatar6.svg";
+import avatar7 from "../../../assets/avatar/avatar7.svg";
+import avatar8 from "../../../assets/avatar/avatar8.svg";
 
-const user = {
-  name: "Pelajar Tamu",
-  email: "guest@mathmentor.app",
-  level: "Pemula",
-  track: "Umum",
-  streak: 0,
-  dailyGoal: 10,
-  dailyProgress: 0,
+const avatarSources = {
+  avatar_1: avatar1,
+  avatar_2: avatar2,
+  avatar_3: avatar3,
+  avatar_4: avatar4,
+  avatar_5: avatar5,
+  avatar_6: avatar6,
+  avatar_7: avatar7,
+  avatar_8: avatar8,
 };
-
-const stats = [
-  {
-    label: "Akurasi keseluruhan",
-    value: "0%",
-    icon: TrendingUp,
-    tint: "text-success bg-success/10",
-  },
-  {
-    label: "Soal terselesaikan",
-    value: "0",
-    icon: Target,
-    tint: "text-primary bg-primary/10",
-  },
-  {
-    label: "Rentetan belajar",
-    value: "0 hari",
-    icon: Flame,
-    tint: "text-secondary bg-secondary/10",
-  },
-  {
-    label: "Poin diperoleh",
-    value: "0",
-    icon: Trophy,
-    tint: "text-secondary-hover bg-secondary/10",
-  },
-];
-
-const recommendations = [
-  {
-    title: "Pecahan & Persentase",
-    category: "Aritmatika · Pemula",
-    progress: 0,
-  },
-  { title: "Operasi Bilangan", category: "Aritmatika · Pemula", progress: 0 },
-  { title: "Aljabar Dasar", category: "Aljabar · Pemula", progress: 0 },
-];
-
-const badges = [
-  { title: "Pemecah Masalah", description: "Menyelesaikan 10 soal" },
-];
 
 export default function PersonalizationProfile() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [profileReloadKey, setProfileReloadKey] = useState(0);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadProfile = async () => {
+      setIsProfileLoading(true);
+      setProfileError("");
+
+      try {
+        const { data } = await API.get("/profile");
+        if (!isActive) return;
+
+        if (!data?.data) {
+          throw new Error("Respons profil dari server tidak valid.");
+        }
+        setProfile(data.data);
+      } catch (error) {
+        if (!isActive) return;
+        setProfileError(
+          error.response?.data?.message ||
+            error.message ||
+            "Profil gagal dimuat dari server.",
+        );
+      } finally {
+        if (isActive) setIsProfileLoading(false);
+      }
+    };
+
+    loadProfile();
+    return () => {
+      isActive = false;
+    };
+  }, [profileReloadKey]);
 
   useEffect(() => {
     const toastMessage = sessionStorage.getItem("profileRedirectToastMessage");
@@ -91,36 +91,51 @@ export default function PersonalizationProfile() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
+    let notification = {
+      type: "error",
+      message: "Access token tidak ditemukan",
+    };
+
     try {
       const refreshToken = localStorage.getItem("refreshToken");
-      if (refreshToken) await API.post("/auth/logout", { refreshToken });
+      if (refreshToken) {
+        const response = await API.post("/auth/logout", { refreshToken });
+        notification = {
+          type: "success",
+          message: response.data.message || "Logout berhasil",
+        };
+      } else {
+        notification.message = "Refresh token tidak ditemukan";
+      }
     } catch (error) {
       console.error("Gagal menghubungi server saat logout:", error);
+      notification = {
+        type: "error",
+        message:
+          error.response?.data?.message ||
+          "Gagal terhubung ke server saat logout.",
+      };
     } finally {
+      toast.dismiss();
+      toast[notification.type](notification.message);
       logout();
       navigate("/login", { replace: true });
     }
   };
 
-  const userName =
-    (typeof window !== "undefined" && localStorage.getItem("user_name")) ||
-    user.name;
-  const userEmail =
-    (typeof window !== "undefined" && localStorage.getItem("user_email")) ||
-    user.email;
-  const userEducationLevel =
-    (typeof window !== "undefined" &&
-      (localStorage.getItem("user_education_level") ||
-        localStorage.getItem("user_jenjang"))) ||
-    "";
-  const userTrack = userEducationLevel || user.track;
-  const userPhoto =
-    (typeof window !== "undefined" && localStorage.getItem("user_photo")) ||
-    null;
+  const userName = profile?.name || "";
+  const userEmail = profile?.email || "";
+  const userEducationLevel = profile
+    ? profile.allJenjang
+      ? "Semua"
+      : profile.jenjang_id?.name || "Belum Dipilih"
+    : "";
+  const userPhoto = profile
+    ? avatarSources[profile.avatar] || defaultAvatar
+    : defaultAvatar;
 
   return (
     <div className="flex min-h-screen bg-neutral-bg font-sans text-neutral-text">
-      <Toaster position="top-center" richColors closeButton />
       {/* Sidebar Navigation */}
       <Navbar activePage="Profil" />
 
@@ -135,11 +150,18 @@ export default function PersonalizationProfile() {
               <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
                 {/* Foto Profil: jika ada tampilkan gambar, jika belum ada gunakan default avatar */}
                 <div className="relative h-20 w-20 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-300 shadow-2xs flex items-center justify-center shrink-0">
-                  <img
-                    src={userPhoto || defaultAvatar}
-                    alt="Foto Profil"
-                    className="h-full w-full object-cover"
-                  />
+                  {isProfileLoading ? (
+                    <Loader2
+                      className="h-6 w-6 animate-spin text-primary"
+                      aria-label="Memuat profil"
+                    />
+                  ) : (
+                    <img
+                      src={userPhoto}
+                      alt="Foto Profil"
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -166,60 +188,82 @@ export default function PersonalizationProfile() {
             </div>
 
             {/* List Data Personal Info (Read-Only) */}
-            <div className="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-slate-50/50">
-              {/* Nama Lengkap */}
-              <div className="flex items-center justify-between p-3.5 sm:p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
-                    <UserIcon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Nama Lengkap
-                    </p>
-                    <p className="text-sm font-semibold text-neutral-text">
-                      {userName}
-                    </p>
+            {profileError ? (
+              <div
+                className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                role="alert"
+              >
+                <p>{profileError}</p>
+                <button
+                  type="button"
+                  onClick={() => setProfileReloadKey((key) => key + 1)}
+                  className="mt-3 inline-flex items-center gap-2 font-semibold hover:underline"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Coba lagi
+                </button>
+              </div>
+            ) : isProfileLoading ? (
+              <div
+                className="mt-5 rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm text-neutral-muted"
+                role="status"
+              >
+                Memuat profil dari server...
+              </div>
+            ) : (
+              <div className="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-slate-50/50">
+                {/* Nama Lengkap */}
+                <div className="flex items-center justify-between p-3.5 sm:p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                      <UserIcon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium text-slate-500">
+                        Nama Lengkap
+                      </p>
+                      <p className="text-sm font-semibold text-neutral-text">
+                        {userName}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Email */}
-              <div className="flex items-center justify-between p-3.5 sm:p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
-                    <Mail className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Alamat Email
-                    </p>
-                    <p className="text-sm font-semibold text-neutral-text">
-                      {userEmail}
-                    </p>
+                {/* Email */}
+                <div className="flex items-center justify-between p-3.5 sm:p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                      <Mail className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium text-slate-500">
+                        Alamat Email
+                      </p>
+                      <p className="text-sm font-semibold text-neutral-text">
+                        {userEmail}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Jenjang Belajar */}
-              <div className="flex items-center justify-between p-3.5 sm:p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
-                    <GraduationCap className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Jenjang Belajar
-                    </p>
-                    <p className="text-sm font-semibold text-neutral-text">
-                      {userEducationLevel
-                        ? `${userEducationLevel}`
-                        : "Belum Dipilih"}
-                    </p>
+                {/* Jenjang Belajar */}
+                <div className="flex items-center justify-between p-3.5 sm:p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                      <GraduationCap className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium text-slate-500">
+                        Jenjang Belajar
+                      </p>
+                      <p className="text-sm font-semibold text-neutral-text">
+                        {userEducationLevel}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </SectionCard>
 
           {/* CARD 2: SETTING (Tombol Ganti Password) */}
