@@ -203,19 +203,68 @@ describe("BAB Pembelajaran: BAB yang sudah pretest (data tiruan)", () => {
         cy.location("search").should("contain", "mode=quiz").and("contain", "mock-subbab-proses");
     });
 
-    // TEMUAN BUG: tombol "Lihat Hasil Pretest" di ChapterCard.jsx memanggil
-    // setActivePretestResult(...) langsung, padahal function itu tidak pernah
-    // diterima sebagai prop di komponen ini (yang ada cuma handleViewPretestResult,
-    // yang semestinya dipakai di sini untuk mengambil hasil asli dari backend).
-    // Akibatnya klik tombol ini menyebabkan ReferenceError di console browser.
-    // Test ini SENGAJA dibiarkan gagal untuk mendokumentasikan bug, sampai
-    // developer memperbaiki pemanggilan function-nya di ChapterCard.jsx.
-    it("CY-BAB-012 BUG: klik \"Lihat Hasil Pretest\" menyebabkan error (setActivePretestResult tidak terdefinisi)", () => {
+    // Sebelumnya BUG: tombol "Lihat Hasil Pretest" memanggil setActivePretestResult yang tidak
+    // terdefinisi di ChapterCard sehingga melempar ReferenceError. Sudah diperbaiki developer:
+    // sekarang tombol memanggil handleViewPretestResult, yang mengambil status pretest lalu
+    // hasilnya dari backend. Dua endpoint itu di-stub karena BAB tiruan tidak ada di database.
+    function stubHasilPretest() {
+        cy.intercept("GET", "**/api/pretest/status/*", {
+            statusCode: 200,
+            body: {
+                statusCode: 200,
+                success: true,
+                data: { bab_id: babMockSudahPretest.id, has_pretest: true, status: "active", pretest_id: "mock-pretest-001" },
+            },
+        }).as("statusPretest");
+        cy.intercept("GET", "**/api/pretest/mock-pretest-001/result", {
+            statusCode: 200,
+            body: {
+                statusCode: 200,
+                success: true,
+                data: {
+                    score: 70,
+                    correct_answers: 7,
+                    wrong_answers: 3,
+                    duration: 300,
+                    submateri_result: [
+                        { subbab_name: "Subbab Tiruan Selesai", current_cognitive_level: "Hard", current_cognitive_score: 1650 },
+                    ],
+                    recommendation: "Lanjutkan ke subbab berikutnya.",
+                },
+            },
+        }).as("hasilPretest");
+    }
+
+    it("CY-BAB-012 klik \"Lihat Hasil Pretest\" membuka modal Hasil Diagnostic Pretest", () => {
+        stubHasilPretest();
         cy.contains("article", babMockSudahPretest.name).contains("button", "Lihat Sub Bab").click();
         cy.contains("button", "Lihat Hasil Pretest").click();
-        // Diharapkan modal Hasil Pretest tampil; kenyataannya klik di atas melempar
-        // ReferenceError sebelum baris ini sempat dicek, dan test ini gagal duluan
-        // karena uncaught exception tersebut (itulah bukti bug-nya).
+        cy.wait("@statusPretest");
+        cy.wait("@hasilPretest");
         cy.contains("h3", "Hasil Diagnostic Pretest").should("be.visible");
+        cy.contains(`BAB: ${babMockSudahPretest.name}`).should("be.visible");
+        cy.contains("Skor Pretest").should("be.visible");
+        cy.contains("Subbab Tiruan Selesai").should("be.visible");
+    });
+
+    it("CY-BAB-013 modal Hasil Diagnostic Pretest bisa ditutup", () => {
+        stubHasilPretest();
+        cy.contains("article", babMockSudahPretest.name).contains("button", "Lihat Sub Bab").click();
+        cy.contains("button", "Lihat Hasil Pretest").click();
+        cy.contains("h3", "Hasil Diagnostic Pretest").should("be.visible");
+        cy.contains("h3", "Hasil Diagnostic Pretest").closest("div.relative").find("button").first().click();
+        cy.contains("h3", "Hasil Diagnostic Pretest").should("not.exist");
+    });
+
+    it("CY-BAB-014 hasil pretest gagal dimuat menampilkan pesan dan tidak membuka modal", () => {
+        cy.intercept("GET", "**/api/pretest/status/*", {
+            statusCode: 500,
+            body: { statusCode: 500, success: false, message: "Hasil pretest gagal dimuat." },
+        }).as("statusPretest");
+        cy.contains("article", babMockSudahPretest.name).contains("button", "Lihat Sub Bab").click();
+        cy.contains("button", "Lihat Hasil Pretest").click();
+        cy.wait("@statusPretest");
+        cy.contains("Hasil pretest gagal dimuat.").should("be.visible");
+        cy.contains("h3", "Hasil Diagnostic Pretest").should("not.exist");
     });
 });

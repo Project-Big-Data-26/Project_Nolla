@@ -1,0 +1,74 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (bab-pembelajaran.cy.js)                                               │
+  │ Searched:       cypress/e2e/bab/bab-pembelajaran.cy.js                                         │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  bab-pembelajaran.cy.js                                                          (1 of 1)
+
+
+  BAB Pembelajaran: tampilan & pencarian (data asli AKUN-01)
+    ✓ CY-BAB-001 halaman /topik menampilkan daftar BAB (F04.1) (3642ms)
+    ✓ CY-BAB-002 pencarian menyaring BAB berdasarkan kata kunci (3132ms)
+    ✓ CY-BAB-003 pencarian tanpa hasil menampilkan tombol reset filter & pencarian (3279ms)
+    ✓ CY-BAB-004 filter berdasarkan kelas menyaring daftar BAB (3571ms)
+    ✓ CY-BAB-005 BAB yang belum pretest menampilkan tombol "Mulai Pretest" (F04.3) (3174ms)
+    ✓ CY-BAB-006 klik "Mulai Pretest" membuka modal konfirmasi, lalu diarahkan ke halaman pretest (3385ms)
+    ✓ CY-BAB-007 modal konfirmasi pretest bisa dibatalkan lewat tombol Batal (3465ms)
+    ✓ CY-BAB-008 modal konfirmasi pretest bisa ditutup lewat tombol X (3518ms)
+
+  BAB Pembelajaran: BAB yang sudah pretest (data tiruan)
+    ✓ CY-BAB-009 BAB yang sudah pretest menampilkan tombol "Lihat Sub Bab" (bukan "Mulai Pretest") (2089ms)
+    ✓ CY-BAB-010 "Lihat Sub Bab" membuka & menutup daftar subbab, menampilkan status yang sesuai (2414ms)
+    ✓ CY-BAB-011 klik tombol subbab mengarah ke halaman kuis yang sesuai (F04.4) (2288ms)
+    ✓ CY-BAB-012 klik "Lihat Hasil Pretest" membuka modal Hasil Diagnostic Pretest (2330ms)
+    ✓ CY-BAB-013 modal Hasil Diagnostic Pretest bisa ditutup (2342ms)
+    ✓ CY-BAB-014 hasil pretest gagal dimuat menampilkan pesan dan tidak membuka modal (2265ms)
+
+
+  14 passing (41s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        14                                                                               │
+  │ Passing:      14                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     41 seconds                                                                       │
+  │ Spec Ran:     bab-pembelajaran.cy.js                                                           │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  bab-pembelajaran.cy.js                   00:41       14       14        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:41       14       14        -        -        -  
+
