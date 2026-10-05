@@ -123,7 +123,7 @@ router.post("/verify-email", verifyEmail);
  *       200:
  *         description: Login berhasil
  *       400:
- *         description: Email dan password wajib diisi
+ *         description: Body harus berupa objek JSON dengan email dan password berupa teks yang tidak kosong; rememberMe jika dikirim harus boolean
  *       401:
  *         description: Email atau password salah atau email belum diverifikasi
  *       500:

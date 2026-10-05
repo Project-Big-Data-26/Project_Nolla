@@ -78,6 +78,7 @@ const Navbar = ({ activePage = "Dashboard" }) => {
 
   const handleLogout = async () => {
     setIsLoading(true);
+    let isLogoutSuccessful = false;
     let notification = {
       type: "error",
       message: "Access token tidak ditemukan",
@@ -97,8 +98,9 @@ const Navbar = ({ activePage = "Dashboard" }) => {
           body: JSON.stringify({ refreshToken }),
         });
         const result = await response.json();
+        isLogoutSuccessful = response.ok;
         notification = {
-          type: response.ok ? "success" : "error",
+          type: isLogoutSuccessful ? "success" : "error",
           message: result.message || "Gagal memproses logout.",
         };
       } else if (!refreshToken) {
@@ -110,8 +112,11 @@ const Navbar = ({ activePage = "Dashboard" }) => {
     } finally {
       toast.dismiss();
       toast[notification.type](notification.message);
-      logout();
       setIsLoading(false);
+    }
+
+    if (isLogoutSuccessful) {
+      logout();
       navigate("/login", { replace: true });
     }
   };
