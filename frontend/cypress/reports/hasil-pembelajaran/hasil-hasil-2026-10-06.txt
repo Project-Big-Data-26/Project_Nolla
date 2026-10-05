@@ -1,0 +1,82 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (hasil-pembelajaran.cy.js)                                             │
+  │ Searched:       cypress/e2e/hasil-pembelajaran/hasil-pembelajaran.cy.js                        │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  hasil-pembelajaran.cy.js                                                        (1 of 1)
+
+
+  Hasil Pembelajaran: tampilan umum (data asli AKUN-01)
+    ✓ CY-HASIL-001 halaman tidak bisa dibuka tanpa login (549ms)
+    ✓ CY-HASIL-002 halaman menampilkan judul & ringkasan hasil belajar (F05.1) (2829ms)
+
+  Hasil Pembelajaran: kartu BAB (data tiruan)
+    ✓ CY-HASIL-003 setiap kartu BAB menampilkan nomor, nama, deskripsi, progres, jumlah subbab, dan kelas (F05.1) (1589ms)
+    ✓ CY-HASIL-004 kartu BAB diurutkan menurut nomor BAB (1623ms)
+    ✓ CY-HASIL-005 ringkasan BAB Selesai & Sedang Dipelajari sesuai data (F05.1) (1544ms)
+
+  Hasil Pembelajaran: pencarian (data tiruan)
+    ✓ CY-HASIL-006 pencarian menyaring daftar BAB berdasarkan nama (1926ms)
+    ✓ CY-HASIL-007 pencarian juga mencocokkan deskripsi BAB (1813ms)
+    ✓ CY-HASIL-008 pencarian tidak membedakan huruf besar/kecil (1927ms)
+    ✓ CY-HASIL-009 pencarian tanpa hasil menampilkan pesan yang sesuai (2061ms)
+
+  Hasil Pembelajaran: filter status pembelajaran (data tiruan, F05.2, F05.3)
+    ✓ CY-HASIL-010 filter menyediakan 3 pilihan: Semua, Selesai, Sedang Dipelajari (F05.3) (1619ms)
+    ✓ CY-HASIL-011 filter "Selesai" hanya menampilkan BAB berstatus selesai (F05.2) (1673ms)
+    ✓ CY-HASIL-012 filter "Sedang Dipelajari" hanya menampilkan BAB yang sedang dipelajari (F05.2) (1766ms)
+    ✓ CY-HASIL-013 filter bisa dikembalikan ke "Semua" lewat "Kembalikan ke Default" (1908ms)
+    ✓ CY-HASIL-014 filter dan pencarian bekerja bersamaan (1992ms)
+
+  Hasil Pembelajaran: kondisi memuat dan gagal (data tiruan)
+    ✓ CY-HASIL-015 saat memuat tampil teks "Memuat hasil pembelajaran..." lalu diganti kartu BAB (4520ms)
+    ✓ CY-HASIL-016 gagal memuat data menampilkan pesan error dan ringkasan 0 (1544ms)
+
+
+  16 passing (31s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        16                                                                               │
+  │ Passing:      16                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     31 seconds                                                                       │
+  │ Spec Ran:     hasil-pembelajaran.cy.js                                                         │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  hasil-pembelajaran.cy.js                 00:31       16       16        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:31       16       16        -        -        -  
+
