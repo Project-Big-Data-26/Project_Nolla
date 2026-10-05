@@ -1,7 +1,7 @@
 // TC-AUTH-001: Smoke test halaman login (frontend saja).
 // Prasyarat: frontend berjalan sesuai baseUrl di cypress.config.js.
 // Hasil yang diharapkan: /login menampilkan form siap digunakan.
-// Catatan: "/" sekarang menampilkan Landing Page (bukan redirect ke /login lagi),
+// Catatan: Landing Page ada di /nolla ("/" kini halaman Topics yang butuh login),
 // jadi halaman Login dibuka langsung lewat path /login.
 // Pengujian login Google, pengiriman OTP, dan autentikasi dilakukan terpisah.
 describe("Auth smoke test - halaman login", () => {
@@ -26,6 +26,10 @@ describe("Auth smoke test - halaman login", () => {
     cy.contains('button[type="submit"]', /^Masuk$/)
       .should("be.visible")
       .and("be.enabled");
+
+    cy.contains("a", "Kembali ke Beranda")
+      .should("be.visible")
+      .and("have.attr", "href", "/nolla");
 
     cy.contains("a", "Lupa Kata Sandi?")
       .should("be.visible")

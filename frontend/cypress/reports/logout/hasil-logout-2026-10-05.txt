@@ -1,0 +1,107 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (logout.cy.js)                                                         │
+  │ Searched:       cypress/e2e/logout/logout.cy.js                                                │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  logout.cy.js                                                                    (1 of 1)
+
+
+  Logout — akses dan dialog
+    ✓ CY-LOGOUT-001: akses Logout pada sidebar tersedia di halaman BAB (2427ms)
+    ✓ CY-LOGOUT-002: akses Logout pada sidebar tersedia di halaman Hasil Belajar (1955ms)
+    ✓ CY-LOGOUT-003: akses Logout pada sidebar tersedia di halaman Profil (2272ms)
+    ✓ CY-LOGOUT-004: menu Keluar tersedia pada bagian Akun di Profil (1554ms)
+    ✓ CY-LOGOUT-005: Logout dari sidebar menampilkan dialog konfirmasi (1678ms)
+    ✓ CY-LOGOUT-006: Keluar dari Profil menampilkan dialog konfirmasi yang sama (1657ms)
+    ✓ CY-LOGOUT-007: elemen dialog konfirmasi tampil lengkap (2258ms)
+
+  Logout — konfirmasi dan pembatalan
+    ✓ CY-LOGOUT-008: konfirmasi Logout dari sidebar berhasil (2282ms)
+    ✓ CY-LOGOUT-009: konfirmasi Logout dari Profil berhasil (2593ms)
+    ✓ CY-LOGOUT-010: token dan sesi lokal dibersihkan setelah Logout (2259ms)
+    ✓ CY-LOGOUT-011: membatalkan Logout tetap di /topik dan mempertahankan sesi (1776ms)
+    ✓ CY-LOGOUT-012: membatalkan Logout tetap di /hasil-pembelajaran dan mempertahankan sesi (1683ms)
+    ✓ CY-LOGOUT-013: membatalkan Logout tetap di /profile dan mempertahankan sesi (1752ms)
+    ✓ CY-LOGOUT-014: pembatalan tidak mengubah token (1657ms)
+
+  Logout — perlindungan halaman setelah sesi berakhir
+    ✓ CY-LOGOUT-015: Back tidak membuka kembali /topik (2158ms)
+    ✓ CY-LOGOUT-016: Back tidak membuka kembali /hasil-pembelajaran (2394ms)
+    ✓ CY-LOGOUT-017: Back tidak membuka kembali /profile (2191ms)
+    ✓ CY-LOGOUT-018: akses langsung /topik setelah Logout ditolak (2204ms)
+    ✓ CY-LOGOUT-019: akses langsung /hasil-pembelajaran setelah Logout ditolak (2215ms)
+    ✓ CY-LOGOUT-020: akses langsung /profile setelah Logout ditolak (2381ms)
+
+  Logout — kegagalan dan pemulihan
+    1) CY-LOGOUT-021: kegagalan API Logout mempertahankan keadaan login
+    ✓ CY-LOGOUT-022: pengguna dapat login kembali setelah Logout (3452ms)
+
+
+  21 passing (57s)
+  1 failing
+
+  1) Logout — kegagalan dan pemulihan
+       CY-LOGOUT-021: kegagalan API Logout mempertahankan keadaan login:
+
+      Timed out retrying after 10000ms
+      + expected - actual
+
+      -'/login'
+      +'/topik'
+      
+      at Context.eval (webpack://client/./cypress/e2e/logout/logout.cy.js:477:7)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        22                                                                               │
+  │ Passing:      21                                                                               │
+  │ Failing:      1                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  1                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     56 seconds                                                                       │
+  │ Spec Ran:     logout.cy.js                                                                     │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/hawen/Projects/project_assessment/frontend/cypress/screenshots/logout.cy.    (2560x1440)
+     js/Logout — kegagalan dan pemulihan -- CY-LOGOUT-021 kegagalan API Logout memper               
+     tahankan keadaan login (failed).png                                                            
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  logout.cy.js                             00:56       22       21        1        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:56       22       21        1        -        -  
+

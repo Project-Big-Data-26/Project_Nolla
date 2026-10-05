@@ -1,5 +1,5 @@
 // Test suite Login — NOLLA (sesuai TC-Login_NOLLA_revisi.xlsx, revisi 4)
-// Lokasi: frontend/cypress/e2e/auth/login.cy.js
+// Lokasi: frontend/cypress/e2e/login/login.cy.js
 //
 // Berbeda dengan registration-negative.cy.js, suite ini memakai BACKEND ASLI (tanpa mock),
 // karena fitur login sudah terintegrasi. Request login hanya di-spy, tidak dipalsukan.
@@ -130,6 +130,13 @@ describe("Login — halaman & tampilan", () => {
     it("CY-LOGIN-021: tautan \"Buat akun baru\" membuka halaman Registrasi", () => {
         cy.contains("a", "Buat akun baru").click();
         cy.location("pathname").should("eq", "/register");
+    });
+
+    // ID sementara, belum ada di TC-Login_NOLLA_revisi.xlsx (tombol baru; sesuaikan setelah dokumen direvisi).
+    it("CY-LOGIN-KEMBALI (provisional): tombol \"Kembali ke Beranda\" membuka Landing Page (/nolla)", () => {
+        cy.contains("a", "Kembali ke Beranda").click();
+        cy.location("pathname").should("eq", "/nolla");
+        cy.get("h1").should("contain.text", "Nilai Matematika");
     });
 
     it("CY-LOGIN-022: tautan \"Lupa Kata Sandi?\" membuka halaman Lupa Kata Sandi", () => {

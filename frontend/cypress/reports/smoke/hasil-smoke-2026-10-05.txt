@@ -1,0 +1,110 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          2 found (app-smoke.cy.js, auth-smoke.cy.js)                                    │
+  │ Searched:       cypress/e2e/smoke/*.cy.js                                                      │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  app-smoke.cy.js                                                                 (1 of 2)
+
+
+  Smoke — halaman publik (pengunjung belum login)
+    ✓ SMOKE /nolla terbuka dan tidak 404 (553ms)
+    ✓ SMOKE /login terbuka dan tidak 404 (202ms)
+    ✓ SMOKE /register terbuka dan tidak 404 (127ms)
+    ✓ SMOKE /forgot-password terbuka dan tidak 404 (125ms)
+    ✓ SMOKE /verify dibuka langsung tidak menampilkan 404 (132ms)
+    ✓ SMOKE /reset dibuka langsung tidak menampilkan 404 (144ms)
+    ✓ SMOKE path tidak dikenal menampilkan halaman 404 (122ms)
+    ✓ SMOKE / tanpa login diarahkan ke /login (113ms)
+    ✓ SMOKE /topik tanpa login diarahkan ke /login (113ms)
+    ✓ SMOKE /profile tanpa login diarahkan ke /login (113ms)
+    ✓ SMOKE /profile/edit tanpa login diarahkan ke /login (111ms)
+    ✓ SMOKE /profile/ganti-password tanpa login diarahkan ke /login (110ms)
+    ✓ SMOKE /hasil-pembelajaran tanpa login diarahkan ke /login (114ms)
+    ✓ SMOKE /dashboard tanpa login diarahkan ke /login (116ms)
+
+  Smoke — halaman siswa (sudah login)
+    ✓ SMOKE / terbuka setelah login (1548ms)
+    ✓ SMOKE /topik terbuka setelah login (1545ms)
+    ✓ SMOKE /profile terbuka setelah login (1556ms)
+    ✓ SMOKE /profile/edit terbuka setelah login (1591ms)
+    ✓ SMOKE /profile/ganti-password terbuka setelah login (1467ms)
+    ✓ SMOKE /hasil-pembelajaran terbuka setelah login (1481ms)
+    ✓ SMOKE /login dan /register saat sudah login diarahkan ke /topik (1575ms)
+
+
+  21 passing (13s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        21                                                                               │
+  │ Passing:      21                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     13 seconds                                                                       │
+  │ Spec Ran:     app-smoke.cy.js                                                                  │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  auth-smoke.cy.js                                                                (2 of 2)
+
+
+  Auth smoke test - halaman login
+    ✓ TC-AUTH-001: menampilkan halaman login dan elemen form utama (1282ms)
+
+
+  1 passing (1s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        1                                                                                │
+  │ Passing:      1                                                                                │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     1 second                                                                         │
+  │ Spec Ran:     auth-smoke.cy.js                                                                 │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  app-smoke.cy.js                          00:13       21       21        -        -        - │
+  ├────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ✔  auth-smoke.cy.js                         00:01        1        1        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:14       22       22        -        -        -  
+

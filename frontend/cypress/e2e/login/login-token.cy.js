@@ -1,8 +1,8 @@
 // Tes token kedaluwarsa — NOLLA (CY-LOGIN-034, 035, 036)
-// Lokasi: frontend/cypress/e2e/auth/login-token.cy.js
+// Lokasi: frontend/cypress/e2e/login/login-token.cy.js
 //
 // Cara pakai: cukup jalankan seperti biasa, tidak ada flag yang perlu diubah.
-//   npx cypress run --spec "cypress/e2e/auth/login*.cy.js"
+//   npx cypress run --spec "cypress/e2e/login/login*.cy.js"
 // Sebelum tes, skrip mengecek umur access token dari backend.
 // - Umur <= 120 detik (mis. ACCESS_TOKEN_EXPIRES_IN=1m) -> 3 tes ini dijalankan (sekitar 3,5 menit).
 // - Umur lebih panjang (setelan normal) -> 3 tes ini di-SKIP dan alasannya ditulis di log.
