@@ -51,7 +51,7 @@ const FadeInSection = ({
       {
         threshold: 0.08,
         rootMargin: "0px 0px -40px 0px",
-      }
+      },
     );
 
     const el = domRef.current;
@@ -76,8 +76,9 @@ const FadeInSection = ({
     <div
       ref={domRef}
       style={{ transitionDelay: isVisible ? `${delay}ms` : "0ms" }}
-      className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${isVisible ? visibleClasses : hiddenClasses
-        } ${className}`}
+      className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
+        isVisible ? visibleClasses : hiddenClasses
+      } ${className}`}
     >
       {children}
     </div>
@@ -135,9 +136,11 @@ const LandingPage = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
-      const totalScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const totalScroll =
+        document.documentElement.scrollTop || document.body.scrollTop;
       const windowHeight =
-        document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
       if (windowHeight > 0) {
         const scrolled = (totalScroll / windowHeight) * 100;
         setScrollProgress(Math.min(100, Math.max(0, scrolled)));
@@ -163,7 +166,8 @@ const LandingPage = () => {
     if (element) {
       const navOffset = 80;
       const elementPosition = element.getBoundingClientRect().top;
-      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+      const currentScrollY =
+        window.pageYOffset || document.documentElement.scrollTop;
       const offsetPosition = elementPosition + currentScrollY - navOffset;
 
       window.scrollTo({
@@ -213,11 +217,12 @@ const LandingPage = () => {
           const rect = el.getBoundingClientRect();
           const windowHeight = window.innerHeight;
           const elementHeight = el.offsetHeight || 130;
-          const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+          const currentScrollY =
+            window.pageYOffset || document.documentElement.scrollTop;
           const elementTop = rect.top + currentScrollY;
           const targetY = Math.max(
             0,
-            elementTop - (windowHeight - elementHeight) / 2
+            elementTop - (windowHeight - elementHeight) / 2,
           );
 
           window.scrollTo({
@@ -324,10 +329,11 @@ const LandingPage = () => {
 
       {/* -------------------- NAVBAR (Floating & Blurred on Scroll) -------------------- */}
       <nav
-        className={`sticky top-0 z-50 transition-all duration-300 rounded-b-2xl sm:rounded-b-3xl ${isScrolled
-          ? "bg-white/60 backdrop-blur-md shadow-lg border-b border-slate-200/50 py-3"
-          : "bg-white/100 backdrop-blur-sm shadow-sm py-4"
-          }`}
+        className={`sticky top-0 z-[95] transition-all duration-300 rounded-b-2xl sm:rounded-b-3xl ${
+          isScrolled
+            ? "bg-white/60 backdrop-blur-md shadow-lg border-b border-slate-200/50 py-3"
+            : "bg-white/100 backdrop-blur-sm shadow-sm py-4"
+        }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo & Brand (Click smoothly scrolls to top) */}
@@ -415,7 +421,9 @@ const LandingPage = () => {
                   className="px-6 py-2.5 rounded-full font-bold text-sm bg-[#009bf2] hover:bg-[#1e3a8a] text-white hover:shadow-[0_0_25px_rgba(56,189,248,0.85)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-1.5"
                 >
                   <span>Daftar Sekarang</span>
-                  <span className="font-bold text-base leading-none ml-0.5">&gt;</span>
+                  <span className="font-bold text-base leading-none ml-0.5">
+                    &gt;
+                  </span>
                 </Link>
               </>
             )}
@@ -435,16 +443,22 @@ const LandingPage = () => {
       {/* -------------------- MOBILE DRAWER SIDEBAR & BACKDROP -------------------- */}
       {/* Backdrop di sisi kanan: klik area bukan putih untuk menutup sidebar */}
       <div
-        className={`fixed inset-0 bg-slate-950/60 z-[90] transition-opacity duration-300 md:hidden ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
+        className={`fixed inset-0 bg-slate-950/60 z-[90] transition-opacity duration-300 md:hidden ${
+          mobileMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
         onClick={() => setMobileMenuOpen(false)}
         aria-hidden="true"
       />
 
       {/* Panel Drawer dari samping kiri - Sesuai referensi Nurul Fikri */}
       <div
-        className={`fixed top-0 bottom-0 left-0 w-[76%] max-w-[300px] h-full bg-white z-[100] shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-out md:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
-          }`}
+        className={`fixed top-0 bottom-0 left-0 w-[76%] max-w-[300px] h-full bg-white z-[100] shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-out md:hidden ${
+          mobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full pointer-events-none"
+        }`}
       >
         {/* Bagian Atas: Logo paling atas, lalu list link pagenya dari bawah logo satu-satu kebawah */}
         <div className="flex-1 overflow-y-auto">
@@ -488,7 +502,9 @@ const LandingPage = () => {
               className="w-full text-left px-3.5 py-3 rounded-xl hover:bg-slate-50 hover:text-[#0284c7] font-bold text-sm sm:text-base transition-colors flex items-center justify-between group cursor-pointer"
             >
               <span>Jenjang</span>
-              <span className="text-slate-400 group-hover:text-[#0284c7] font-bold text-sm">&gt;</span>
+              <span className="text-slate-400 group-hover:text-[#0284c7] font-bold text-sm">
+                &gt;
+              </span>
             </button>
             <button
               type="button"
@@ -496,7 +512,9 @@ const LandingPage = () => {
               className="w-full text-left px-3.5 py-3 rounded-xl hover:bg-slate-50 hover:text-[#0284c7] font-bold text-sm sm:text-base transition-colors flex items-center justify-between group cursor-pointer"
             >
               <span>Keunggulan</span>
-              <span className="text-slate-400 group-hover:text-[#0284c7] font-bold text-sm">&gt;</span>
+              <span className="text-slate-400 group-hover:text-[#0284c7] font-bold text-sm">
+                &gt;
+              </span>
             </button>
             <button
               type="button"
@@ -535,7 +553,9 @@ const LandingPage = () => {
                 className="w-full py-2.5 rounded-xl font-bold text-sm text-center bg-[#009bf2] text-white flex items-center justify-center gap-1.5 shadow-md hover:bg-sky-600 transition cursor-pointer"
               >
                 <span>Daftar Sekarang</span>
-                <span className="font-bold text-sm leading-none ml-0.5">&gt;</span>
+                <span className="font-bold text-sm leading-none ml-0.5">
+                  &gt;
+                </span>
               </Link>
             </>
           )}
@@ -594,8 +614,9 @@ const LandingPage = () => {
               {/* Description */}
               <p className="text-white/95 text-sm sm:text-base leading-relaxed max-w-lg mx-auto lg:mx-0 drop-shadow-sm font-medium">
                 Bersiaplah meraih prestasi kamu bersama platform latihan
-                matematika adaptif terpercaya. Ribuan variasi soal yang tak pernah
-                berulang, mengasah logika dan pemahaman konsep secara bertahap.
+                matematika adaptif terpercaya. Ribuan variasi soal yang tak
+                pernah berulang, mengasah logika dan pemahaman konsep secara
+                bertahap.
               </p>
 
               {/* 2 CTA Buttons */}
@@ -723,8 +744,8 @@ const LandingPage = () => {
                   Mindset takut
                 </h3>
                 <p className="text-sm text-[#5b6088] leading-relaxed">
-                  Matematika dicap pelajaran paling menyeramkan dari tahun ke tahun
-                  karena kesalahan kecil langsung membuat nilai anjlok.
+                  Matematika dicap pelajaran paling menyeramkan dari tahun ke
+                  tahun karena kesalahan kecil langsung membuat nilai anjlok.
                 </p>
               </div>
             </FadeInSection>
@@ -763,7 +784,10 @@ const LandingPage = () => {
       </section>
 
       {/* -------------------- SECTION 2: CARA KERJA -------------------- */}
-      <section id="cara" className="py-20 lg:py-24 bg-[#f4f6ff] relative overflow-hidden">
+      <section
+        id="cara"
+        className="py-20 lg:py-24 bg-[#f4f6ff] relative overflow-hidden"
+      >
         {/* Soft Ambient Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-blue-200/30 rounded-full blur-3xl pointer-events-none" />
 
@@ -785,8 +809,8 @@ const LandingPage = () => {
               3 langkah meningkatkan kemampuan
             </h2>
             <p className="text-base text-[#5b6088] max-w-xl mx-auto mb-14">
-              Metode belajar santai tapi terbukti ampuh membentuk pemahaman intuitif
-              yang melekat.
+              Metode belajar santai tapi terbukti ampuh membentuk pemahaman
+              intuitif yang melekat.
             </p>
           </FadeInSection>
 
@@ -801,8 +825,8 @@ const LandingPage = () => {
                   Pilih jenjang &amp; topik
                 </h3>
                 <p className="text-sm text-[#5b6088] leading-relaxed">
-                  Tersedia untuk jenjang SD, SMP, hingga SMA. Mulai langsung dari topik
-                  yang ingin kamu kuasai hari ini.
+                  Tersedia untuk jenjang SD, SMP, hingga SMA. Mulai langsung
+                  dari topik yang ingin kamu kuasai hari ini.
                 </p>
               </div>
             </FadeInSection>
@@ -817,8 +841,9 @@ const LandingPage = () => {
                   Drill soal adaptif
                 </h3>
                 <p className="text-sm text-[#5b6088] leading-relaxed">
-                  Terlalu mudah? Tingkat kesulitan otomatis naik. Merasa kesulitan? Sistem
-                  akan turun sedikit untuk memperkuat pemahaman dasar.
+                  Terlalu mudah? Tingkat kesulitan otomatis naik. Merasa
+                  kesulitan? Sistem akan turun sedikit untuk memperkuat
+                  pemahaman dasar.
                 </p>
               </div>
             </FadeInSection>
@@ -833,8 +858,8 @@ const LandingPage = () => {
                   Naik level &amp; pantau
                 </h3>
                 <p className="text-sm text-[#5b6088] leading-relaxed">
-                  Dapatkan XP harian, pertahankan streak latihan, buka badge kehormatan,
-                  dan lihat grafik perkembangan kemampuanmu.
+                  Dapatkan XP harian, pertahankan streak latihan, buka badge
+                  kehormatan, dan lihat grafik perkembangan kemampuanmu.
                 </p>
               </div>
             </FadeInSection>
@@ -863,8 +888,8 @@ const LandingPage = () => {
               Belajar Sesuai Jenjangmu
             </h2>
             <p className="text-base text-[#5b6088] max-w-xl mx-auto mb-14">
-              Setiap jenjang memiliki kurikulum dan tantangan yang disesuaikan dengan
-              tahap perkembangan kognitif siswa.
+              Setiap jenjang memiliki kurikulum dan tantangan yang disesuaikan
+              dengan tahap perkembangan kognitif siswa.
             </p>
           </FadeInSection>
 
@@ -887,8 +912,8 @@ const LandingPage = () => {
                     Sekolah Dasar (SD)
                   </h3>
                   <p className="text-sm text-[#5b6088] leading-relaxed mb-6">
-                    Berhitung dasar, pecahan, persentase, bangun datar, dan fondasi
-                    logika matematika yang menyenangkan.
+                    Berhitung dasar, pecahan, persentase, bangun datar, dan
+                    fondasi logika matematika yang menyenangkan.
                   </p>
                 </div>
                 {/* <Link
@@ -951,8 +976,8 @@ const LandingPage = () => {
                     Sekolah Menengah Atas (SMA)
                   </h3>
                   <p className="text-sm text-[#5b6088] leading-relaxed mb-6">
-                    Fungsi kuadrat, trigonometri lanjut, kalkulus limit &amp; turunan,
-                    matriks, dan teori peluang kombinatorika.
+                    Fungsi kuadrat, trigonometri lanjut, kalkulus limit &amp;
+                    turunan, matriks, dan teori peluang kombinatorika.
                   </p>
                 </div>
                 {/* <Link
@@ -969,7 +994,10 @@ const LandingPage = () => {
       </section>
 
       {/* -------------------- SECTION 4: KEUNGGULAN -------------------- */}
-      <section id="fitur" className="py-20 lg:py-24 bg-[#f4f6ff] relative overflow-hidden">
+      <section
+        id="fitur"
+        className="py-20 lg:py-24 bg-[#f4f6ff] relative overflow-hidden"
+      >
         {/* Floating Math Decor - DKV Balanced */}
         <img
           src={mathSigma}
@@ -998,50 +1026,60 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <FadeInSection delay={0}>
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
-                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">🎚️</div>
-                <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">Adaptif</h3>
+                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
+                  🎚️
+                </div>
+                <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">
+                  Adaptif
+                </h3>
                 <p className="text-xs sm:text-sm text-[#5b6088] leading-relaxed">
-                  Tingkat kesulitan mengikuti kondisi dan kemampuan pemahaman kamu
-                  secara dinamis.
+                  Tingkat kesulitan mengikuti kondisi dan kemampuan pemahaman
+                  kamu secara dinamis.
                 </p>
               </div>
             </FadeInSection>
 
             <FadeInSection delay={100}>
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
-                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">♾️</div>
+                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
+                  ♾️
+                </div>
                 <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">
                   Soal tak berulang
                 </h3>
                 <p className="text-xs sm:text-sm text-[#5b6088] leading-relaxed">
-                  Latihan sebanyak apa pun, variasinya selalu segar sehingga melatih
-                  logika sebenarnya.
+                  Latihan sebanyak apa pun, variasinya selalu segar sehingga
+                  melatih logika sebenarnya.
                 </p>
               </div>
             </FadeInSection>
 
             <FadeInSection delay={200}>
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
-                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">🏆</div>
+                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
+                  🏆
+                </div>
                 <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">
                   Gamifikasi
                 </h3>
                 <p className="text-xs sm:text-sm text-[#5b6088] leading-relaxed">
-                  Level, streak harian, dan badge prestasi yang membangkitkan rasa
-                  percaya diri belajar.
+                  Level, streak harian, dan badge prestasi yang membangkitkan
+                  rasa percaya diri belajar.
                 </p>
               </div>
             </FadeInSection>
 
             <FadeInSection delay={300}>
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
-                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">🧠</div>
+                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
+                  🧠
+                </div>
                 <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">
                   Soal tervalidasi AI
                 </h3>
                 <p className="text-xs sm:text-sm text-[#5b6088] leading-relaxed">
-                  Diklasifikasi IndoBERT, diverifikasi LLM, dan dikalibrasi akurat
-                  dengan Item Response Theory (IRT).
+                  Diklasifikasi IndoBERT, diverifikasi LLM, dan dikalibrasi
+                  akurat dengan Item Response Theory (IRT).
                 </p>
               </div>
             </FadeInSection>
@@ -1058,101 +1096,110 @@ const LandingPage = () => {
         onMouseLeave={handleMouseLeaveTestimonial}
         onMouseMove={(e) => setCursorPos({ x: e.clientX, y: e.clientY })}
       >
-          {/* Floating Math Decor - DKV Balanced */}
-          <img
-            src={mathPi}
-            alt=""
-            aria-hidden="true"
-            className="absolute top-6 left-4 sm:left-10 w-10 sm:w-14 md:w-16 h-auto object-contain opacity-25 animate-float-slow pointer-events-none select-none drop-shadow-sm z-0"
-          />
-          <img
-            src={mathLightbulb}
-            alt=""
-            aria-hidden="true"
-            className="absolute top-6 right-4 sm:right-10 w-12 sm:w-16 md:w-18 h-auto object-contain opacity-20 animate-float-reverse pointer-events-none select-none drop-shadow-sm z-0"
-          />
-          <FadeInSection className="max-w-6xl mx-auto px-4 sm:px-6 text-center mb-8 sm:mb-10 relative z-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] tracking-tight mb-3">
-              Apa kata mereka tentang Nolla?
-            </h2>
-            <p className="text-base text-[#5b6088] max-w-xl mx-auto">
-              Cerita nyata dari ribuan pelajar &amp; pendidik yang mengubah rasa takut matematika menjadi rasa percaya diri.
-            </p>
-          </FadeInSection>
+        {/* Floating Math Decor - DKV Balanced */}
+        <img
+          src={mathPi}
+          alt=""
+          aria-hidden="true"
+          className="absolute top-6 left-4 sm:left-10 w-10 sm:w-14 md:w-16 h-auto object-contain opacity-25 animate-float-slow pointer-events-none select-none drop-shadow-sm z-0"
+        />
+        <img
+          src={mathLightbulb}
+          alt=""
+          aria-hidden="true"
+          className="absolute top-6 right-4 sm:right-10 w-12 sm:w-16 md:w-18 h-auto object-contain opacity-20 animate-float-reverse pointer-events-none select-none drop-shadow-sm z-0"
+        />
+        <FadeInSection className="max-w-6xl mx-auto px-4 sm:px-6 text-center mb-8 sm:mb-10 relative z-10">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] tracking-tight mb-3">
+            Apa kata mereka tentang Nolla?
+          </h2>
+          <p className="text-base text-[#5b6088] max-w-xl mx-auto">
+            Cerita nyata dari ribuan pelajar &amp; pendidik yang mengubah rasa
+            takut matematika menjadi rasa percaya diri.
+          </p>
+        </FadeInSection>
 
-          {/* Horizontal Ticker with Gradient Fade Edges */}
-          <FadeInSection delay={150}>
-            <div className="relative w-full overflow-hidden group py-3">
-              {/* Left & Right Gradient Shadows for seamless entry/exit */}
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-36 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-36 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+        {/* Horizontal Ticker with Gradient Fade Edges */}
+        <FadeInSection delay={150}>
+          <div className="relative w-full overflow-hidden group py-3">
+            {/* Left & Right Gradient Shadows for seamless entry/exit */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-36 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-36 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
 
-              {/* Marquee Track */}
-              <div className="flex gap-6 animate-marquee">
-                {[...testimonials, ...testimonials].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="w-[300px] sm:w-[370px] shrink-0 bg-white rounded-3xl p-6 sm:p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between select-none cursor-default"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-3.5">
-                        <div className="flex gap-1 text-amber-400 text-sm">
-                          {"★".repeat(item.rating)}
-                        </div>
-                        <span className="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                          {item.tag}
+            {/* Marquee Track */}
+            <div className="flex gap-6 animate-marquee">
+              {[...testimonials, ...testimonials].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="w-[300px] sm:w-[370px] shrink-0 bg-white rounded-3xl p-6 sm:p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between select-none cursor-default"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3.5">
+                      <div className="flex gap-1 text-amber-400 text-sm">
+                        {"★".repeat(item.rating)}
+                      </div>
+                      <span className="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                        {item.tag}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-[#1b1f3b] mb-2 flex items-center gap-1.5">
+                      <span>✨</span>
+                      <span>{item.highlight}</span>
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed mb-5">
+                      “{item.text}”
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 pt-3.5 border-t border-slate-100">
+                    <div
+                      className={`w-10 h-10 rounded-full ${item.avatarBg} font-bold flex items-center justify-center text-sm shadow-xs shrink-0`}
+                    >
+                      {item.initial}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h5 className="font-bold text-xs sm:text-sm text-[#1b1f3b] truncate">
+                          {item.name}
+                        </h5>
+                        <span
+                          className="text-emerald-500 font-bold text-xs"
+                          title="Terverifikasi"
+                        >
+                          ✓
                         </span>
                       </div>
-                      <h4 className="font-bold text-sm text-[#1b1f3b] mb-2 flex items-center gap-1.5">
-                        <span>✨</span>
-                        <span>{item.highlight}</span>
-                      </h4>
-                      <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed mb-5">
-                        “{item.text}”
+                      <p className="text-[11px] text-[#5b6088] truncate">
+                        {item.role}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3 pt-3.5 border-t border-slate-100">
-                      <div
-                        className={`w-10 h-10 rounded-full ${item.avatarBg} font-bold flex items-center justify-center text-sm shadow-xs shrink-0`}
-                      >
-                        {item.initial}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <h5 className="font-bold text-xs sm:text-sm text-[#1b1f3b] truncate">
-                            {item.name}
-                          </h5>
-                          <span className="text-emerald-500 font-bold text-xs" title="Terverifikasi">
-                            ✓
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-[#5b6088] truncate">{item.role}</p>
-                      </div>
-                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          </FadeInSection>
+          </div>
+        </FadeInSection>
 
-          {/* Dynamic Cursor Tooltip Notification (Muncul 3 detik saja saat memasuki section) */}
-          {showTestimonialHint && (
-            <div
-              className="pointer-events-none fixed z-50 px-3.5 py-1.5 rounded-full bg-[#1b1f3b]/95 backdrop-blur-md text-white text-xs font-medium shadow-2xl border border-white/20 flex items-center gap-2 select-none transition-opacity duration-300 ease-out whitespace-nowrap animate-in fade-in"
-              style={{
-                left: `${cursorPos.x}px`,
-                top: `${cursorPos.y}px`,
-                transform: "translate(-50%, -140%)",
-              }}
-            >
-              <span className="text-amber-400 text-sm">👆</span>
-              <span>Arahkan kursor ke kartu untuk menjeda</span>
-            </div>
-          )}
-        </section>
+        {/* Dynamic Cursor Tooltip Notification (Muncul 3 detik saja saat memasuki section) */}
+        {showTestimonialHint && (
+          <div
+            className="pointer-events-none fixed z-50 px-3.5 py-1.5 rounded-full bg-[#1b1f3b]/95 backdrop-blur-md text-white text-xs font-medium shadow-2xl border border-white/20 flex items-center gap-2 select-none transition-opacity duration-300 ease-out whitespace-nowrap animate-in fade-in"
+            style={{
+              left: `${cursorPos.x}px`,
+              top: `${cursorPos.y}px`,
+              transform: "translate(-50%, -140%)",
+            }}
+          >
+            <span className="text-amber-400 text-sm">👆</span>
+            <span>Arahkan kursor ke kartu untuk menjeda</span>
+          </div>
+        )}
+      </section>
 
       {/* -------------------- SECTION 6: FAQ -------------------- */}
-      <section id="faq" className="pt-14 sm:pt-16 lg:pt-20 pb-0 relative overflow-hidden bg-[#f4f9ff]">
+      <section
+        id="faq"
+        className="pt-14 sm:pt-16 lg:pt-20 pb-0 relative overflow-hidden bg-[#f4f9ff]"
+      >
         {/* Floating Math Decor - DKV Balanced */}
         <img
           src={mathBooks}
@@ -1169,7 +1216,8 @@ const LandingPage = () => {
                   Pertanyaan umum
                 </h2>
                 <p className="text-base text-[#5b6088]">
-                  Semua hal yang perlu kamu ketahui tentang cara belajar di Nolla.
+                  Semua hal yang perlu kamu ketahui tentang cara belajar di
+                  Nolla.
                 </p>
               </FadeInSection>
 
@@ -1181,22 +1229,26 @@ const LandingPage = () => {
                       <div
                         key={index}
                         ref={(el) => (faqItemRefs.current[index] = el)}
-                        className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ${isOpen
-                          ? "bg-gradient-to-r from-[#ff851b] to-[#ff5745] ring-4 ring-[#ff8a1f]/25 shadow-xl scale-[1.01]"
-                          : "bg-gradient-to-r from-[#ff8a1f] to-[#ff6538] hover:shadow-lg hover:scale-[1.005]"
-                          }`}
+                        className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ${
+                          isOpen
+                            ? "bg-gradient-to-r from-[#ff851b] to-[#ff5745] ring-4 ring-[#ff8a1f]/25 shadow-xl scale-[1.01]"
+                            : "bg-gradient-to-r from-[#ff8a1f] to-[#ff6538] hover:shadow-lg hover:scale-[1.005]"
+                        }`}
                       >
                         <button
                           type="button"
                           onClick={() => toggleFaq(index)}
                           className="w-full py-5 px-6 text-left flex items-center justify-between gap-4 font-bold text-base text-white transition-colors cursor-pointer select-none"
                         >
-                          <span className="leading-snug drop-shadow-xs">{item.q}</span>
+                          <span className="leading-snug drop-shadow-xs">
+                            {item.q}
+                          </span>
                           <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${isOpen
-                              ? "bg-white text-[#ff8a1f] shadow-md"
-                              : "bg-white/20 text-white hover:bg-white hover:text-[#ff8a1f]"
-                              }`}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                              isOpen
+                                ? "bg-white text-[#ff8a1f] shadow-md"
+                                : "bg-white/20 text-white hover:bg-white hover:text-[#ff8a1f]"
+                            }`}
                           >
                             {isOpen ? (
                               <Minus size={18} className="stroke-[2.5]" />
@@ -1206,10 +1258,11 @@ const LandingPage = () => {
                           </div>
                         </button>
                         <div
-                          className={`grid transition-all duration-300 ease-in-out ${isOpen
-                            ? "grid-rows-[1fr] opacity-100"
-                            : "grid-rows-[0fr] opacity-0"
-                            }`}
+                          className={`grid transition-all duration-300 ease-in-out ${
+                            isOpen
+                              ? "grid-rows-[1fr] opacity-100"
+                              : "grid-rows-[0fr] opacity-0"
+                          }`}
                         >
                           <div className="overflow-hidden">
                             <div className="px-6 pb-5 pt-1">
@@ -1286,7 +1339,8 @@ const LandingPage = () => {
                   Siap ubah “takut” jadi “bisa”?
                 </h2>
                 <p className="text-sm sm:text-xl text-white/95 max-w-2xl mx-auto lg:mx-0 mb-6 sm:mb-8 font-medium">
-                  Daftar sekarang dan mulai sesi drill pertamamu dalam hitungan detik.
+                  Daftar sekarang dan mulai sesi drill pertamamu dalam hitungan
+                  detik.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
                   <Link
@@ -1324,11 +1378,16 @@ const LandingPage = () => {
                 className="inline-block bg-white px-3 py-1.5 rounded-xl shadow-sm mb-4 cursor-pointer hover:opacity-90 transition-opacity border-0"
                 title="Kembali ke atas"
               >
-                <img src={logoNolla} alt="NOLLA" className="h-7 w-auto object-contain" />
+                <img
+                  src={logoNolla}
+                  alt="NOLLA"
+                  className="h-7 w-auto object-contain"
+                />
               </button>
               <p className="text-slate-400 text-xs leading-relaxed mb-5 max-w-sm lg:max-w-xs">
-                Skill drill matematika adaptif untuk siswa SD–SMA. Melatih intuisi
-                dan keterampilan berhitung secara bertahap dan menyenangkan.
+                Skill drill matematika adaptif untuk siswa SD–SMA. Melatih
+                intuisi dan keterampilan berhitung secara bertahap dan
+                menyenangkan.
               </p>
               {/* Authentic App Icons for Instagram, TikTok, YouTube */}
               <div className="flex items-center gap-2.5">
@@ -1341,7 +1400,10 @@ const LandingPage = () => {
                   title="Instagram Nolla"
                   className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-pink-500 hover:bg-gradient-to-tr hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 shadow-sm transition-all duration-300 group cursor-pointer"
                 >
-                  <svg className="w-4 h-4 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 fill-current transition-transform group-hover:scale-110"
+                    viewBox="0 0 24 24"
+                  >
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                   </svg>
                 </a>
@@ -1355,7 +1417,10 @@ const LandingPage = () => {
                   title="TikTok Nolla"
                   className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-cyan-400 hover:bg-[#000000] shadow-sm transition-all duration-300 group cursor-pointer"
                 >
-                  <svg className="w-4 h-4 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 fill-current transition-transform group-hover:scale-110"
+                    viewBox="0 0 24 24"
+                  >
                     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.76 1.42-.03 2.67-.97 3.03-2.34.19-.61.24-1.25.24-1.89l.01-17.43z" />
                   </svg>
                 </a>
@@ -1369,7 +1434,10 @@ const LandingPage = () => {
                   title="YouTube Nolla"
                   className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-red-500 hover:bg-[#ff0000] shadow-sm transition-all duration-300 group cursor-pointer"
                 >
-                  <svg className="w-4 h-4 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 fill-current transition-transform group-hover:scale-110"
+                    viewBox="0 0 24 24"
+                  >
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
                 </a>
@@ -1409,15 +1477,15 @@ const LandingPage = () => {
                     Jenjang SD–SMA
                   </a>
                 </li>
-                            <li>
-              <a
-                href="#faq"
-                onClick={(e) => scrollToSection(e, "faq")}
-                className="hover:text-[#0284c7] transition-colors cursor-pointer"
-              >
-                FAQ
-              </a>
-            </li>
+                <li>
+                  <a
+                    href="#faq"
+                    onClick={(e) => scrollToSection(e, "faq")}
+                    className="hover:text-[#0284c7] transition-colors cursor-pointer"
+                  >
+                    FAQ
+                  </a>
+                </li>
               </ul>
             </div>
 
@@ -1447,20 +1515,31 @@ const LandingPage = () => {
               </h4>
               <ul className="space-y-2.5 text-xs text-slate-400">
                 <li className="flex items-start gap-2">
-                  <MapPin size={15} className="text-[#ff8a1f] shrink-0 mt-0.5" />
+                  <MapPin
+                    size={15}
+                    className="text-[#ff8a1f] shrink-0 mt-0.5"
+                  />
                   <span className="leading-relaxed">
-                    Jalan Semarang No. 5, Sumbersari, Kecamatan Lowokwaru, Kota Malang, Jawa Timur 65145<br />
+                    Jalan Semarang No. 5, Sumbersari, Kecamatan Lowokwaru, Kota
+                    Malang, Jawa Timur 65145
+                    <br />
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Phone size={15} className="text-[#ff8a1f] shrink-0" />
-                  <a href="tel:+15551234567" className="hover:text-white transition-colors truncate">
+                  <a
+                    href="tel:+15551234567"
+                    className="hover:text-white transition-colors truncate"
+                  >
                     (0341) 551312
                   </a>
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail size={15} className="text-[#ff8a1f] shrink-0" />
-                  <a href="mailto:info@brightfuture.edu" className="hover:text-white transition-colors break-all">
+                  <a
+                    href="mailto:info@brightfuture.edu"
+                    className="hover:text-white transition-colors break-all"
+                  >
                     qa.nolla.akun01@gmail.com
                   </a>
                 </li>
