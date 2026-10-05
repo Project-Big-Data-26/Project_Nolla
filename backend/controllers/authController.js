@@ -250,6 +250,7 @@ const verifyEmail = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          avatar: user.avatar,
           isProfileComplete: user.isProfileComplete,
           allJenjang: user.allJenjang,
         },
@@ -363,6 +364,7 @@ const login = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          avatar: user.avatar,
           isProfileComplete: user.isProfileComplete,
           allJenjang: user.allJenjang,
         },
@@ -927,7 +929,7 @@ const getOtpResendStatus = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
-      "_id name email jenjang_id role isProfileComplete isVerified allJenjang",
+      "_id name email avatar jenjang_id role isProfileComplete isVerified allJenjang",
     );
 
     if (!user) {
@@ -947,6 +949,7 @@ const getMe = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          avatar: user.avatar,
           jenjangId: user.jenjang_id,
           isProfileComplete: user.isProfileComplete,
           isVerified: user.isVerified,
