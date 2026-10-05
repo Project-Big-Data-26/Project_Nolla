@@ -10,6 +10,9 @@ vi.mock("../../../api/axios", () => ({
   default: { get: vi.fn(), post: vi.fn() },
 }));
 
+// Navbar memanggil /profile sendiri; di-mock agar mock API hanya dipakai halaman ini.
+vi.mock("../../../components/Navbar", () => ({ default: () => null }));
+
 const createLocalStorageMock = () => {
   const store = new Map();
   return {
