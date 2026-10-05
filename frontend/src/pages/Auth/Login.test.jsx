@@ -30,7 +30,7 @@ describe("Login", () => {
     it("menampilkan tombol kembali ke landing page", () => {
         renderWithRouter(<Login />);
         const homeLink = screen.getByRole("link", { name: "Kembali ke Beranda" });
-        expect(homeLink).toHaveAttribute("href", "/");
+        expect(homeLink).toHaveAttribute("href", "/nolla");
     });
 
     it("menampilkan field email dan password", () => {
