@@ -19,7 +19,7 @@ import backgroundBack from "../../assets/background_back.png";
 import siswaHero from "../../assets/siswa_hero.png";
 import siswaMenunjuk from "../../assets/siswa_menunjuk.png";
 import siswaSd from "../../assets/siswa_sd.png";
-import logoNolla from "../../assets/logo-nolla.png";
+import nollaMain from "../../assets/nolla_main.png";
 import mathLightbulb from "../../assets/komponenTambahan2.png";
 import mathGeometry from "../../assets/komponenTambahan3.png";
 import mathPi from "../../assets/komponenTambahan4.png";
@@ -340,14 +340,18 @@ const LandingPage = () => {
           <button
             type="button"
             onClick={scrollToTop}
-            className="flex items-center group cursor-pointer bg-transparent border-0 p-0 text-left"
+            className="flex items-center gap-2.5 group cursor-pointer bg-transparent border-0 p-0 text-left"
             title="Kembali ke atas"
           >
             <img
-              src={logoNolla}
-              alt="NOLLA"
+              src={nollaMain}
+              alt=""
+              aria-hidden="true"
               className="h-8 sm:h-9 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
             />
+            <span className="font-heading text-xl sm:text-2xl font-semibold translate-y-0.5 text-[#1b1f3b]">
+              NOLLA
+            </span>
           </button>
 
           {/* Desktop Navigation Links */}
@@ -470,13 +474,17 @@ const LandingPage = () => {
                 setMobileMenuOpen(false);
                 scrollToTop(e);
               }}
-              className="block cursor-pointer bg-transparent border-0 p-0 text-left"
+              className="flex items-center gap-2.5 cursor-pointer bg-transparent border-0 p-0 text-left"
             >
               <img
-                src={logoNolla}
-                alt="NOLLA"
+                src={nollaMain}
+                alt=""
+                aria-hidden="true"
                 className="h-8 sm:h-9 w-auto object-contain"
               />
+              <span className="font-heading text-xl font-semibold translate-y-0.5 text-[#1b1f3b]">
+                NOLLA
+              </span>
             </button>
           </div>
 
@@ -1375,14 +1383,18 @@ const LandingPage = () => {
               <button
                 type="button"
                 onClick={scrollToTop}
-                className="inline-block bg-white px-3 py-1.5 rounded-xl shadow-sm mb-4 cursor-pointer hover:opacity-90 transition-opacity border-0"
+                className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-sm mb-4 cursor-pointer hover:opacity-90 transition-opacity border-0"
                 title="Kembali ke atas"
               >
                 <img
-                  src={logoNolla}
-                  alt="NOLLA"
+                  src={nollaMain}
+                  alt=""
+                  aria-hidden="true"
                   className="h-7 w-auto object-contain"
                 />
+                <span className="font-heading text-lg font-semibold translate-y-0.5 text-[#1b1f3b]">
+                  NOLLA
+                </span>
               </button>
               <p className="text-slate-400 text-xs leading-relaxed mb-5 max-w-sm lg:max-w-xs">
                 Skill drill matematika adaptif untuk siswa SD–SMA. Melatih
