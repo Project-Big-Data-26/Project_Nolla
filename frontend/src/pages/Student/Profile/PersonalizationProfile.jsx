@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import API from "../../../api/axios";
 import { useAuth } from "../../../context/AuthContext";
 import Navbar from "../../../components/Navbar";
@@ -91,12 +91,33 @@ export default function PersonalizationProfile() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
+    let notification = {
+      type: "error",
+      message: "Access token tidak ditemukan",
+    };
+
     try {
       const refreshToken = localStorage.getItem("refreshToken");
-      if (refreshToken) await API.post("/auth/logout", { refreshToken });
+      if (refreshToken) {
+        const response = await API.post("/auth/logout", { refreshToken });
+        notification = {
+          type: "success",
+          message: response.data.message || "Logout berhasil",
+        };
+      } else {
+        notification.message = "Refresh token tidak ditemukan";
+      }
     } catch (error) {
       console.error("Gagal menghubungi server saat logout:", error);
+      notification = {
+        type: "error",
+        message:
+          error.response?.data?.message ||
+          "Gagal terhubung ke server saat logout.",
+      };
     } finally {
+      toast.dismiss();
+      toast[notification.type](notification.message);
       logout();
       navigate("/login", { replace: true });
     }
@@ -120,7 +141,6 @@ export default function PersonalizationProfile() {
 
   return (
     <div className="flex min-h-screen bg-neutral-bg font-sans text-neutral-text">
-      <Toaster position="top-center" richColors closeButton />
       {/* Sidebar Navigation */}
       <Navbar activePage="Profil" />
 

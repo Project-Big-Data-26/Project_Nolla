@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowLeft, AlertCircle } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import API from "../../api/axios";
 
 const ForgotPassword = () => {
@@ -35,11 +35,8 @@ const ForgotPassword = () => {
         email: email.trim(),
       });
 
-      toast.success("Kode OTP Terkirim!", {
-        description:
-          response.data.message ||
-          "Silakan cek email Anda untuk kode verifikasi.",
-      });
+      toast.dismiss();
+      toast.success(response.data.message);
 
       // Arahkan ke /verify dengan menyertakan action 'reset-password'
       setTimeout(() => {
@@ -59,7 +56,7 @@ const ForgotPassword = () => {
         setResendCountdown(err.response.data.retryAfterSeconds);
       }
       setErrorMessage(msg);
-      toast.error("Gagal Mengirim OTP", { description: msg });
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -67,8 +64,6 @@ const ForgotPassword = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-bg p-4 sm:p-6 font-sans text-neutral-text">
-      <Toaster position="top-center" richColors closeButton />
-
       <div className="flex w-full max-w-4xl overflow-hidden rounded-2xl sm:rounded-3xl bg-neutral-card shadow-lg border border-neutral-border">
         {/* LEFT COLUMN: FORM FORGOT */}
         <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">

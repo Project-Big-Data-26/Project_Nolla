@@ -10,6 +10,7 @@ const mockedToast = vi.hoisted(() => ({
     success: vi.fn(),
     error: vi.fn(),
     warning: vi.fn(),
+    dismiss: vi.fn(),
 }));
 
 vi.mock("react-router-dom", async () => {

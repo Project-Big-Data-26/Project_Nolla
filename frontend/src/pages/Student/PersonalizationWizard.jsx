@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
 
 import sdIcon from "../../assets/icon/SD.png";
@@ -61,6 +61,8 @@ export default function PersonalizationWizard() {
       }
 
       auth?.updateUser?.(result.data?.user);
+      toast.dismiss();
+      toast.success(result.message);
       navigate("/topik");
     } catch {
       toast.error("Gagal terhubung ke server.");
@@ -101,17 +103,14 @@ export default function PersonalizationWizard() {
 
       if (response.ok && result.status === "success") {
         auth?.updateUser?.(result.data?.user);
-        toast.success("Jenjang pendidikan berhasil disimpan!", {
-          description: "Mengalihkan Anda ke Dashboard...",
-        });
+        toast.dismiss();
+        toast.success(result.message);
 
         setTimeout(() => {
           navigate("/");
         }, 1200);
       } else {
-        toast.error("Gagal Menyimpan", {
-          description: result.message || "Gagal menyimpan personalisasi.",
-        });
+        toast.error(result.message || "Gagal menyimpan personalisasi.");
       }
     } catch (error) {
       console.error("Error detail koneksi server:", error);
@@ -126,8 +125,6 @@ export default function PersonalizationWizard() {
 
   return (
     <div className="relative min-h-screen bg-neutral-bg flex flex-col justify-between font-sans overflow-x-hidden">
-      <Toaster position="top-center" richColors closeButton />
-
       {/* HEADER SECTION */}
       <header className="relative z-20 flex items-center justify-end px-6 py-4 sm:py-6 max-w-7xl w-full mx-auto">
         <button

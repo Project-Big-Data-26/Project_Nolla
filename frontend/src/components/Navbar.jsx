@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import LogoutConfirmModal from "./LogoutConfirmModal";
 import avatar1 from "../assets/avatar/avatar1.svg";
@@ -59,13 +60,17 @@ const Navbar = ({ activePage = "Dashboard" }) => {
 
   const handleLogout = async () => {
     setIsLoading(true);
+    let notification = {
+      type: "error",
+      message: "Access token tidak ditemukan",
+    };
 
     try {
       const accessToken = localStorage.getItem("accessToken");
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (accessToken && refreshToken) {
-        await fetch("http://localhost:5000/api/auth/logout", {
+        const response = await fetch("http://localhost:5000/api/auth/logout", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -73,16 +78,22 @@ const Navbar = ({ activePage = "Dashboard" }) => {
           },
           body: JSON.stringify({ refreshToken }),
         });
+        const result = await response.json();
+        notification = {
+          type: response.ok ? "success" : "error",
+          message: result.message || "Gagal memproses logout.",
+        };
+      } else if (!refreshToken) {
+        notification.message = "Refresh token tidak ditemukan";
       }
     } catch (error) {
       console.error("Gagal koneksi saat logout:", error);
+      notification.message = "Gagal terhubung ke server saat logout.";
     } finally {
-      // 1. Panggil logout dari AuthContext (Reset State Global)
+      toast.dismiss();
+      toast[notification.type](notification.message);
       logout();
-
       setIsLoading(false);
-
-      // 2. Redirect ke /login dengan replace: true agar history browser bersih
       navigate("/login", { replace: true });
     }
   };

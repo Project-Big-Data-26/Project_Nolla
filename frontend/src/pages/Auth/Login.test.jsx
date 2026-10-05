@@ -5,9 +5,20 @@ import "@testing-library/jest-dom";
 import { AuthProvider } from "../../context/AuthContext";
 import Login from "./Login";
 
-function renderWithRouter(ui) {
+const mockedToast = vi.hoisted(() => ({
+    success: vi.fn(),
+    error: vi.fn(),
+    dismiss: vi.fn(),
+}));
+
+vi.mock("sonner", () => ({
+    toast: mockedToast,
+    Toaster: () => null,
+}));
+
+function renderWithRouter(ui, initialEntries = ["/"]) {
     return render(
-        <MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>
             <AuthProvider>{ui}</AuthProvider>
         </MemoryRouter>
     );
@@ -15,6 +26,7 @@ function renderWithRouter(ui) {
 
 afterEach(() => {
     vi.unstubAllGlobals();
+    Object.values(mockedToast).forEach((fn) => fn.mockReset());
 });
 
 describe("Login", () => {
@@ -27,10 +39,41 @@ describe("Login", () => {
         expect(screen.getByText("Masuk ke Akun Anda")).toBeInTheDocument();
     });
 
+    it("menampilkan pesan sukses login dari controller", async () => {
+        localStorage.clear();
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                status: "success",
+                message: "Login berhasil dari controller",
+                data: {
+                    accessToken: "access-token",
+                    refreshToken: "refresh-token",
+                    user: { isProfileComplete: true },
+                },
+            }),
+        }));
+        renderWithRouter(<Login />);
+
+        fireEvent.change(screen.getByPlaceholderText("Alamat Email"), {
+            target: { value: "user@example.com" },
+        });
+        fireEvent.change(screen.getByPlaceholderText("Kata Sandi"), {
+            target: { value: "rahasia123" },
+        });
+        fireEvent.click(screen.getByRole("button", { name: "Masuk" }));
+
+        await waitFor(() =>
+            expect(mockedToast.success).toHaveBeenCalledWith(
+                "Login berhasil dari controller",
+            ),
+        );
+    });
+
     it("menampilkan tombol kembali ke landing page", () => {
         renderWithRouter(<Login />);
         const homeLink = screen.getByRole("link", { name: "Kembali ke Beranda" });
-        expect(homeLink).toHaveAttribute("href", "/");
+        expect(homeLink).toHaveAttribute("href", "/nolla");
     });
 
     it("menampilkan field email dan password", () => {
