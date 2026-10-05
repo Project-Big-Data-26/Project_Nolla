@@ -1,0 +1,2774 @@
+{
+  "info": {
+    "name": "NOLLA - Profil (TC-Profil)",
+    "description": "Postman collection untuk test case API Mengelola Profil (PM-PROFIL-001 sampai 022 di sheet TC-Profil, revisi 5).\n\nCARA PAKAI\n1. Import collection ini dan environment \"NOLLA Local - Profil\".\n2. Isi akun01_password dan akun08_password di environment (jangan ditulis di sheet atau di collection).\n3. Path dan nama field sudah disesuaikan dengan profileRoutes.js dan authRoutes.js; ubah variabel p_* / f_* hanya kalau backend berubah.\n4. Jalankan lewat Collection Runner dari atas ke bawah, atau: newman run <collection> -e <environment>.\n5. Folder 00 harus jalan dulu; folder 99 jalan terakhir untuk mengembalikan data AKUN-08.\n\nTidak dicakup: PM-PROFIL-021 (cek hash bcrypt di MongoDB, manual).\nEndpoint sesuai backend: GET/PATCH /api/profile (profileRoutes.js) dan PATCH /api/auth/password (authRoutes.js). Jenjang dikirim lewat jenjang_id (SD/SMP/SMA) atau allJenjang:true (= Semua).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "p_login",
+      "value": "/api/auth/login"
+    },
+    {
+      "key": "p_profile",
+      "value": "/api/profile"
+    },
+    {
+      "key": "p_update",
+      "value": "/api/profile"
+    },
+    {
+      "key": "p_changepw",
+      "value": "/api/auth/password"
+    },
+    {
+      "key": "f_name",
+      "value": "name"
+    },
+    {
+      "key": "f_avatar",
+      "value": "avatar"
+    },
+    {
+      "key": "f_email",
+      "value": "email"
+    },
+    {
+      "key": "f_id",
+      "value": "id"
+    },
+    {
+      "key": "f_oldpw",
+      "value": "currentPassword"
+    },
+    {
+      "key": "f_newpw",
+      "value": "newPassword"
+    },
+    {
+      "key": "f_confpw",
+      "value": "confirmPassword"
+    },
+    {
+      "key": "msg_generic",
+      "value": "Email atau kata sandi salah"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Setup (jalankan dulu)",
+      "item": [
+        {
+          "name": "S-1 Login AKUN-01",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });",
+                  "pm.collectionVariables.set('token01', TOKEN(J()));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun01_email}}\", \"password\": \"{{akun01_password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "S-2 Login AKUN-08",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });",
+                  "pm.collectionVariables.set('token08', TOKEN(J()));",
+                  "pm.collectionVariables.set('pw_current', V('akun08_password'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{akun08_password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "S-3 Catat kondisi awal AKUN-08 (untuk dikembalikan di Cleanup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil AKUN-08 terambil (2xx)', () => pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true);",
+                  "const p = P(J());",
+                  "pm.collectionVariables.set('orig_name', p[V('f_name')]);",
+                  "pm.collectionVariables.set('orig_level', LV(p) || 'Semua');",
+                  "pm.collectionVariables.set('orig_avatar', p[V('f_avatar')]);",
+                  "pm.test('Field nama/jenjang/avatar terbaca (cek nama field di variabel f_*)', () => { pm.expect(p[V('f_name')], 'f_name').to.be.a('string'); pm.expect(p[V('f_avatar')], 'f_avatar').to.exist; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        }
+      ],
+      "description": "Login AKUN-01 dan AKUN-08, simpan token, dan catat data awal AKUN-08. Isi akun01_password dan akun08_password di environment dulu."
+    },
+    {
+      "name": "01 Ambil Profil",
+      "item": [
+        {
+          "name": "PM-PROFIL-001 Ambil profil dengan token valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response sukses (2xx)', () => pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true);",
+                  "const p = P(J());",
+                  "pm.test('Body berisi nama, email, jenjang, avatar milik AKUN-01', () => {",
+                  "  pm.expect(p[V('f_name')], 'nama').to.be.a('string').and.not.empty;",
+                  "  pm.expect(String(p[V('f_email')]).toLowerCase()).to.eql(String(V('akun01_email')).toLowerCase());",
+                  "  pm.expect(p, 'allJenjang').to.have.property('allJenjang');",
+                  "  pm.expect(p, 'avatar').to.have.property(V('f_avatar'));",
+                  "});",
+                  "pm.collectionVariables.set('akun01_id', p[V('f_id')] || p.id || p._id);",
+                  "pm.collectionVariables.set('akun01_name', p[V('f_name')]);",
+                  "pm.collectionVariables.set('resp_001', pm.response.text());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token01}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-002 Ambil profil tanpa token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Tidak ada data profil di body', () => { const t = pm.response.text().toLowerCase(); pm.expect(t).to.not.include(String(V('akun01_email')).toLowerCase()); pm.expect(t).to.not.include(String(V('akun08_email')).toLowerCase()); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-003 Ambil profil dengan token rusak",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const t = pm.variables.get('token01') || '';",
+                  "const i = Math.max(10, t.length - 6);",
+                  "// ubah beberapa karakter di bagian tanda tangan / akhir token",
+                  "const bad = t.slice(0, i) + t.slice(i).split('').reverse().join('') + 'x';",
+                  "pm.collectionVariables.set('bad_token', bad);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Tidak ada data profil di body', () => { const t = pm.response.text().toLowerCase(); pm.expect(t).to.not.include(String(V('akun01_email')).toLowerCase()); pm.expect(t).to.not.include(String(V('akun08_email')).toLowerCase()); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bad_token}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        }
+      ],
+      "description": "PM-PROFIL-001 sampai 003 (F06.1, NF07)"
+    },
+    {
+      "name": "02 Ubah Profil",
+      "item": [
+        {
+          "name": "PM-PROFIL-004 langkah 1 (ubah nama + jenjang SMP)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response sukses (2xx)', () => pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true);",
+                  "pm.collectionVariables.set('resp_004', pm.response.text());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": \"QA Akun Delapan Edit\", \"jenjang_id\": \"SMP\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-004 langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "const p = P(J());",
+                  "pm.test('Nama dan jenjang berubah', () => { pm.expect(p[V('f_name')]).to.eql('QA Akun Delapan Edit'); pm.expect(LV(p)).to.eql('SMP'); });",
+                  "pm.test('Email tetap sama', () => pm.expect(String(p[V('f_email')]).toLowerCase()).to.eql(String(V('akun08_email')).toLowerCase()));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-005 langkah 1 (ubah avatar dari daftar sistem)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});",
+                  "",
+                  "const list = String(pm.variables.get('avatar_list')).split(',').map(s => s.trim()).filter(Boolean);",
+                  "const cur = pm.variables.get('orig_avatar');",
+                  "const alt = list.find(a => a !== cur) || list[0];",
+                  "pm.collectionVariables.set('avatar_new', alt);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response sukses (2xx)', () => pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_avatar}}\": \"{{avatar_new}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-005 langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Avatar berubah sesuai pilihan', () => pm.expect(P(J())[V('f_avatar')]).to.eql(V('avatar_new')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-006 langkah 1 (Nama kosong)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);",
+                  "",
+                  "pm.test('Pesan menyebut nama tidak boleh kosong', () => pm.expect(MSG()).to.match(/nama|name/i));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": \"\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-006 langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil tidak berubah (nama)', () => {",
+                  "  const p = P(J());",
+                  "  pm.expect(p[V('f_name')]).to.eql(V('snap_name'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-007 langkah 1 (Nama hanya spasi)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);",
+                  "",
+                  "pm.test('Pesan menyebut nama tidak boleh kosong', () => pm.expect(MSG()).to.match(/nama|name/i));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": \"   \"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-007 langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil tidak berubah (nama)', () => {",
+                  "  const p = P(J());",
+                  "  pm.expect(p[V('f_name')]).to.eql(V('snap_name'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-008 langkah 1 (kirim email baru)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Ditolak (4xx) atau field email diabaikan (2xx)', () => pm.expect(pm.response.code, 'status ' + pm.response.code).to.be.within(200, 499));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": \"{{snap_name}}\", \"{{f_email}}\": \"qa.nolla.akun08.ubah@example.com\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-008 langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Email masih email lama', () => pm.expect(String(P(J())[V('f_email')]).toLowerCase()).to.eql(String(V('akun08_email')).toLowerCase()));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-009 langkah 1 (jenjang SMK)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"jenjang_id\": \"SMK\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-009 langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil tidak berubah (jenjang)', () => {",
+                  "  const p = P(J());",
+                  "  pm.expect(LV(p)).to.eql(V('snap_level'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-010 langkah 1 (avatar URL luar)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_avatar}}\": \"https://example.com/gambar.png\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-010 langkah 2 (avatar99 tidak ada di daftar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_avatar}}\": \"avatar99\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-010 langkah 3 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil tidak berubah (avatar)', () => {",
+                  "  const p = P(J());",
+                  "  pm.expect(p[V('f_avatar')]).to.eql(V('snap_avatar'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-011 langkah 1 (field tambahan: password dan role)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Tidak error server (bukan 5xx)', () => pm.expect(pm.response.code, 'status ' + pm.response.code).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": \"{{snap_name}}\", \"password\": \"Bobol1234\", \"role\": \"admin\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-011 langkah 2 (login dengan kata sandi lama)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-011 langkah 3 (login dengan Bobol1234 harus ditolak)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login ditolak (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code).to.be.true);",
+                  "pm.test('Pesan generik \"Email atau kata sandi salah\"', () => pm.expect(MSG()).to.match(new RegExp(V('msg_generic'), 'i')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"Bobol1234\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-011 cek (role tidak berubah)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Field role tidak menjadi admin', () => { const p = P(J()); if (p.role !== undefined) pm.expect(String(p.role).toLowerCase()).to.not.eql('admin'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-012 langkah 1 (nama = objek operator MongoDB)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": {\"$ne\": null}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-012 langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil tidak berubah (nama)', () => {",
+                  "  const p = P(J());",
+                  "  pm.expect(p[V('f_name')]).to.eql(V('snap_name'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-012b langkah 1 (nama berupa angka)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": 12345}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-012b langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil tidak berubah (nama)', () => {",
+                  "  const p = P(J());",
+                  "  pm.expect(p[V('f_name')]).to.eql(V('snap_name'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-023 (usulan) langkah 1 (jenjang_id berisi wildcard regex .*)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"jenjang_id\": \".*\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Usulan test baru, belum ada di sheet. Controller mencocokkan nama jenjang dengan RegExp dari input pengguna, jadi .* bisa cocok dengan jenjang apa pun."
+          }
+        },
+        {
+          "name": "PM-PROFIL-023 (usulan) langkah 2 (ambil profil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil tidak berubah (jenjang)', () => {",
+                  "  const p = P(J());",
+                  "  pm.expect(LV(p)).to.eql(V('snap_level'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-013 Ubah profil tanpa token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": \"QA Tanpa Token\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-013 cek (nama tidak berubah)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Nama bukan \"QA Tanpa Token\"', () => pm.expect(P(J())[V('f_name')]).to.not.eql('QA Tanpa Token'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-014 langkah 2 (token AKUN-08, sebut ID dan email AKUN-01)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + pm.variables.get('p_profile'),",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.variables.get('token08') }",
+                  "}, (err, res) => {",
+                  "  if (err) { return; }",
+                  "  let j = {}; try { j = res.json(); } catch (e) {}",
+                  "  const p = (j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile || j;",
+                  "  pm.collectionVariables.set('snap_name', p[pm.variables.get('f_name')]);",
+                  "  pm.collectionVariables.set('snap_level', p.allJenjang ? 'Semua' : ((p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null));",
+                  "  pm.collectionVariables.set('snap_avatar', p[pm.variables.get('f_avatar')]);",
+                  "  pm.collectionVariables.set('snap_email', p[pm.variables.get('f_email')]);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Ditolak (403/4xx) atau diproses hanya untuk AKUN-08', () => pm.expect(pm.response.code, 'status ' + pm.response.code).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": \"Diubah Akun Lain\", \"{{f_id}}\": \"{{akun01_id}}\", \"id\": \"{{akun01_id}}\", \"userId\": \"{{akun01_id}}\", \"{{f_email}}\": \"{{akun01_email}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-014 langkah 3 (ambil profil AKUN-01)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Nama AKUN-01 tidak berubah', () => { const n = P(J())[V('f_name')]; pm.expect(n).to.eql(V('akun01_name')); pm.expect(n).to.not.eql('Diubah Akun Lain'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token01}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        },
+        {
+          "name": "PM-PROFIL-014 cek (email AKUN-08 tidak ikut berubah)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Email AKUN-08 tetap', () => pm.expect(String(P(J())[V('f_email')]).toLowerCase()).to.eql(String(V('akun08_email')).toLowerCase()));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        }
+      ],
+      "description": "PM-PROFIL-004 sampai 014. Memakai AKUN-08. Kondisi AKUN-08 dikembalikan di folder 99."
+    },
+    {
+      "name": "03 Ganti Kata Sandi",
+      "item": [
+        {
+          "name": "PM-PROFIL-016 langkah 1 (kata sandi lama salah)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);",
+                  "",
+                  "pm.test('Pesan menyebut kata sandi lama salah', () => pm.expect(MSG()).to.match(/lama|salah|incorrect|wrong|old|current/i));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"SalahLama123\", \"{{f_newpw}}\": \"Nolla1234\", \"{{f_confpw}}\": \"Nolla1234\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-016 langkah 2 (login kata sandi lama masih berhasil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-017 langkah 1 (tanpa field kata sandi lama)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_newpw}}\": \"Nolla1234\", \"{{f_confpw}}\": \"Nolla1234\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-017 langkah 2 (kata sandi lama kosong)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"\", \"{{f_newpw}}\": \"Nolla1234\", \"{{f_confpw}}\": \"Nolla1234\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-017 langkah 3 (login kata sandi lama masih berhasil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-018a (Nolla12: 7 karakter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"{{pw_current}}\", \"{{f_newpw}}\": \"Nolla12\", \"{{f_confpw}}\": \"Nolla12\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-018b (nolla1234: tanpa huruf besar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"{{pw_current}}\", \"{{f_newpw}}\": \"nolla1234\", \"{{f_confpw}}\": \"nolla1234\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-018c (NOLLA1234: tanpa huruf kecil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"{{pw_current}}\", \"{{f_newpw}}\": \"NOLLA1234\", \"{{f_confpw}}\": \"NOLLA1234\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-018d (NollaNolla: tanpa angka)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"{{pw_current}}\", \"{{f_newpw}}\": \"NollaNolla\", \"{{f_confpw}}\": \"NollaNolla\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-018 cek (login kata sandi lama masih berhasil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-022 langkah 1 (kata sandi baru = saat ini)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response gagal (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code + ' (500 berarti server tidak menangani input)').to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"{{pw_current}}\", \"{{f_newpw}}\": \"{{pw_current}}\", \"{{f_confpw}}\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-022 langkah 2 (login kata sandi saat ini masih berhasil)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-019 Ganti kata sandi tanpa token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"{{pw_current}}\", \"{{f_newpw}}\": \"Nolla1234\", \"{{f_confpw}}\": \"Nolla1234\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-019 cek (kata sandi tidak berubah)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-015 langkah 1 (ganti kata sandi valid: Nolla123)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Response sukses (2xx)', () => pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true);",
+                  "if (is2xx()) { pm.collectionVariables.set('pw_old_before_015', V('pw_current')); pm.collectionVariables.set('pw_current', 'Nolla123'); }",
+                  "pm.collectionVariables.set('resp_015', pm.response.text());"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"{{pw_current}}\", \"{{f_newpw}}\": \"Nolla123\", \"{{f_confpw}}\": \"Nolla123\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-015 langkah 2 (login dengan kata sandi baru)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });",
+                  "pm.collectionVariables.set('token08', TOKEN(J()));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PM-PROFIL-015 langkah 3 (login dengan kata sandi lama harus ditolak)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login ditolak (4xx)', () => pm.expect(is4xx(), 'status ' + pm.response.code).to.be.true);",
+                  "pm.test('Pesan generik \"Email atau kata sandi salah\"', () => pm.expect(MSG()).to.match(new RegExp(V('msg_generic'), 'i')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_old_before_015}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "PM-PROFIL-015 sampai 019 dan 022. PM-PROFIL-015 dijalankan paling akhir karena mengganti kata sandi AKUN-08 menjadi Nolla123; folder 99 mengembalikannya."
+    },
+    {
+      "name": "04 Keamanan Response",
+      "item": [
+        {
+          "name": "PM-PROFIL-020 Response tidak mengandung kata sandi atau hash",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "const bodies = { 'ambil profil (001)': pm.variables.get('resp_001'), 'ubah profil (004)': pm.variables.get('resp_004'),",
+                  "                 'ganti kata sandi (015)': pm.variables.get('resp_015'), 'ambil profil (sekarang)': pm.response.text() };",
+                  "const bad = /\\$2[aby]\\$/;",
+                  "const badKey = /\"(password|passwd|pwd|hash|passwordHash|kata_?sandi)\"\\s*:/i;",
+                  "Object.keys(bodies).forEach(k => {",
+                  "  pm.test('Response ' + k + ' tidak berisi field kata sandi/hash', () => {",
+                  "    pm.expect(bodies[k], 'response ' + k + ' belum tersedia, jalankan folder 01 sampai 03 dulu').to.be.a('string');",
+                  "    pm.expect(badKey.test(bodies[k]), 'ada field kata sandi/hash').to.be.false;",
+                  "    pm.expect(bad.test(bodies[k]), 'ada teks berawalan $2a$/$2b$').to.be.false;",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        }
+      ],
+      "description": "PM-PROFIL-020 (NF03). PM-PROFIL-021 (cek hash bcrypt di MongoDB) manual, tidak termasuk collection."
+    },
+    {
+      "name": "99 Cleanup (kembalikan AKUN-08)",
+      "item": [
+        {
+          "name": "C-1 Login AKUN-08 dengan kata sandi saat ini",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Login berhasil (2xx) dan ada accessToken', () => { pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true; pm.expect(TOKEN(J())).to.be.a('string').and.not.empty; });",
+                  "pm.collectionVariables.set('token08', TOKEN(J()));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_login}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{akun08_email}}\", \"password\": \"{{pw_current}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "C-2 Kembalikan kata sandi AKUN-08",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "if (V('pw_current') === V('akun08_password')) {",
+                  "  pm.test('Kata sandi AKUN-08 sudah kata sandi awal (tidak perlu dikembalikan)', () => pm.expect(true).to.be.true);",
+                  "} else {",
+                  "  pm.test('Kata sandi dikembalikan (2xx)', () => pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true);",
+                  "  if (is2xx()) pm.collectionVariables.set('pw_current', V('akun08_password'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_changepw}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_oldpw}}\": \"{{pw_current}}\", \"{{f_newpw}}\": \"{{akun08_password}}\", \"{{f_confpw}}\": \"{{akun08_password}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "C-3 Kembalikan nama, jenjang, dan avatar AKUN-08",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const l = pm.variables.get('orig_level');",
+                  "pm.collectionVariables.set('restore_level_json', l === 'Semua' ? '\"allJenjang\": true' : '\"jenjang_id\": \"' + l + '\"');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "pm.test('Profil dikembalikan (2xx)', () => pm.expect(is2xx(), 'status ' + pm.response.code).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_update}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"{{f_name}}\": \"{{orig_name}}\", {{restore_level_json}}, \"{{f_avatar}}\": \"{{orig_avatar}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "C-4 Cek AKUN-08 kembali ke kondisi awal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const V = k => pm.variables.get(k);",
+                  "const J = () => { try { return pm.response.json(); } catch (e) { return {}; } };",
+                  "const P = j => (j && ((j.data && typeof j.data === 'object' && (j.data.user || j.data.profile || j.data)) || j.user || j.profile)) || j || {};",
+                  "const MSG = () => { const j = J(); return String(j.message || j.error || j.msg || (j.data && j.data.message) || pm.response.text() || ''); };",
+                  "const is2xx = () => pm.response.code >= 200 && pm.response.code < 300;",
+                  "const is4xx = () => pm.response.code >= 400 && pm.response.code < 500 && pm.response.code !== 404;",
+                  "const LV = p => p.allJenjang ? 'Semua' : (p.jenjang_id && (p.jenjang_id.name || p.jenjang_id)) || null;",
+                  "const TOKEN = j => (j.data && (j.data.accessToken || j.data.token)) || j.accessToken || j.token;",
+                  "",
+                  "const p = P(J());",
+                  "pm.test('Nama, jenjang, avatar sama seperti awal', () => { pm.expect(p[V('f_name')]).to.eql(V('orig_name')); pm.expect(LV(p)).to.eql(V('orig_level')); pm.expect(p[V('f_avatar')]).to.eql(V('orig_avatar')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token08}}"
+              }
+            ],
+            "url": "{{baseUrl}}{{p_profile}}"
+          }
+        }
+      ],
+      "description": "Jalankan terakhir. Mengembalikan data AKUN-08 supaya siap dipakai Cypress."
+    }
+  ]
+}
