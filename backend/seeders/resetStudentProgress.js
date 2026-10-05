@@ -23,17 +23,63 @@ const DEFAULT_DIFFICULTY = {
   pretest_subbab_correct: 0,
   pretest_subbab_total: 0,
 };
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const normalizeEmails = (rawEmails) =>
+  [...new Set(
+    rawEmails
+      .flatMap((value) =>
+        String(value ?? "")
+          .split(",")
+          .map((email) => email.trim().toLowerCase())
+          .filter(Boolean),
+      )
+      .filter(Boolean),
+  )];
 
 const usage = `Usage:
-  npm run reset:student-quiz -- [--email student@example.com] [--apply --confirm ${CONFIRMATION_PHRASE}]
-  npm run reset:student-pretest -- [--email student@example.com] [--apply --confirm ${CONFIRMATION_PHRASE}]
+  npm run reset:quiz -- [--email student@example.com]
+  npm run reset:pretest -- [--email student@example.com]
 
-Without --apply, the script only previews affected records. Emails are restricted
-to: ${ALLOWED_EMAILS.join(", ")}
+Tanpa --email, script akan memakai default target:
+  ${ALLOWED_EMAILS.join(", ")}
+
+Alternatif variabel environment:
+  RESET_EMAIL="student@example.com" npm run reset:quiz
+  RESET_EMAIL="student@example.com,student1@example.com" npm run reset:quiz
 `;
+
+const resolveTargetEmails = ({ cliEmails = [], envEmails = [] } = {}) => {
+  const combined = normalizeEmails([
+    ...envEmails,
+    ...cliEmails,
+  ]);
+
+  if (combined.length) {
+    const invalidEmails = combined.filter((email) => !EMAIL_PATTERN.test(email));
+    if (invalidEmails.length) {
+      throw new Error(
+        `Email tidak valid: ${invalidEmails.join(", ")}. Gunakan format user@example.com.`,
+      );
+    }
+    return combined;
+  }
+
+  return [...ALLOWED_EMAILS];
+};
 
 const parseArgs = (args) => {
   const parsed = { mode: null, emails: [], apply: false, confirmation: null };
+  const envEmails = normalizeEmails([
+    process.env.RESET_EMAIL || "",
+    process.env.RESET_EMAILS || "",
+  ]);
+
+  if (envEmails.length && args.includes("--email")) {
+    throw new Error(
+      "Gunakan salah satu: --email atau RESET_EMAIL/RESET_EMAILS, jangan keduanya.",
+    );
+  }
 
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
@@ -91,22 +137,16 @@ const parseArgs = (args) => {
     );
   }
 
-  const emails = parsed.emails.length
-    ? [...new Set(parsed.emails.map((email) => email.trim().toLowerCase()))]
-    : ALLOWED_EMAILS;
-  const disallowedEmails = emails.filter(
-    (email) => !ALLOWED_EMAILS.includes(email),
-  );
-  if (disallowedEmails.length) {
-    throw new Error(
-      `Email di luar daftar yang diizinkan: ${disallowedEmails.join(", ")}`,
-    );
-  }
-  if (emails.some((email) => !email)) {
-    throw new Error("Daftar email tidak boleh memiliki nilai kosong.");
+  parsed.emails = resolveTargetEmails({
+    cliEmails: parsed.emails,
+    envEmails,
+  });
+  parsed.emails = parsed.emails.filter((email) => !!email);
+
+  if (!parsed.emails.length) {
+    throw new Error("Email target tidak boleh kosong.");
   }
 
-  parsed.emails = emails;
   return parsed;
 };
 
