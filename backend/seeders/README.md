@@ -16,15 +16,23 @@ npm run reset:quiz
 npm run reset:pretest
 ```
 
-`npm run reset:quiz` langsung menjalankan reset untuk ketiga akun di atas.
-`npm run reset:pretest` juga langsung menjalankan reset untuk ketiga akun
-tersebut.
-Pilih satu atau beberapa akun whitelist dengan `--email`, dapat diulang atau
-berisi daftar dipisahkan koma:
+Tanpa variabel `RESET_EMAIL` atau `--email`, script memakai target default:
+
+- `student@example.com`
+- `student1@example.com`
+- `student2@example.com`
+
+Jika Anda ingin reset hanya satu atau beberapa email tertentu, gunakan salah satu
+cara berikut:
 
 ```sh
 npm run reset:quiz -- --email student@example.com
+RESET_EMAIL="student1@example.com" npm run reset:quiz
+RESET_EMAIL="student@example.com,student2@example.com" npm run reset:pretest
 ```
+
+Jangan menggabungkan `--email` dengan `RESET_EMAIL` di waktu yang sama; script
+akan menolak input yang ambigu.
 
 Reset quiz menghapus sesi quiz, catatan jawaban quiz, dan penanda subbab selesai.
 Nilai difficulty siswa dibangun ulang dari hasil pretest selesai terbaru per
