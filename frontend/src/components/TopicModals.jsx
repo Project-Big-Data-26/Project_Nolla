@@ -1,7 +1,7 @@
 import React from "react";
+import pretestIcon from "../assets/pretest-icon.webp";
 import {
   X,
-  FileQuestion,
   ArrowRight,
   Award,
   Sparkles,
@@ -33,9 +33,12 @@ const TopicModals = ({
               <X className="w-5 h-5" />
             </button>
 
-            <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 border border-orange-200 flex items-center justify-center mx-auto mb-3.5">
-              <FileQuestion className="w-6 h-6" />
-            </div>
+            <img
+              src={pretestIcon}
+              alt=""
+              aria-hidden="true"
+              className="w-16 h-16 sm:w-20 sm:h-20 object-contain mx-auto mb-3.5"
+            />
 
             <h3 className="text-lg font-bold text-slate-900 mb-1">
               Mulai Diagnostic Pretest
