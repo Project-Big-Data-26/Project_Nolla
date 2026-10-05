@@ -1,4 +1,4 @@
-// Test suite Login — NOLLA (sesuai TC-Login_NOLLA_revisi.xlsx, revisi 4)
+// Test suite Login — NOLLA (sesuai TC_Login_NOLLA_6okt.xlsx, revisi 6)
 // Lokasi: frontend/cypress/e2e/login/login.cy.js
 //
 // Berbeda dengan registration-negative.cy.js, suite ini memakai BACKEND ASLI (tanpa mock),
@@ -6,15 +6,17 @@
 //
 // Prasyarat:
 // - Frontend dan backend berjalan (backend di localhost:5000), dengan setelan .env normal.
-// - AKUN-01 (daftar lewat form email) dan AKUN-07 (akun Google tanpa kata sandi) sudah ada.
+// - AKUN-01 (daftar lewat form email) dan AKUN-05 (akun Google tanpa kata sandi) sudah ada.
+//   Kode akun mengikuti Daftar_Akun_Uji_NOLLA.xlsx (penomoran ulang 5 Okt 2026).
 // - Kredensial diisi di frontend/cypress.env.json (JANGAN di-commit, tambahkan ke .gitignore):
 //   {
 //     "AKUN01_EMAIL": "...", "AKUN01_PASSWORD": "...",
-//     "AKUN07_EMAIL": "..."
+//     "AKUN05_EMAIL": "..."
 //   }
 //
 // Tidak ada di file ini (dikerjakan di tempat lain):
 // - Manual (lihat spreadsheet): CY-LOGIN-017, 018, 019, 023–028, 030, 033, 037.
+// - Tampilan dasar halaman Login (CY-LOGIN-001, 002): auth-smoke.cy.js.
 //   017, 018, 037 dicek lewat MongoDB karena refresh token bukan JWT.
 // - Tes token kedaluwarsa (CY-LOGIN-034–036): login-token.cy.js.
 //
@@ -27,7 +29,7 @@ const AKUN01 = {
     email: Cypress.env("AKUN01_EMAIL"),
     password: Cypress.env("AKUN01_PASSWORD"),
 };
-const AKUN07_EMAIL = Cypress.env("AKUN07_EMAIL");
+const AKUN05_EMAIL = Cypress.env("AKUN05_EMAIL"); // akun Google tanpa kata sandi
 const EMAIL_TIDAK_TERDAFTAR = "tidakterdaftar.nolla@example.com";
 const PESAN_GENERIK = "Email atau kata sandi salah";
 const HALAMAN_BAB = "/topik";
@@ -132,8 +134,7 @@ describe("Login — halaman & tampilan", () => {
         cy.location("pathname").should("eq", "/register");
     });
 
-    // ID sementara, belum ada di TC-Login_NOLLA_revisi.xlsx (tombol baru; sesuaikan setelah dokumen direvisi).
-    it("CY-LOGIN-KEMBALI (provisional): tombol \"Kembali ke Beranda\" membuka Landing Page (/nolla)", () => {
+    it("CY-LOGIN-038: tombol \"Kembali ke Beranda\" membuka Landing Page (/nolla)", () => {
         cy.contains("a", "Kembali ke Beranda").click();
         cy.location("pathname").should("eq", "/nolla");
         cy.get("h1").should("contain.text", "Nilai Matematika");
@@ -228,7 +229,7 @@ describe("Login — dengan backend asli", () => {
 
     it("CY-LOGIN-029: akun Google tanpa kata sandi tidak bisa login lewat form email", () => {
         visitLogin();
-        fillLogin(AKUN07_EMAIL, "Coba1234");
+        fillLogin(AKUN05_EMAIL, "Coba1234");
         submitLogin();
         cy.wait("@login").its("response.statusCode").should("be.within", 400, 499);
         expectMessage(PESAN_GENERIK);
@@ -245,5 +246,102 @@ describe("Login — dengan backend asli", () => {
         loginViaUi();
         cy.visit("/login");
         cy.location("pathname").should("eq", HALAMAN_BAB);
+    });
+});
+// Skenario tambahan hasil telaah kode Login.jsx / authController.js (CY-LOGIN-039–045, revisi 6).
+describe("Login — skenario tambahan", () => {
+    // Login ke backend asli, tapi flag isProfileComplete di respons diatur supaya tidak
+    // bergantung pada status profil AKUN-01 di database. Token tetap asli, jadi sesi valid.
+    function loginDenganProfil(isProfileComplete) {
+        cy.intercept("POST", "**/api/auth/login", (req) => {
+            req.continue((res) => {
+                if (res.body && res.body.data && res.body.data.user) {
+                    res.body.data.user.isProfileComplete = isProfileComplete;
+                }
+            });
+        }).as("login");
+        visitLogin();
+        fillLogin(AKUN01.email, AKUN01.password);
+        submitLogin();
+        cy.wait("@login").its("response.statusCode").should("be.within", 200, 299);
+    }
+
+    it("CY-LOGIN-039: akun belum terverifikasi diarahkan ke halaman verifikasi email", () => {
+        cy.intercept("POST", "**/api/auth/login", {
+            statusCode: 403,
+            body: {
+                statusCode: 403,
+                status: "error",
+                code: "EMAIL_NOT_VERIFIED",
+                message: "Email belum diverifikasi",
+            },
+        }).as("login");
+        visitLogin();
+        fillLogin(AKUN01.email, AKUN01.password);
+        submitLogin();
+        cy.wait("@login");
+        cy.location("pathname").should("eq", "/verify");
+        cy.contains(AKUN01.email).should("be.visible");
+        expectNoTokens();
+    });
+
+    it("CY-LOGIN-040: profil lengkap diarahkan ke halaman BAB", () => {
+        loginDenganProfil(true);
+        cy.location("pathname").should("eq", HALAMAN_BAB);
+        cy.wait(2000); // lewati jeda 1,2 detik di Login.jsx; harus tetap di BAB
+        cy.location("pathname").should("eq", HALAMAN_BAB);
+        expectTokensSaved();
+    });
+
+    // Catatan: GuestRoute memindahkan siswa ke /topik begitu token tersimpan, lalu setTimeout 1,2 detik
+    // di Login.jsx memindahkannya lagi ke /personalization. Test ini hanya mengecek tujuan akhir.
+    it("CY-LOGIN-041: profil belum lengkap berakhir di halaman Personalisasi", () => {
+        loginDenganProfil(false);
+        cy.location("pathname", { timeout: 6000 }).should("eq", "/personalization");
+        expectTokensSaved();
+    });
+
+    it("CY-LOGIN-042: centang \"Ingat saya\" mengirim rememberMe=true", () => {
+        cy.intercept("POST", "**/api/auth/login").as("login");
+        visitLogin();
+        fillLogin(AKUN01.email, AKUN01.password);
+        cy.get(SEL.rememberMe).check();
+        submitLogin();
+        cy.wait("@login").then(({ request, response }) => {
+            expect(request.body.rememberMe).to.eq(true);
+            expect(response.statusCode).to.be.within(200, 299);
+        });
+        expectTokensSaved();
+        cy.window().its("localStorage").invoke("getItem", "user").should("be.a", "string");
+    });
+
+    it("CY-LOGIN-043: tanpa centang \"Ingat saya\" mengirim rememberMe=false", () => {
+        cy.intercept("POST", "**/api/auth/login").as("login");
+        visitLogin();
+        fillLogin(AKUN01.email, AKUN01.password);
+        submitLogin();
+        cy.wait("@login").then(({ request }) => {
+            expect(request.body.rememberMe).to.eq(false);
+        });
+    });
+
+    it("CY-LOGIN-044: koneksi ke server gagal menampilkan pesan dan tetap di Login", () => {
+        cy.intercept("POST", "**/api/auth/login", { forceNetworkError: true }).as("login");
+        visitLogin();
+        fillLogin(AKUN01.email, AKUN01.password);
+        submitLogin();
+        cy.wait("@login");
+        cy.contains("Gagal terhubung ke server").should("be.visible");
+        cy.location("pathname").should("eq", "/login");
+        expectNoTokens();
+    });
+
+    it("CY-LOGIN-045: email huruf besar dan berspasi tetap bisa login", () => {
+        cy.intercept("POST", "**/api/auth/login").as("login");
+        visitLogin();
+        fillLogin(`  ${AKUN01.email.toUpperCase()}  `, AKUN01.password);
+        submitLogin();
+        cy.wait("@login").its("response.statusCode").should("be.within", 200, 299);
+        expectTokensSaved();
     });
 });

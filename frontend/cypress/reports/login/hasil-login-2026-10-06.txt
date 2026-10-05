@@ -1,0 +1,80 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+====================================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (login.cy.js)                                                          │
+  │ Searched:       cypress/e2e/login/login.cy.js                                                  │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  login.cy.js                                                                     (1 of 1)
+
+
+  Login — halaman & tampilan
+    ✓ CY-LOGIN-002 (pelengkap auth-smoke): checkbox "Ingat saya" tampil dan bisa dicentang (617ms)
+    ✓ CY-LOGIN-005: kata sandi tersembunyi secara default (445ms)
+    ✓ CY-LOGIN-006 & 007: kata sandi bisa ditampilkan lalu disembunyikan lagi (558ms)
+    ✓ CY-LOGIN-021: tautan "Buat akun baru" membuka halaman Registrasi (234ms)
+    ✓ CY-LOGIN-KEMBALI (provisional): tombol "Kembali ke Beranda" membuka Landing Page (/nolla) (297ms)
+    ✓ CY-LOGIN-022: tautan "Lupa Kata Sandi?" membuka halaman Lupa Kata Sandi (272ms)
+
+  Login — validasi input (tidak boleh terkirim ke API)
+    ✓ CY-LOGIN-011: email kosong menahan submit (575ms)
+    ✓ CY-LOGIN-012: kata sandi kosong menahan submit (1438ms)
+    ✓ CY-LOGIN-013: semua field kosong menahan submit (241ms)
+    ✓ CY-LOGIN-014: format email tidak valid menahan submit (878ms)
+
+  Login — dengan backend asli
+    ✓ CY-LOGIN-008: login email valid diarahkan ke halaman BAB (1465ms)
+    ✓ CY-LOGIN-009: kata sandi salah ditolak dengan pesan generik (1423ms)
+    ✓ CY-LOGIN-010: email tidak terdaftar ditolak dengan pesan yang sama (1308ms)
+    ✓ CY-LOGIN-016: login gagal lalu berhasil dengan kata sandi benar (2010ms)
+    ✓ CY-LOGIN-020: tetap login saat pindah halaman dan refresh (2106ms)
+    ✓ CY-LOGIN-029: akun Google tanpa kata sandi tidak bisa login lewat form email (1244ms)
+    ✓ CY-LOGIN-031: halaman BAB tidak bisa dibuka tanpa login (136ms)
+    ✓ CY-LOGIN-032: siswa yang sudah login membuka /login diarahkan ke halaman BAB (1546ms)
+
+
+  18 passing (17s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        18                                                                               │
+  │ Passing:      18                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     17 seconds                                                                       │
+  │ Spec Ran:     login.cy.js                                                                      │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+====================================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  login.cy.js                              00:17       18       18        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:17       18       18        -        -        -  
+
