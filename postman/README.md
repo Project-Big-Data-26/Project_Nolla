@@ -4,19 +4,23 @@ Folder ini berisi hasil export Postman untuk API testing.
 
 ## Struktur
 
+Dikelompokkan per fitur, sama seperti `frontend/cypress/e2e/` (huruf kecil, kebab-case).
+
 ```
 postman/
 ├── collections/
-│   └── project-assessment.postman_collection.json   # export collection
+│   └── profil/
+│       └── profil.postman_collection.json            # TC-Profil (PM-PROFIL-001 s.d. 023)
 └── environments/
-    ├── local.postman_environment.example.json       # template (boleh di-commit)
-    └── local.postman_environment.json               # isi asli, JANGAN di-commit
+    └── local-profil.postman_environment.example.json # template (boleh di-commit)
 ```
+
+Fitur baru: buat folder baru di `collections/` (mis. `login/login.postman_collection.json`).
 
 ## Cara pakai
 
 1. Postman → Import → pilih file di `collections/`.
-2. Salin `local.postman_environment.example.json` menjadi `local.postman_environment.json`, isi `email` dan `password` akun uji, lalu Import ke Postman.
+2. Import `environments/local-profil.postman_environment.example.json`, lalu isi password akun uji langsung di Postman (jangan di file).
 3. Jalankan backend (`http://localhost:5000`), pilih environment **Local**, lalu jalankan collection (Run collection).
 
 ## Aturan
@@ -28,6 +32,6 @@ postman/
 ## Opsional: jalankan lewat CLI (Newman)
 
 ```bash
-npx newman run postman/collections/project-assessment.postman_collection.json \
-  -e postman/environments/local.postman_environment.json
+npx newman run postman/collections/profil/profil.postman_collection.json \
+  -e postman/environments/local-profil.postman_environment.example.json
 ```
