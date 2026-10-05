@@ -1,0 +1,89 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.21.1                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.3.0 (/opt/homebrew/Cellar/node/25.3.0/bin/node)                            │
+  │ Specs:          1 found (landing.cy.js)                                                        │
+  │ Searched:       cypress/e2e/landing/landing.cy.js                                              │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  landing.cy.js                                                                   (1 of 1)
+
+
+  Landing Page — tampilan umum (pengunjung belum login)
+    ✓ CY-LANDING-001 halaman /nolla menampilkan Landing Page (599ms)
+    ✓ CY-LANDING-002 navbar menampilkan tombol Masuk & Daftar Sekarang yang mengarah ke halaman yang benar (686ms)
+    ✓ CY-LANDING-003 CTA utama "Mulai Belajar" mengarah ke halaman Registrasi (389ms)
+    ✓ CY-LANDING-004 tautan "Lihat Cara Kerja" men-scroll ke section Cara Kerja (426ms)
+    ✓ CY-LANDING-005 navbar desktop: tiap link men-scroll ke section yang sesuai (2243ms)
+    ✓ CY-LANDING-006 semua section utama tampil dengan judul yang sesuai (1868ms)
+    ✓ CY-LANDING-007 FAQ: satu jawaban terbuka dalam satu waktu dan bisa ditutup kembali (1142ms)
+    ✓ CY-LANDING-008 section CTA bawah: tombol Daftar Sekarang & Masuk mengarah ke halaman yang benar (602ms)
+    ✓ CY-LANDING-009 footer: quick link FAQ men-scroll ke section FAQ, copyright tampil (600ms)
+    ✓ CY-LANDING-017 klik logo NOLLA di navbar mengembalikan halaman ke paling atas (484ms)
+
+  Landing Page — menu mobile (pengunjung belum login)
+    ✓ CY-LANDING-010 menu hamburger membuka drawer berisi navigasi dan CTA (364ms)
+    ✓ CY-LANDING-011 tombol X bisa diklik (tidak ketutup backdrop) dan menutup drawer (415ms)
+    ✓ CY-LANDING-011b drawer bisa ditutup lewat klik area backdrop (470ms)
+    ✓ CY-LANDING-012 drawer: klik link navigasi ikut men-scroll dan menutup drawer (1136ms)
+    ✓ CY-LANDING-020 halaman di belakang terkunci saat drawer terbuka dan lepas setelah ditutup (415ms)
+
+  Landing Page — siswa sudah login
+    ✓ CY-LANDING-013 navbar menampilkan "Buka Topik Belajar" dan mengarah ke /topik (2790ms)
+
+  Landing Page — siswa sudah login menekan tombol daftar/masuk
+    ✓ CY-LANDING-014 hero "Mulai Belajar" langsung membuka /topik (1852ms)
+    ✓ CY-LANDING-015 CTA bawah "Daftar Sekarang" langsung membuka /topik (1661ms)
+    ✓ CY-LANDING-016 CTA bawah "Sudah Punya Akun? Masuk" langsung membuka /topik (1672ms)
+    ✓ CY-LANDING-018 klik logo NOLLA saat sudah login mengembalikan halaman ke paling atas (1854ms)
+    ✓ CY-LANDING-019 drawer mobile menampilkan "Buka Topik Belajar" dan mengarah ke /topik (1954ms)
+
+  Landing Page — sesi tidak valid & path /
+    ✓ CY-LANDING-021 token login rusak: Landing Page masih menganggap login, tapi /topik menolak dan membawa ke halaman Masuk (2718ms)
+    ✓ CY-LANDING-022 pengunjung membuka / tidak bisa melihat halaman Topik (157ms)
+
+
+  23 passing (27s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        23                                                                               │
+  │ Passing:      23                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     26 seconds                                                                       │
+  │ Spec Ran:     landing.cy.js                                                                    │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  landing.cy.js                            00:26       23       23        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:26       23       23        -        -        -  
+
