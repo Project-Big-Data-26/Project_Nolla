@@ -5,16 +5,43 @@ import Navbar from "../../components/Navbar";
 import API from "../../api/axios";
 import QuestionImage from "../../components/QuestionImage";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
-import "katex/dist/katex.min.css";
+import "katex-v016/dist/katex.min.css";
 
-const remarkPlugins = [remarkMath];
+const remarkPlugins = [remarkMath, remarkGfm];
 const rehypePlugins = [rehypeKatex];
 const inlineMarkdownComponents = {
   p: ({ children }) => <span>{children}</span>,
 };
+const markdownComponents = {
+  p: ({ children }) => <p className="my-2 first:mt-0 last:mb-0">{children}</p>,
+  h1: ({ children }) => <h1 className="my-2 text-lg font-bold">{children}</h1>,
+  h2: ({ children }) => <h2 className="my-2 text-base font-bold">{children}</h2>,
+  h3: ({ children }) => <h3 className="my-2 text-sm font-bold">{children}</h3>,
+  ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>,
+  ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>,
+  table: ({ children }) => (
+    <div className="my-3 overflow-x-auto">
+      <table className="w-full border-collapse text-left">{children}</table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th className="border border-slate-300 bg-slate-50 px-2 py-1 font-bold">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border border-slate-300 px-2 py-1">{children}</td>
+  ),
+};
+const normalizeMarkdown = (content) =>
+  String(content ?? "")
+    .replace(/\\r\\n|\\n|\\r/g, "\n")
+    .replace(/\\\(([\s\S]*?)\\\)/g, (_, math) => `$${math}$`)
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_, math) => `$$\n${math}\n$$`);
 
 // ================================
 // SESSION STORAGE
@@ -1053,7 +1080,7 @@ const QuestionPage = () => {
               rehypePlugins={rehypePlugins}
               components={inlineMarkdownComponents}
             >
-              {String(option.text ?? "")}
+              {normalizeMarkdown(option.text)}
             </ReactMarkdown>
           </span>
         </button>
@@ -1220,8 +1247,9 @@ const QuestionPage = () => {
                       <ReactMarkdown
                         remarkPlugins={remarkPlugins}
                         rehypePlugins={rehypePlugins}
+                        components={markdownComponents}
                       >
-                        {String(question.text ?? "")}
+                        {normalizeMarkdown(question.text)}
                       </ReactMarkdown>
                     </div>
                   </div>
@@ -1267,8 +1295,9 @@ const QuestionPage = () => {
                     <ReactMarkdown
                       remarkPlugins={remarkPlugins}
                       rehypePlugins={rehypePlugins}
+                      components={markdownComponents}
                     >
-                      {String(question.text ?? "")}
+                      {normalizeMarkdown(question.text)}
                     </ReactMarkdown>
                   </div>
                 </div>
