@@ -90,7 +90,6 @@ const normalizePretestResult = (data) => ({
   breakdown: (data.submateri_result || []).map((item) => ({
     subtopic: item.subbab_name,
     status: item.current_cognitive_level || "Belum dinilai",
-    difficulty: item.current_cognitive_level,
     score: item.current_cognitive_score ?? "-",
     elo: item.current_cognitive_score, // Membantu UI baru untuk menampilkan elo
   })),

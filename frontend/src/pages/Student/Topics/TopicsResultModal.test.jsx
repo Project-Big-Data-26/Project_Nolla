@@ -131,13 +131,7 @@ beforeEach(() => {
             prerequisite_bab_result: [
               { name: "Operasi Bilangan Dasar", status: "tidak terpenuhi" },
             ],
-            submateri_result: [
-              {
-                subbab_name: "Peluang Suatu Kejadian",
-                current_cognitive_level: "medium",
-                current_cognitive_score: "1000/1400",
-              },
-            ],
+            submateri_result: [],
             recommendation: "Lanjutkan belajar.",
           },
         },
@@ -170,11 +164,9 @@ describe("Topics pretest result handoff", () => {
       await screen.findByText("Hasil Diagnostic Pretest"),
     ).toBeInTheDocument();
     expect(screen.getByText("80%")).toBeInTheDocument();
-    expect(screen.getByText("Breakdown Prasyarat")).toBeInTheDocument();
+    expect(screen.getByText("Breakdown Materi Prasyarat")).toBeInTheDocument();
     expect(screen.getByText("Operasi Bilangan Dasar")).toBeInTheDocument();
-    expect(screen.getByText("Tidak Terpenuhi")).toBeInTheDocument();
-    expect(screen.getByText("Medium")).toBeInTheDocument();
-    expect(screen.queryByText("Easy")).not.toBeInTheDocument();
+    expect(screen.getByText("Tidak terpenuhi")).toBeInTheDocument();
     expect(await screen.findByLabelText("Search topics")).toHaveValue(
       "Peluang",
     );

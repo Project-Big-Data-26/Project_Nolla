@@ -1,15 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthProvider } from "../../context/AuthContext";
 import "@testing-library/jest-dom";
 import ResultPage from "./ResultPage";
 
 function renderPage() {
     return render(
-        <MemoryRouter><AuthProvider>
+        <MemoryRouter>
             <ResultPage />
-        </AuthProvider></MemoryRouter>
+        </MemoryRouter>
     );
 }
 

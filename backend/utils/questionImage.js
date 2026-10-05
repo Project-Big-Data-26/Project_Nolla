@@ -15,36 +15,9 @@ const IMAGE_EXTENSIONS = new Set([
 const isImageFileName = (fileName) =>
   typeof fileName === "string" &&
   fileName.length > 0 &&
+  path.basename(fileName) === fileName &&
   !fileName.includes("\\") &&
-  !fileName.startsWith("/") &&
-  fileName
-    .split("/")
-    .every(
-      (segment) =>
-        segment && segment !== "." && segment !== ".." && !segment.includes(":"),
-    ) &&
   IMAGE_EXTENSIONS.has(path.extname(fileName).toLowerCase());
-
-const findImageFiles = async (directory, relativeDirectory = "") => {
-  const entries = await fs.readdir(directory, { withFileTypes: true });
-  const imageFiles = [];
-
-  for (const entry of entries) {
-    const relativePath = relativeDirectory
-      ? `${relativeDirectory}/${entry.name}`
-      : entry.name;
-
-    if (entry.isDirectory()) {
-      imageFiles.push(
-        ...(await findImageFiles(path.join(directory, entry.name), relativePath)),
-      );
-    } else if (entry.isFile() && isImageFileName(relativePath)) {
-      imageFiles.push(relativePath);
-    }
-  }
-
-  return imageFiles;
-};
 
 const getQuestionImageToken = (fileName) => {
   const secret = process.env.IMAGE_TOKEN_SECRET || process.env.JWT_SECRET;
@@ -78,17 +51,22 @@ const toPublicImageUrls = (fileNames, req) => {
 const findQuestionImageByToken = async (token) => {
   if (!/^[a-f0-9]{32}$/i.test(token)) return null;
 
+  let files;
   try {
-    const files = await findImageFiles(IMAGE_DIRECTORY);
-    return (
-      files.find(
-        (fileName) => getQuestionImageToken(fileName) === token.toLowerCase(),
-      ) || null
-    );
+    files = await fs.readdir(IMAGE_DIRECTORY, { withFileTypes: true });
   } catch (error) {
     if (error.code === "ENOENT") return null;
     throw error;
   }
+
+  const match = files.find(
+    (file) =>
+      file.isFile() &&
+      isImageFileName(file.name) &&
+      getQuestionImageToken(file.name) === token.toLowerCase(),
+  );
+
+  return match?.name || null;
 };
 
 module.exports = {

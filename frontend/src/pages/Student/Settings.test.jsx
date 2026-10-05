@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthProvider } from "../../context/AuthContext";
 import "@testing-library/jest-dom";
 import Settings from "./Settings";
 
@@ -28,7 +27,7 @@ function createLocalStorageMock() {
 }
 
 function renderWithRouter(ui) {
-    return render(<MemoryRouter><AuthProvider>{ui}</AuthProvider></MemoryRouter>);
+    return render(<MemoryRouter>{ui}</MemoryRouter>);
 }
 
 // NOTE: Settings.jsx belum menghubungkan <label> dengan <input> lewat
@@ -112,6 +111,6 @@ describe("Settings", () => {
 
     it("menampilkan tombol keluar (logout)", () => {
         renderWithRouter(<Settings />);
-        expect(screen.getAllByRole("button", { name: /keluar/i }).length).toBeGreaterThan(0);
+        expect(screen.getByRole("button", { name: /keluar/i })).toBeInTheDocument();
     });
 });

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthProvider } from "../../context/AuthContext";
 import "@testing-library/jest-dom";
 import PersonalizationProfile from "./PersonalizationProfile";
 
@@ -28,7 +27,7 @@ function createLocalStorageMock() {
 }
 
 function renderWithRouter(ui) {
-    return render(<MemoryRouter><AuthProvider>{ui}</AuthProvider></MemoryRouter>);
+    return render(<MemoryRouter>{ui}</MemoryRouter>);
 }
 
 describe("PersonalizationProfile", () => {

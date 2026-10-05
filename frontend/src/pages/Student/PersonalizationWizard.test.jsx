@@ -1,131 +1,117 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PersonalizationWizard from "./PersonalizationWizard";
 
-const mockedNavigate = vi.fn();
-const mockedToast = vi.hoisted(() => ({
-    success: vi.fn(),
-    error: vi.fn(),
-    warning: vi.fn(),
-}));
-
-vi.mock("react-router-dom", async () => {
-    const actual = await vi.importActual("react-router-dom");
-    return { ...actual, useNavigate: () => mockedNavigate };
-});
-
-vi.mock("sonner", () => ({
-    toast: mockedToast,
-    Toaster: () => null,
-}));
-
-function renderWizard() {
-    return render(
-        <MemoryRouter>
-            <PersonalizationWizard />
-        </MemoryRouter>
-    );
-}
-
 function selectOption(label) {
-    fireEvent.click(screen.getByText(label).closest("div[class*='cursor-pointer']"));
+    fireEvent.click(screen.getByText(label).closest("button"));
 }
 
-const mockFetch = (body, ok = true) =>
-    vi.fn().mockResolvedValue({ ok, json: async () => body });
+function goToStep2() {
+    selectOption("SD");
+    fireEvent.click(screen.getByRole("button", { name: "Lanjut →" }));
+}
 
 describe("PersonalizationWizard", () => {
-    beforeEach(() => {
-        mockedNavigate.mockReset();
-        Object.values(mockedToast).forEach((fn) => fn.mockReset());
-        localStorage.setItem("accessToken", "token-abc");
-    });
-
-    afterEach(() => {
-        vi.unstubAllGlobals();
-        localStorage.clear();
-    });
-
     it("merender tanpa crash", () => {
-        renderWizard();
+        render(<PersonalizationWizard onFinish={() => { }} />);
     });
 
-    it("menampilkan judul dan 3 pilihan jenjang pendidikan", () => {
-        renderWizard();
-        expect(screen.getByText("Pilih Jenjang Pendidikanmu")).toBeInTheDocument();
-        expect(screen.getByText("Sekolah Dasar (SD)")).toBeInTheDocument();
-        expect(screen.getByText("Kelas 1 - 6")).toBeInTheDocument();
-        expect(screen.getByText("Kelas 7 - 9")).toBeInTheDocument();
-        expect(screen.getByText("Kelas 10 - 12")).toBeInTheDocument();
-        expect(screen.getAllByText("Sekolah Menengah (SMP)")).toHaveLength(1);
-        expect(screen.getAllByText("Sekolah Menengah (SMA)")).toHaveLength(1);
-    });
-
-    it("menampilkan tombol Lewati dan tombol simpan", () => {
-        renderWizard();
-        expect(screen.getByRole("button", { name: "Lewati" })).toBeInTheDocument();
+    it("step 1: menampilkan judul dan 3 pilihan jenjang pendidikan", () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
         expect(
-            screen.getByRole("button", { name: "Simpan & Mulai Belajar →" })
+            screen.getByText("Hai, kenalan dulu yuk!")
         ).toBeInTheDocument();
+        expect(screen.getByText("SD")).toBeInTheDocument();
+        expect(screen.getByText("SMP")).toBeInTheDocument();
+        expect(screen.getByText("SMA")).toBeInTheDocument();
     });
 
-    it("menampilkan peringatan dan tidak memanggil API bila belum memilih jenjang", () => {
-        const fetchMock = mockFetch({ status: "success" });
-        vi.stubGlobal("fetch", fetchMock);
-        renderWizard();
-
-        fireEvent.click(screen.getByRole("button", { name: "Simpan & Mulai Belajar →" }));
-
-        expect(mockedToast.warning).toHaveBeenCalledWith(
-            "Pilih Jenjang Pendidikan",
-            expect.any(Object)
+    it("step 1: indikator step 1 aktif (highlighted), step 2 belum", () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
+        expect(screen.getByText("1 Jenjang Pendidikan")).toHaveClass(
+            "text-primary"
         );
-        expect(fetchMock).not.toHaveBeenCalled();
+        expect(screen.getByText("2 Tujuan Belajar")).not.toHaveClass(
+            "text-primary"
+        );
     });
 
-    it("mengirim educationLevel yang dipilih lalu mengarahkan ke dashboard", async () => {
-        const fetchMock = mockFetch({ status: "success" });
-        vi.stubGlobal("fetch", fetchMock);
-        renderWizard();
+    it('tombol "Lanjut →" disabled sebelum memilih jenjang pendidikan', () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
+        expect(screen.getByRole("button", { name: "Lanjut →" })).toBeDisabled();
+    });
 
-        selectOption("Sekolah Dasar (SD)");
-        fireEvent.click(screen.getByRole("button", { name: "Simpan & Mulai Belajar →" }));
+    it('tombol "Lanjut →" aktif setelah memilih salah satu jenjang', () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
+        selectOption("SMA");
+        expect(
+            screen.getByRole("button", { name: "Lanjut →" })
+        ).not.toBeDisabled();
+    });
 
-        await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-        const [url, options] = fetchMock.mock.calls[0];
-        expect(url).toContain("/api/personalization");
-        expect(options.headers.Authorization).toBe("Bearer token-abc");
-        expect(JSON.parse(options.body)).toEqual({ educationLevel: "sd" });
+    it("pindah ke step 2 setelah klik Lanjut, menampilkan judul dan 5 pilihan tujuan belajar", () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
+        goToStep2();
 
-        await waitFor(() => expect(mockedToast.success).toHaveBeenCalled());
-        await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith("/"), {
-            timeout: 2000,
+        expect(screen.getByText("Apa tujuan belajarmu?")).toBeInTheDocument();
+        expect(screen.getByText("Meningkatkan nilai")).toBeInTheDocument();
+        expect(screen.getByText("Belajar hal baru")).toBeInTheDocument();
+        expect(screen.getByText("Persiapan ujian")).toBeInTheDocument();
+        expect(screen.getByText("Memahami materi sulit")).toBeInTheDocument();
+        expect(screen.getByText("Persiapan karier")).toBeInTheDocument();
+
+        // step 1 sudah tidak dirender lagi
+        expect(
+            screen.queryByText("Hai, kenalan dulu yuk!")
+        ).not.toBeInTheDocument();
+    });
+
+    it("step 2: indikator step 2 yang aktif setelah pindah step", () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
+        goToStep2();
+
+        expect(screen.getByText("2 Tujuan Belajar")).toHaveClass("text-primary");
+        expect(screen.getByText("1 Jenjang Pendidikan")).not.toHaveClass(
+            "text-primary"
+        );
+    });
+
+    it('step 2: tombol "Lanjut →" (finish) disabled sebelum memilih tujuan belajar', () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
+        goToStep2();
+
+        expect(screen.getByRole("button", { name: "Lanjut →" })).toBeDisabled();
+    });
+
+    it('tombol "← Kembali" mengembalikan ke step 1', () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
+        goToStep2();
+
+        fireEvent.click(screen.getByRole("button", { name: "← Kembali" }));
+
+        expect(screen.getByText("Hai, kenalan dulu yuk!")).toBeInTheDocument();
+        expect(
+            screen.queryByText("Apa tujuan belajarmu?")
+        ).not.toBeInTheDocument();
+    });
+
+    it("memanggil onFinish dengan educationLevel dan learningGoal yang dipilih", () => {
+        const onFinish = vi.fn();
+        render(<PersonalizationWizard onFinish={onFinish} />);
+
+        goToStep2();
+        selectOption("Persiapan ujian");
+        fireEvent.click(screen.getByRole("button", { name: "Lanjut →" }));
+
+        expect(onFinish).toHaveBeenCalledWith({
+            educationLevel: "sd",
+            learningGoal: "exams",
         });
     });
 
-    it("menampilkan error bila server menolak penyimpanan", async () => {
-        vi.stubGlobal("fetch", mockFetch({ status: "error", message: "Gagal" }, false));
-        renderWizard();
-
-        selectOption("Sekolah Menengah (SMP)");
-        fireEvent.click(screen.getByRole("button", { name: "Simpan & Mulai Belajar →" }));
-
-        await waitFor(() => expect(mockedToast.error).toHaveBeenCalled());
-        expect(mockedNavigate).not.toHaveBeenCalled();
-    });
-
-    it("Lewati mengirim skipAllJenjang lalu mengarahkan ke /topik", async () => {
-        const fetchMock = mockFetch({ status: "success" });
-        vi.stubGlobal("fetch", fetchMock);
-        renderWizard();
-
-        fireEvent.click(screen.getByRole("button", { name: "Lewati" }));
-
-        await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith("/topik"));
-        expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
-            skipAllJenjang: true,
-        });
+    it("menampilkan tombol Lewati", () => {
+        render(<PersonalizationWizard onFinish={() => { }} />);
+        expect(screen.getByRole("button", { name: "Lewati" })).toBeInTheDocument();
     });
 });
