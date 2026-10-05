@@ -47,7 +47,9 @@ describe("Landing Page — tampilan umum (pengunjung belum login)", () => {
     it("CY-LANDING-001 halaman /nolla menampilkan Landing Page", () => {
         cy.location("pathname").should("eq", "/nolla");
         cy.get("h1").should("contain.text", "Tingkatkan").and("contain.text", "Nilai Matematika");
-        cy.get("img[alt=NOLLA]").should("be.visible");
+        // Logo kini gambar dekoratif (alt="") + teks "NOLLA" di dalam tombol logo navbar.
+        cy.get('nav button[title="Kembali ke atas"]').should("be.visible").and("contain.text", "NOLLA");
+        cy.get('nav button[title="Kembali ke atas"] img').should("be.visible");
         // "Mulai Belajar" & tombol lain berisi panah "›" di <span> terpisah,
         // jadi dicocokkan sebagai substring (bukan regex ^$), bukan karena typo.
         cy.get("header").contains("a", "Mulai Belajar").should("be.visible");
