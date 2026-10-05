@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import { useAuth } from "../../context/AuthContext";
@@ -55,7 +55,8 @@ const VerifyEmail = () => {
       }
       setOtp(["", "", "", "", "", ""]);
       setResendCountdown(result.data?.resendAfterSeconds || 0);
-      toast.success("OTP baru telah dikirim ke email Anda.");
+      toast.dismiss();
+      toast.success(result.message);
     } catch {
       setErrorMessage("Gagal terhubung ke server untuk mengirim OTP.");
     } finally {
@@ -124,9 +125,8 @@ const VerifyEmail = () => {
         const result = await response.json();
 
         if (response.ok && result.status === "success") {
-          toast.success("Kode OTP Valid!", {
-            description: "Silakan buat kata sandi baru Anda.",
-          });
+          toast.dismiss();
+          toast.success(result.message);
 
           setTimeout(() => {
             navigate("/reset", {
@@ -156,9 +156,8 @@ const VerifyEmail = () => {
         const result = await response.json();
 
         if (response.ok && result.status === "success") {
-          toast.success("Verifikasi Berhasil!", {
-            description: "Akun Anda telah aktif.",
-          });
+          toast.dismiss();
+          toast.success(result.message);
 
           localStorage.setItem("accessToken", result.data.accessToken);
           localStorage.setItem("refreshToken", result.data.refreshToken);
@@ -197,8 +196,6 @@ const VerifyEmail = () => {
 
   return (
     <AuthCard>
-      <Toaster position="top-center" richColors closeButton />
-
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
           <div className="mt-2 sm:mt-4">

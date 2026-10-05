@@ -9,7 +9,7 @@ import {
   AlertCircle,
   ArrowLeft,
 } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
@@ -74,9 +74,8 @@ const Register = () => {
 
       if (response.ok) {
         // Toast Notifikasi Sukses via Sonner
-        toast.success("Pendaftaran Berhasil!", {
-          description: "Kode verifikasi OTP telah dikirimkan ke email Anda.",
-        });
+        toast.dismiss();
+        toast.success(data.message);
 
         // Jeda singkat agar toast sempat terbaca sebelum navigasi
         setTimeout(() => {
@@ -103,9 +102,6 @@ const Register = () => {
 
   return (
     <AuthCard>
-      {/* Container Toaster Sonner di posisi tengah atas */}
-      <Toaster position="top-center" richColors closeButton />
-
       {/* LEFT COLUMN: FORM REGISTER */}
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Lock, Eye, EyeOff, ArrowLeft, AlertCircle } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 
@@ -62,9 +62,8 @@ const ResetPassword = () => {
       const result = await response.json();
 
       if (response.ok && result.status === "success") {
-        toast.success("Kata Sandi Berhasil Diperbarui!", {
-          description: "Silakan masuk kembali dengan kata sandi baru Anda.",
-        });
+        toast.dismiss();
+        toast.success(result.message);
 
         setTimeout(() => {
           navigate("/login");
@@ -107,8 +106,6 @@ const ResetPassword = () => {
 
   return (
     <AuthCard>
-      <Toaster position="top-center" richColors closeButton />
-
       {/* LEFT COLUMN: FORM RESET PASSWORD */}
       <div className="flex w-full flex-col justify-between p-6 sm:p-8 lg:p-10 lg:w-1/2">
         <div>
