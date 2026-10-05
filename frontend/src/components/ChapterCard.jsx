@@ -38,8 +38,9 @@ const ChapterCard = ({
   );
   const startedSubbabCount =
     chapter.started_subbab ?? startedSubbabList.length;
-  const progressPercentage =
-    startedSubbabList.length > 0 && totalLessons > 0
+  const progressPercentage = Number.isFinite(Number(chapter.progress))
+    ? Math.min(100, Math.max(0, Number(chapter.progress)))
+    : startedSubbabList.length > 0 && totalLessons > 0
       ? Math.min(
           100,
           Math.round(
@@ -158,12 +159,7 @@ const ChapterCard = ({
 
             <div className="w-full shrink-0 sm:w-auto sm:self-center">
               <button
-                onClick={() =>
-                  setActivePretestResult({
-                    chapterName: chapter.name,
-                    result: chapter.pretestResult,
-                  })
-                }
+                onClick={() => handleViewPretestResult(chapter)}
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <Award className="w-3.5 h-3.5" />

@@ -13,7 +13,6 @@ services:
       - ./backend/.env
 
     environment:
-      - AI_SERVICE_URL=http://ai:8000
       - MONGO_URI=mongodb://mongodb:27017/project_assessment
 
     volumes:
@@ -22,7 +21,6 @@ services:
 
     depends_on:
       - mongodb
-      - ai
 
   frontend:
     build:

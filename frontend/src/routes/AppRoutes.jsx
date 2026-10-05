@@ -38,12 +38,13 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public / Landing Route */}
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<Topics />} />
+      <Route path="/nolla" element={<LandingPage />} />
 
       {/* ========================================
           AUTH ROUTES
       ======================================== */}
-      
+
       {/* Logika GuestRoute milik Roma (PENTING: Mencegah user login masuk ke sini) */}
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<Login />} />
@@ -53,7 +54,7 @@ const AppRoutes = () => {
       <Route path="/verify" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset" element={<ResetPassword />} />
-      
+
       {/* Route dari branch integrasi-login-fix */}
       <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
 
