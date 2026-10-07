@@ -3,9 +3,11 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import "@testing-library/jest-dom";
 import Navbar from "./Navbar";
+import avatar2 from "../assets/avatar/avatar2.svg";
 
 const mockedAuth = vi.hoisted(() => ({
   logout: vi.fn(),
+  user: { name: "Siswa", avatar: "avatar_2" },
 }));
 const mockedToast = vi.hoisted(() => ({
   dismiss: vi.fn(),
@@ -14,7 +16,7 @@ const mockedToast = vi.hoisted(() => ({
 }));
 
 vi.mock("../context/AuthContext", () => ({
-  useAuth: () => ({ user: { name: "Siswa" }, logout: mockedAuth.logout }),
+  useAuth: () => ({ user: mockedAuth.user, logout: mockedAuth.logout }),
 }));
 
 vi.mock("sonner", () => ({ toast: mockedToast }));
@@ -31,6 +33,21 @@ describe("Navbar logout", () => {
     Object.values(mockedToast).forEach((mock) => mock.mockReset());
     localStorage.setItem("accessToken", "access-token");
     localStorage.setItem("refreshToken", "refresh-token");
+  });
+
+  it("menggunakan avatar dari AuthContext", () => {
+    render(
+      <MemoryRouter initialEntries={["/topik"]}>
+        <Routes>
+          <Route path="/topik" element={<Navbar />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("img", { name: "Avatar Siswa" })).toHaveAttribute(
+      "src",
+      avatar2,
+    );
   });
 
   it("menampilkan message backend sebelum pindah ke halaman login", async () => {

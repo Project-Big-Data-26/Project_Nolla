@@ -274,10 +274,28 @@ const verifyEmail = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password, rememberMe } = req.body;
+    const body = req.body;
+
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Body request harus berupa objek JSON",
+      });
+    }
+
+    const { email, password, rememberMe } = body;
 
     // Validasi input
-    if (!email || !password) {
+    if (typeof email !== "string" || typeof password !== "string") {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "Email dan kata sandi harus berupa teks",
+      });
+    }
+
+    if (!email.trim() || !password) {
       return res.status(400).json({
         statusCode: 400,
         status: "error",
@@ -285,7 +303,15 @@ const login = async (req, res) => {
       });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    if (rememberMe !== undefined && typeof rememberMe !== "boolean") {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "rememberMe harus berupa boolean",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Cari user berdasarkan email
     const user = await User.findOne({

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
-import API from "../api/axios";
 import LogoutConfirmModal from "./LogoutConfirmModal";
 import nollaMain from "../assets/nolla_main.png";
 import avatar1 from "../assets/avatar/avatar1.svg";
@@ -34,36 +33,16 @@ const avatarSources = {
 
 const Navbar = ({ activePage = "Dashboard" }) => {
   const navigate = useNavigate();
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
-  const [serverAvatar, setServerAvatar] = useState(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    API.get("/profile")
-      .then(({ data }) => {
-        if (isMounted && data?.data) {
-          setServerAvatar(data.data.avatar);
-          updateUser(data.data);
-        }
-      })
-      .catch((error) => {
-        console.error("Gagal memuat avatar profil:", error);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [updateUser]);
 
   const displayName = user?.name || "User";
   const displayEmail = user?.email || "User@gmail.com";
 
   const avatarSource =
-    avatarSources[serverAvatar] ||
-    (serverAvatar && !/^avatar_\d+$/.test(serverAvatar) ? serverAvatar : null) ||
+    avatarSources[user?.avatar] ||
+    (user?.avatar && !/^avatar_\d+$/.test(user.avatar) ? user.avatar : null) ||
     avatar1;
 
   const menuItems = [
@@ -78,6 +57,7 @@ const Navbar = ({ activePage = "Dashboard" }) => {
 
   const handleLogout = async () => {
     setIsLoading(true);
+    let isLogoutSuccessful = false;
     let notification = {
       type: "error",
       message: "Access token tidak ditemukan",
@@ -97,8 +77,9 @@ const Navbar = ({ activePage = "Dashboard" }) => {
           body: JSON.stringify({ refreshToken }),
         });
         const result = await response.json();
+        isLogoutSuccessful = response.ok;
         notification = {
-          type: response.ok ? "success" : "error",
+          type: isLogoutSuccessful ? "success" : "error",
           message: result.message || "Gagal memproses logout.",
         };
       } else if (!refreshToken) {
@@ -110,8 +91,11 @@ const Navbar = ({ activePage = "Dashboard" }) => {
     } finally {
       toast.dismiss();
       toast[notification.type](notification.message);
-      logout();
       setIsLoading(false);
+    }
+
+    if (isLogoutSuccessful) {
+      logout();
       navigate("/login", { replace: true });
     }
   };
