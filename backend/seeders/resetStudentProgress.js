@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const User = require("../models/User");
 const Pretest = require("../models/MengerjakanPretest");
 const PretestAnswer = require("../models/MenjawabSoalPretest");
+const CancelledPretest = require("../models/PretestDibatalkan");
 const Difficulty = require("../models/MendapatkanDifficulty");
 const Quiz = require("../models/MengerjakanKuis");
 const QuizAnswer = require("../models/MenjawabSoal");
@@ -294,8 +295,13 @@ const applyUserPlan = async (plan, session) => {
         )
       : { deletedCount: 0 };
     const pretests = await Pretest.deleteMany({ user_id: userId }, options);
+    const cancelledPretests = await CancelledPretest.deleteMany(
+      { user_id: userId },
+      options,
+    );
     summary.pretestAnswersDeleted = pretestAnswers.deletedCount;
     summary.pretestsDeleted = pretests.deletedCount;
+    summary.cancelledPretestsDeleted = cancelledPretests.deletedCount;
   }
 
   const quizzes = await Quiz.deleteMany({ user_id: userId }, options);

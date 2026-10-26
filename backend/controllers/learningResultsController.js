@@ -7,7 +7,7 @@ const MengerjakanKuis = require("../models/MengerjakanKuis");
 const MendapatkanDifficulty = require("../models/MendapatkanDifficulty");
 const {
   getBabProgress,
-  isSubbabCompleted,
+  isSubbabMastered,
 } = require("../utils/learningProgress");
 
 const getLearningResults = async (req, res) => {
@@ -153,10 +153,10 @@ const getLearningResults = async (req, res) => {
           quizzedSubbabIds,
         );
         const completedSubbab = babSubbab.filter((subbab) =>
-          quizzedSubbabIds.has(subbab._id.toString()) &&
-            isSubbabCompleted(
-              difficultyBySubbabId.get(subbab._id.toString())
-                ?.current_cognitive_score,
+          isSubbabMastered(
+            difficultyBySubbabId.get(subbab._id.toString())
+              ?.current_cognitive_score,
+            quizzedSubbabIds.has(subbab._id.toString()),
           ),
         ).length;
 

@@ -17,6 +17,7 @@ const {
   googleLogin,
   googleCallback,
   handleGoogleCallback,
+  exchangeGoogleAuthCode,
 } = require("../controllers/authController");
 
 const router = express.Router();
@@ -361,6 +362,36 @@ router.post("/refresh", refreshAccessToken);
 // Rute Google OAuth
 router.get("/google", googleLogin);
 router.get("/google/callback", handleGoogleCallback, googleCallback);
+
+/**
+ * @swagger
+ * /api/auth/google/exchange:
+ *   post:
+ *     summary: Tukar kode sekali pakai dari callback Google dengan token sesi
+ *     description: Callback Google me-redirect ke frontend dengan `#code=...` (fragment). Kode berlaku 60 detik dan hanya bisa dipakai sekali.
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [code]
+ *             properties:
+ *               code:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login Google berhasil; data berisi accessToken, refreshToken, dan user (bentuk sama dengan login)
+ *       400:
+ *         description: Kode tidak valid, kedaluwarsa, atau sudah dipakai (code GOOGLE_AUTH_CODE_INVALID)
+ *       401:
+ *         description: User tidak ditemukan
+ *       500:
+ *         description: Server error
+ */
+router.post("/google/exchange", exchangeGoogleAuthCode);
 // Cek user aktif
 router.get("/me", authMiddleware, getMe);
 

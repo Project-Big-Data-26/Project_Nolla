@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  BookOpen,
-  User,
-  LogOut,
-  Loader2,
-} from "lucide-react";
+import { LayoutDashboard, BookOpen, User, LogOut, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import LogoutConfirmModal from "./LogoutConfirmModal";
@@ -19,6 +13,7 @@ import avatar5 from "../assets/avatar/avatar5.svg";
 import avatar6 from "../assets/avatar/avatar6.svg";
 import avatar7 from "../assets/avatar/avatar7.svg";
 import avatar8 from "../assets/avatar/avatar8.svg";
+import { API_BASE_URL } from "../api/baseUrl";
 
 const avatarSources = {
   avatar_1: avatar1,
@@ -68,7 +63,7 @@ const Navbar = ({ activePage = "Dashboard" }) => {
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (accessToken && refreshToken) {
-        const response = await fetch("http://localhost:5000/api/auth/logout", {
+        const response = await fetch(`${API_BASE_URL}/auth/logout`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -95,6 +90,7 @@ const Navbar = ({ activePage = "Dashboard" }) => {
     }
 
     if (isLogoutSuccessful) {
+      console.log("Logout berhasil, menghapus token dari localStorage.");
       logout();
       navigate("/login", { replace: true });
     }
@@ -105,7 +101,12 @@ const Navbar = ({ activePage = "Dashboard" }) => {
       <aside className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full flex-row items-center border-t border-neutral-border bg-neutral-card px-2 shadow-lg md:sticky md:top-0 md:h-screen md:w-64 md:flex-col md:border-r md:border-t-0 md:px-0 md:shadow-none">
         {/* Brand / Logo (Desktop) */}
         <div className="hidden border-b border-neutral-border p-6 md:flex md:w-full md:flex-col md:items-center md:justify-center md:gap-1">
-          <img src={nollaMain} alt="" aria-hidden="true" className="h-12 w-12 shrink-0 object-contain" />
+          <img
+            src={nollaMain}
+            alt=""
+            aria-hidden="true"
+            className="h-12 w-12 shrink-0 object-contain"
+          />
           <h1 className="translate-y-0.5 font-heading text-2xl font-bold leading-none text-neutral-text">
             NOLLA
           </h1>

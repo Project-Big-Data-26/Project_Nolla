@@ -35,9 +35,7 @@ const sendOTPEmail = async (email, otp, type = "EMAIL_VERIFICATION") => {
 
     // Proses kirim email
     const info = await transporter.sendMail(mailOptions);
-    console.log(
-      `📩 [EMAIL SERVICE] Email berhasil dikirim ke ${email} (${info.messageId})`,
-    );
+    console.log(`📩 [EMAIL SERVICE] Email OTP terkirim (${info.messageId})`);
 
     return true;
   } catch (error) {

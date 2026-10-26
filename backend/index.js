@@ -14,13 +14,17 @@ const pretestRoutes = require("./routes/pretestRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const learningResultsRoutes = require("./routes/learningResultsRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 const { getQuestionImage } = require("./controllers/imageController");
+const { requestContext } = require("./middleware/requestContext");
+const { supportsTransactions } = require("./utils/transaction");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ exposedHeaders: ["X-Request-Id"] }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(requestContext);
 app.get("/image/:token", getQuestionImage);
 app.use("/api/personalization", personalizationRoutes);
 // --- AUTH ROUTES ---
@@ -30,6 +34,7 @@ app.use("/api/pretest", pretestRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/learning-results", learningResultsRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // --- SWAGGER SETUP ---
 const swaggerOptions = {
@@ -64,11 +69,19 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // --- MONGODB CONNECTION ---
 const mongoURI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/project_assessment";
+  process.env.MONGO_URI ||
+  "mongodb://localhost:27017/project_assessment?directConnection=true";
 
 mongoose
   .connect(mongoURI)
-  .then(() => console.log("✅ MongoDB Terhubung!"))
+  .then(async () => {
+    console.log("✅ MongoDB Terhubung!");
+    if (!(await supportsTransactions())) {
+      console.warn(
+        "⚠️ MongoDB standalone: submit kuis/pretest berjalan tanpa transaksi. Gunakan replica set untuk konsistensi penuh.",
+      );
+    }
+  })
   .catch((err) => console.log("❌ Error MongoDB:", err.message));
 
 // --- BASIC ROUTE ---

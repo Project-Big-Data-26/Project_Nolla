@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// Penanda submit kuis pertama per user–subbab; BUKAN bukti mastery (lihat utils/learningProgress.js).
 const menyelesaikanSubbabSchema = new mongoose.Schema(
   {
     user_id: {

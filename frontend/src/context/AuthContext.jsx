@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { resetAnalytics } from "../analytics/client";
 
 const AuthContext = createContext(null);
 
@@ -48,6 +49,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData, authToken) => {
+    // Perangkat bersama: jangan gabungkan antrean/sesi analytics akun sebelumnya.
+    const previousUserId = user?.id ?? user?._id;
+    const nextUserId = userData?.id ?? userData?._id;
+    if (!previousUserId || String(previousUserId) !== String(nextUserId)) {
+      resetAnalytics();
+    }
     setUser(userData);
     setToken(authToken);
     localStorage.setItem("user", JSON.stringify(userData));
@@ -64,6 +71,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = () => {
+    resetAnalytics();
     setUser(null);
     setToken(null);
     localStorage.removeItem("user");

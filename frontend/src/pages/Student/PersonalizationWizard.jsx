@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import sdIcon from "../../assets/icon/SD.png";
 import smpIcon from "../../assets/icon/SMP.png";
 import smaIcon from "../../assets/icon/SMA.png";
+import { API_BASE_URL } from "../../api/baseUrl";
 
 const educationOptions = [
   {
@@ -45,7 +46,7 @@ export default function PersonalizationWizard() {
     setLoading(true);
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await fetch("http://localhost:5000/api/personalization", {
+      const response = await fetch(`${API_BASE_URL}/personalization`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,7 +87,7 @@ export default function PersonalizationWizard() {
       const token = localStorage.getItem("accessToken");
 
       const response = await fetch(
-        "http://localhost:5000/api/personalization",
+        `${API_BASE_URL}/personalization`,
         {
           method: "POST",
           headers: {

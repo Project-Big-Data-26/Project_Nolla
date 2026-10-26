@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
+import { API_BASE_URL } from "../../api/baseUrl";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -62,7 +63,7 @@ const Register = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +139,7 @@ const Register = () => {
             <GoogleAuthButton
               label="Daftar dengan Google"
               onClick={() => {
-                window.location.href = "http://localhost:5000/api/auth/google";
+                window.location.href = `${API_BASE_URL}/auth/google`;
               }}
             />
           </div>

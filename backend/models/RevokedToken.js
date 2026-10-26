@@ -6,13 +6,12 @@ const RevokedTokenSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
 
+    // Index TTL didefinisikan di bawah; `index: true` di sini membuat opsi TTL diabaikan.
     expiresAt: {
       type: Date,
       required: true,
-      index: true,
     },
   },
   {

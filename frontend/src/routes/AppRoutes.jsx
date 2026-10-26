@@ -11,7 +11,6 @@ import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
 import LandingPage from "../pages/Landing/LandingPage";
 import GoogleAuthCallback from "../pages/Auth/GoogleAuthCallback";
-import AuthCallback from "../pages/Auth/AuthCallback";
 
 // ========================================
 // STUDENT PAGES
@@ -29,9 +28,6 @@ import ChangePassword from "../pages/Student/Profile/ChangePassword";
 import QuestionPage from "../pages/Student/QuestionPage";
 import QuestionReviewPage from "../pages/Student/QuestionReviewPage";
 
-import Dashboard from "../pages/Student/Dashboard";
-import EvaluationPage from "../pages/Student/EvaluationPage";
-import ResultPage from "../pages/Student/ResultPage";
 import Settings from "../pages/Student/Settings"; // Ditambahkan kembali Settings
 
 const AppRoutes = () => {
@@ -54,17 +50,8 @@ const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset" element={<ResetPassword />} />
 
-      {/* Route dari branch integrasi-login-fix */}
+      {/* Jangan dimasukkan ke ProtectedRoute: user belum login saat callback tiba. */}
       <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
-
-      {/* ========================================
-          GOOGLE OAUTH CALLBACK (Dari sprint-2)
-          
-          JANGAN dimasukkan ke ProtectedRoute
-          karena user belum dianggap login oleh
-          AuthContext ketika pertama kali masuk.
-      ======================================== */}
-      <Route path="/auth/callback" element={<AuthCallback />} />
 
       {/* ========================================
           PROTECTED STUDENT ROUTES
@@ -80,10 +67,7 @@ const AppRoutes = () => {
         <Route path="/profile/ganti-password" element={<ChangePassword />} />
         <Route path="/quiz" element={<QuestionPage />} />
         <Route path="/review-quiz" element={<QuestionReviewPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/evaluasi" element={<EvaluationPage />} />
-        <Route path="/result" element={<ResultPage />} />
       </Route>
 
       {/* Single Fallback 404 */}

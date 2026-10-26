@@ -1,10 +1,28 @@
 const User = require("../models/User");
 const Jenjang = require("../models/Jenjang");
 const mongoose = require("mongoose");
+const {
+  contextFromRequest,
+  recordServerEvents,
+} = require("../services/analyticsService");
+const recordPersonalizationSaved = (req, wasProfileComplete, properties) =>
+  recordServerEvents(contextFromRequest(req), [
+    {
+      name: "personalization_saved",
+      properties: {
+        ...properties,
+        entry_context: wasProfileComplete ? "profile" : "onboarding",
+      },
+    },
+  ]);
+
 const setPersonalization = async (req, res) => {
   try {
     const { educationLevel: jenjangId, skipAllJenjang } = req.body;
     const userId = req.user.id;
+    const previousUser = await User.findById(userId)
+      .select("isProfileComplete")
+      .lean();
 
     if (skipAllJenjang) {
       const user = await User.findByIdAndUpdate(
@@ -24,6 +42,12 @@ const setPersonalization = async (req, res) => {
           message: "User tidak ditemukan",
         });
       }
+
+      // Pilihan jenjang adalah preferensi, bukan bukti usia/kelas siswa.
+      await recordPersonalizationSaved(req, previousUser?.isProfileComplete, {
+        selected_jenjang: null,
+        all_jenjang: true,
+      });
 
       return res.status(200).json({
         statusCode: 200,
@@ -49,14 +73,21 @@ const setPersonalization = async (req, res) => {
       });
     }
 
+    if (typeof jenjangId !== "string" || jenjangId.length > 32) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "jenjangId tidak valid",
+      });
+    }
+
     let jenjang;
     if (mongoose.Types.ObjectId.isValid(jenjangId)) {
       jenjang = await Jenjang.findById(jenjangId);
     }
     if (!jenjang) {
-      jenjang = await Jenjang.findOne({
-        name: { $regex: new RegExp(`^${jenjangId}$`, "i") },
-      });
+      // Nama jenjang berupa enum (SD/SMP/SMA): cocokkan eksak, bukan regex dari input.
+      jenjang = await Jenjang.findOne({ name: jenjangId.trim().toUpperCase() });
     }
 
     if (!jenjang) {
@@ -86,6 +117,11 @@ const setPersonalization = async (req, res) => {
         message: "User tidak ditemukan",
       });
     }
+
+    await recordPersonalizationSaved(req, previousUser?.isProfileComplete, {
+      selected_jenjang: jenjang.name,
+      all_jenjang: false,
+    });
 
     return res.status(200).json({
       statusCode: 200,

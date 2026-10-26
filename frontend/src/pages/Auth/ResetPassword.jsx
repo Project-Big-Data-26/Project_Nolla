@@ -4,6 +4,7 @@ import { Lock, Eye, EyeOff, ArrowLeft, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
+import { API_BASE_URL } from "../../api/baseUrl";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ const ResetPassword = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/change-password",
+        `${API_BASE_URL}/auth/change-password`,
         {
           method: "POST",
           headers: {

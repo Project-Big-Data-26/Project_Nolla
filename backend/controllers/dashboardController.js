@@ -9,7 +9,7 @@ const {
   getBabProgress,
   getCognitiveLevel,
   getSubbabProgress,
-  isSubbabCompleted,
+  isSubbabMastered,
 } = require("../utils/learningProgress");
 
 const getBab = async (req, res) => {
@@ -268,15 +268,13 @@ const getBab = async (req, res) => {
         difficultyBySubbabId,
         quizzedSubbabIds,
       );
-      const completedCount = babSubbab.filter((subbab) => {
-        const score = difficultyBySubbabId.get(
-          subbab._id.toString(),
-        )?.current_cognitive_score;
-        return (
-          quizzedSubbabIds.has(subbab._id.toString()) &&
-          isSubbabCompleted(score)
-        );
-      }).length;
+      const completedCount = babSubbab.filter((subbab) =>
+        isSubbabMastered(
+          difficultyBySubbabId.get(subbab._id.toString())
+            ?.current_cognitive_score,
+          quizzedSubbabIds.has(subbab._id.toString()),
+        ),
+      ).length;
 
       return {
         id: bab._id,
@@ -301,9 +299,10 @@ const getBab = async (req, res) => {
             progress: quizzedSubbabIds.has(subbabId)
               ? getSubbabProgress(difficulty?.current_cognitive_score ?? 0)
               : 0,
-            completed:
-              quizzedSubbabIds.has(subbabId) &&
-              isSubbabCompleted(difficulty?.current_cognitive_score),
+            completed: isSubbabMastered(
+              difficulty?.current_cognitive_score,
+              quizzedSubbabIds.has(subbabId),
+            ),
             current_cognitive_score: Math.round(
               Number(difficulty?.current_cognitive_score ?? 1000),
             ),

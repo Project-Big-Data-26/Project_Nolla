@@ -3,3 +3,7 @@ node_modules/
 dist/
 .DS_Store
 cypress.env.json
+backend/reports/
+docs/
+/AGENTS.md
+/CLAUDE.md

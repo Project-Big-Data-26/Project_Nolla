@@ -16,6 +16,8 @@ const mengerjakanPretestSchema = new mongoose.Schema(
     duration: { type: Number },
     started_at: { type: Date },
     completed_at: { type: Date },
+    // "pending" tertinggal = rating subbab gagal ditulis sebagian (hanya mungkin tanpa transaksi).
+    difficulty_sync: { type: String, enum: ["pending", "applied"], default: null },
     current_question_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Soal",

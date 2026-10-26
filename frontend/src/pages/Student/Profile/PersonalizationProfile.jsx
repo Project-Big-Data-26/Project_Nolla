@@ -235,58 +235,58 @@ export default function PersonalizationProfile() {
               </div>
             ) : (
               <div className="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-slate-50/50">
-              {/* Nama Lengkap */}
-              <div className="flex items-center justify-between p-3.5 sm:p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
-                    <UserIcon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Nama Lengkap
-                    </p>
-                    <p className="text-sm font-semibold text-neutral-text">
-                      {userName}
-                    </p>
+                {/* Nama Lengkap */}
+                <div className="flex items-center justify-between p-3.5 sm:p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                      <UserIcon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium text-slate-500">
+                        Nama Lengkap
+                      </p>
+                      <p className="text-sm font-semibold text-neutral-text">
+                        {userName}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Email */}
-              <div className="flex items-center justify-between p-3.5 sm:p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
-                    <Mail className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Alamat Email
-                    </p>
-                    <p className="text-sm font-semibold text-neutral-text">
-                      {userEmail}
-                    </p>
+                {/* Email */}
+                <div className="flex items-center justify-between p-3.5 sm:p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                      <Mail className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium text-slate-500">
+                        Alamat Email
+                      </p>
+                      <p className="text-sm font-semibold text-neutral-text">
+                        {userEmail}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Jenjang Belajar */}
-              <div className="flex items-center justify-between p-3.5 sm:p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
-                    <GraduationCap className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Jenjang Belajar
-                    </p>
-                    <p className="text-sm font-semibold text-neutral-text">
-                      {userEducationLevel
-                        ? `${userEducationLevel}`
-                        : "Belum Dipilih"}
-                    </p>
+                {/* Jenjang Belajar */}
+                <div className="flex items-center justify-between p-3.5 sm:p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                      <GraduationCap className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-medium text-slate-500">
+                        Jenjang Belajar
+                      </p>
+                      <p className="text-sm font-semibold text-neutral-text">
+                        {userEducationLevel
+                          ? `${userEducationLevel}`
+                          : "Belum Dipilih"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
               </div>
             )}
           </SectionCard>

@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Check, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Check, LockKeyhole, LogOut } from "lucide-react";
 import Navbar from "../../components/Navbar";
+import Modal from "../../components/Modal";
 import API from "../../api/axios";
 import QuestionImage from "../../components/QuestionImage";
+import useQuestionTimer, { TIMING_METHOD } from "../../hooks/useQuestionTimer";
+import { createClientId, track } from "../../analytics/client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -110,10 +113,12 @@ const QuestionPage = () => {
   const [viewedSequence, setViewedSequence] = useState(null);
   const [result, setResult] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [questionStartedAt, setQuestionStartedAt] = useState(0);
   const [now, setNow] = useState(0);
+  const [exitDialog, setExitDialog] = useState(null);
 
   const initializationRef = useRef(null);
+  const viewedQuestionsRef = useRef({ sessionId: null, ids: new Set() });
+  const selectionRevisionsRef = useRef({});
 
   // ================================
   // TIMER
@@ -368,8 +373,6 @@ const QuestionPage = () => {
 
         setSelectedAnswer(data.selectedAnswer ?? null);
 
-        setQuestionStartedAt(Date.now());
-
         if (data.result) {
           setResult(data.result);
         }
@@ -433,6 +436,72 @@ const QuestionPage = () => {
         ? (answers[question.id] ?? null)
         : null;
 
+  // Waktu tampil per soal: soal pretest yang sudah dikirim (riwayat) tidak dihitung.
+  const { getTiming, clearTiming } = useQuestionTimer(
+    storageKey,
+    session && question && !isHistoricalPretestQuestion ? question.id : null,
+  );
+
+  // ================================
+  // ANALYTICS
+  // ================================
+  const viewSequence =
+    session?.mode === "pretest" ? displaySequence : currentIndex + 1;
+
+  const trackAssessment = (eventName, properties) => {
+    if (!session) return;
+    track(eventName, {
+      assessmentType: session.mode,
+      attemptId: session.id,
+      properties,
+    });
+  };
+
+  // Hanya mencatat jumlah revisi, bukan isi pilihan setiap klik.
+  const trackSelection = (questionId, sequence, previous, next) => {
+    if (previous === next) return;
+    const revision = (selectionRevisionsRef.current[questionId] ?? -1) + 1;
+    selectionRevisionsRef.current[questionId] = revision;
+    trackAssessment("answer_selection_changed", {
+      question_id: questionId,
+      sequence,
+      revision_number: revision,
+      is_revision: previous != null,
+    });
+  };
+
+  const trackNavigation = (fromSequence, toSequence, method, fromUnanswered) => {
+    if (fromSequence === toSequence) return;
+    trackAssessment("question_navigated", {
+      from_sequence: fromSequence,
+      to_sequence: toSequence,
+      method,
+      from_unanswered: fromUnanswered,
+    });
+  };
+
+  // question_viewed setelah soal benar-benar dirender, bukan saat diterima dari API.
+  useEffect(() => {
+    if (!session || !question) return;
+    const seen = viewedQuestionsRef.current;
+    if (seen.sessionId !== session.id) {
+      seen.sessionId = session.id;
+      seen.ids = new Set();
+    }
+    const isRevisit = seen.ids.has(question.id);
+    seen.ids.add(question.id);
+    track("question_viewed", {
+      assessmentType: session.mode,
+      attemptId: session.id,
+      properties: {
+        question_id: question.id,
+        sequence: viewSequence,
+        view_id: createClientId("vw"),
+        is_revisit: isRevisit,
+      },
+    });
+  }, [session?.id, session?.mode, question?.id, viewSequence]);
+
   // ================================
   // TIMER
   // ================================
@@ -470,7 +539,12 @@ const QuestionPage = () => {
   // FINISH PRETEST
   // ================================
   const finishPretest = async (pretestId, reviewHistory, name, babId) => {
-    await API.post(`/pretest/${pretestId}/submit`, {});
+    try {
+      await API.post(`/pretest/${pretestId}/submit`, {});
+    } catch (submitError) {
+      // 409: pretest sudah selesai (submit sebelumnya berhasil di server).
+      if (submitError.response?.status !== 409) throw submitError;
+    }
 
     const resultResponse = await API.get(`/pretest/${pretestId}/result`);
 
@@ -486,6 +560,7 @@ const QuestionPage = () => {
     );
 
     sessionStorage.removeItem(`pretest:${pretestId}`);
+    clearTiming();
 
     navigate(
       `/review-quiz?mode=pretest&sessionId=${encodeURIComponent(pretestId)}`,
@@ -527,10 +602,7 @@ const QuestionPage = () => {
 
         selected_answer: selectedOption,
 
-        response_time: Math.max(
-          0,
-          Math.round((Date.now() - questionStartedAt) / 1000),
-        ),
+        ...getTiming(answeredQuestion.id),
       });
 
       const answerData = response.data.data;
@@ -576,7 +648,6 @@ const QuestionPage = () => {
 
       setSelectedAnswer(null);
       setViewedSequence(null);
-      setQuestionStartedAt(Date.now());
     } catch (requestError) {
       try {
         const recoveryResponse = await API.get(
@@ -617,7 +688,6 @@ const QuestionPage = () => {
 
           setSelectedAnswer(null);
           setViewedSequence(null);
-          setQuestionStartedAt(Date.now());
 
           return;
         }
@@ -661,6 +731,7 @@ const QuestionPage = () => {
   // PRETEST OPTION SELECT
   // ================================
   const handlePretestOptionSelect = (optionId) => {
+    trackSelection(session.question.id, session.sequence, selectedAnswer, optionId);
     setSelectedAnswer(optionId);
 
     persistPretest(session.id, history, session.startedAt, {
@@ -677,6 +748,8 @@ const QuestionPage = () => {
     if (!question || !storageKey) {
       return;
     }
+
+    trackSelection(question.id, currentIndex + 1, answers[question.id] ?? null, optionId);
 
     const nextAnswers = {
       ...answers,
@@ -700,10 +773,14 @@ const QuestionPage = () => {
   // ================================
   // QUIZ NAVIGATION
   // ================================
-  const handleQuizNavigation = (nextIndex) => {
+  const handleQuizNavigation = (nextIndex, method = "jump") => {
+    trackNavigation(
+      currentIndex + 1,
+      nextIndex + 1,
+      method,
+      !answers[questions[currentIndex]?.id],
+    );
     setCurrentIndex(nextIndex);
-
-    setQuestionStartedAt(now);
 
     if (!storageKey) {
       return;
@@ -761,12 +838,17 @@ const QuestionPage = () => {
           question_id: item.id,
 
           selected_option: answers[item.id],
+
+          ...getTiming(item.id),
         })),
 
         duration: elapsedSeconds,
+
+        timing_method: TIMING_METHOD,
       });
 
       sessionStorage.removeItem(storageKey);
+      clearTiming();
 
       setSession(null);
 
@@ -779,6 +861,7 @@ const QuestionPage = () => {
 
         if (savedResult.completed_at) {
           sessionStorage.removeItem(storageKey);
+          clearTiming();
 
           setSession(null);
 
@@ -817,6 +900,7 @@ const QuestionPage = () => {
         return;
       }
 
+      trackNavigation(displaySequence, sequence, "jump", false);
       setViewedSequence(sequence);
 
       return;
@@ -829,6 +913,40 @@ const QuestionPage = () => {
   // BACK
   // ================================
   const handleBack = () => navigate("/topik");
+
+  // ================================
+  // EXIT / DISCARD
+  // ================================
+  // Keluar hanya meninggalkan halaman; attempt tetap aktif dan bisa dilanjutkan.
+  const handleExitLater = () => {
+    setExitDialog(null);
+    navigate("/topik");
+  };
+
+  const handleDiscardPretest = async () => {
+    if (session?.mode !== "pretest") return;
+
+    setExitDialog({ step: "discarding" });
+
+    try {
+      await API.delete(`/pretest/${session.id}/discard`);
+    } catch (requestError) {
+      // 404: sesi sudah tidak ada (mis. dibatalkan di tab lain).
+      if (requestError.response?.status !== 404) {
+        setExitDialog({
+          step: "confirm-discard",
+          error:
+            requestError.response?.data?.message ||
+            "Pretest belum dapat dibatalkan. Periksa koneksi lalu coba lagi.",
+        });
+        return;
+      }
+    }
+
+    sessionStorage.removeItem(`pretest:${session.id}`);
+    clearTiming();
+    navigate("/topik");
+  };
 
   // ================================
   // LOADING
@@ -998,6 +1116,12 @@ const QuestionPage = () => {
           Math.max(1, displaySequence + direction),
         );
 
+        trackNavigation(
+          displaySequence,
+          nextSequence,
+          direction > 0 ? "next" : "previous",
+          false,
+        );
         setViewedSequence(
           nextSequence === session.sequence ? null : nextSequence,
         );
@@ -1005,6 +1129,7 @@ const QuestionPage = () => {
         const previousSequence = session.sequence - 1;
 
         if (history.some((item) => item.sequence === previousSequence)) {
+          trackNavigation(displaySequence, previousSequence, "previous", !selectedAnswer);
           setViewedSequence(previousSequence);
         }
       }
@@ -1014,6 +1139,7 @@ const QuestionPage = () => {
 
     handleQuizNavigation(
       Math.min(Math.max(currentIndex + direction, 0), questions.length - 1),
+      direction > 0 ? "next" : "previous",
     );
   };
 
@@ -1025,6 +1151,7 @@ const QuestionPage = () => {
 
     if (isPretest) {
       if (isHistoricalPretestQuestion) {
+        trackNavigation(displaySequence, session.sequence, "jump", false);
         setViewedSequence(null);
       } else if (session.lastQuestionSubmitted) {
         retryPretestSubmit();
@@ -1157,6 +1284,20 @@ const QuestionPage = () => {
               QUESTION NUMBER NAVIGATION
               ========================================== */}
           <div className="flex shrink-0 items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-white p-2.5 sm:p-3">
+            <button
+              type="button"
+              onClick={() => {
+                // Hanya intent keluar; bukan pembatalan atau dropout.
+                trackAssessment("assessment_exit_requested", { sequence: viewSequence });
+                setExitDialog({ step: "menu" });
+              }}
+              aria-label="Keluar dari pengerjaan"
+              className="flex shrink-0 items-center gap-1.5 rounded-xl px-2 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100 sm:px-2.5"
+            >
+              <LogOut size={14} aria-hidden="true" />
+              <span className="hidden sm:inline">Keluar</span>
+            </button>
+
             <div
               aria-label="Navigasi nomor soal"
               className="no-scrollbar flex items-center gap-1.5 overflow-x-auto px-1 py-0.5 sm:gap-2"
@@ -1263,6 +1404,13 @@ const QuestionPage = () => {
                         <QuestionImage
                           key={imageUrl}
                           src={imageUrl}
+                          onFail={() =>
+                            trackAssessment("question_asset_failed", {
+                              question_id: question.id,
+                              asset_type: "image",
+                              failure_code: "load_error",
+                            })
+                          }
                           alt="Ilustrasi Soal"
                           className="max-h-36 max-w-full rounded-xl object-contain sm:max-h-52 md:max-h-60"
                         />
@@ -1317,6 +1465,95 @@ const QuestionPage = () => {
           </div>
         </div>
       </main>
+
+      {exitDialog && (
+        <Modal
+          onClose={() => {
+            if (exitDialog.step !== "discarding") setExitDialog(null);
+          }}
+        >
+          {exitDialog.step === "menu" ? (
+            <div className="space-y-4">
+              <h2 className="pr-8 text-lg font-bold text-slate-900">
+                {isPretest ? "Keluar dari pretest?" : "Keluar dari kuis?"}
+              </h2>
+
+              <p className="text-sm leading-relaxed text-slate-600">
+                {isPretest
+                  ? "Jawaban yang sudah dikirim tersimpan. Kamu bisa melanjutkan pretest ini nanti dari soal terakhir."
+                  : "Kuis ini tetap aktif dan bisa dilanjutkan nanti. Pilihan jawaban yang belum disubmit hanya tersimpan di tab browser ini."}
+              </p>
+
+              <div className="flex flex-col gap-2 sm:flex-row-reverse">
+                <button
+                  type="button"
+                  onClick={() => setExitDialog(null)}
+                  className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-hover"
+                >
+                  Lanjut mengerjakan
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExitLater}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  Keluar, lanjutkan nanti
+                </button>
+              </div>
+
+              {isPretest && (
+                <button
+                  type="button"
+                  onClick={() => setExitDialog({ step: "confirm-discard" })}
+                  className="w-full text-center text-xs font-bold text-red-600 hover:underline"
+                >
+                  Batalkan pretest
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h2 className="pr-8 text-lg font-bold text-slate-900">
+                Batalkan pretest ini?
+              </h2>
+
+              <p className="text-sm leading-relaxed text-slate-600">
+                Jawaban yang sudah kamu kirim di pretest ini tidak akan dipakai,
+                dan kamu akan memulai pretest dari awal.
+              </p>
+
+              {exitDialog.error && (
+                <p role="alert" className="text-xs text-red-600">
+                  {exitDialog.error}
+                </p>
+              )}
+
+              <div className="flex flex-col gap-2 sm:flex-row-reverse">
+                <button
+                  type="button"
+                  onClick={handleDiscardPretest}
+                  disabled={exitDialog.step === "discarding"}
+                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {exitDialog.step === "discarding"
+                    ? "Membatalkan..."
+                    : "Ya, batalkan pretest"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setExitDialog({ step: "menu" })}
+                  disabled={exitDialog.step === "discarding"}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                >
+                  Kembali
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
     </div>
   );
 };

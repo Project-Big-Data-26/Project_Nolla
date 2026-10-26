@@ -6,6 +6,18 @@ import TopicSearchBar from "../../../components/SearchBar";
 import ChapterCard from "../../../components/ChapterCard";
 import TopicModals from "../../../components/TopicModals";
 import API from "../../../api/axios";
+import { track } from "../../../analytics/client";
+
+const toSlug = (value, prefix) => {
+  const slug = String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return /^[a-z]/.test(slug) ? slug.slice(0, 48) : `${prefix}_${slug}`.slice(0, 48);
+};
+
+const queryLengthBucket = (length) =>
+  length <= 3 ? "1-3" : length <= 10 ? "4-10" : "11+";
 
 const ALL_GRADES = "Semua Kelas";
 const TOPIC_RETURN_STATE_KEY = "topics:return-state";
@@ -371,6 +383,36 @@ const Topics = () => {
     });
   }, [chaptersData, searchQuery, selectedGrade, priorityChapterId]);
 
+  // Pencarian: hanya panjang query (bucket) dan jumlah hasil, tanpa teks query.
+  const searchTrackedRef = useRef(searchQuery);
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query || query === searchTrackedRef.current) return undefined;
+    const timer = window.setTimeout(() => {
+      searchTrackedRef.current = query;
+      track("topic_search_performed", {
+        properties: {
+          query_length_bucket: queryLengthBucket(query.length),
+          result_count: filteredChapters.length,
+        },
+      });
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery, filteredChapters.length]);
+
+  const gradeTrackedRef = useRef(selectedGrade);
+  useEffect(() => {
+    if (selectedGrade === gradeTrackedRef.current) return;
+    gradeTrackedRef.current = selectedGrade;
+    track("topic_filter_changed", {
+      properties: {
+        filter_name: "kelas",
+        filter_value: toSlug(selectedGrade, "kelas"),
+        result_count: filteredChapters.length,
+      },
+    });
+  }, [selectedGrade, filteredChapters.length]);
+
   const showPretestResult = async (chapter, pretestId) => {
     const response = await API.get(
       `/pretest/${pretestId}/result`,
@@ -386,6 +428,9 @@ const Topics = () => {
 
   const executeCompletePretest = (chapter) => {
     const chapterId = chapter._id || chapter.id;
+    track("topic_selected", {
+      properties: { bab_id: String(chapterId), location: "pretest_start" },
+    });
     sessionStorage.setItem(
       TOPIC_RETURN_STATE_KEY,
       JSON.stringify({ searchQuery, selectedGrade }),
@@ -427,6 +472,13 @@ const Topics = () => {
     }
 
     const subbabId = subtopic._id || subtopic.id;
+    track("topic_selected", {
+      properties: {
+        bab_id: String(chapter._id || chapter.id),
+        subbab_id: String(subbabId),
+        location: "subtopic_quiz",
+      },
+    });
     sessionStorage.setItem(
       TOPIC_RETURN_STATE_KEY,
       JSON.stringify({ searchQuery, selectedGrade }),
