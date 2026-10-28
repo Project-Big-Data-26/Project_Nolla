@@ -4,7 +4,8 @@ const {
   getBabProgress,
   getCognitiveLevel,
   getSubbabProgress,
-  isSubbabCompleted,
+  isSubbabMastered,
+  MASTERY_RATING_THRESHOLD,
 } = require("../utils/learningProgress");
 
 test("maps cognitive scores to subbab progress percentages", () => {
@@ -48,6 +49,13 @@ test("uses the shared cognitive level and completion thresholds", () => {
   assert.equal(getCognitiveLevel(1400), "hard");
   assert.equal(getCognitiveLevel(1000), "medium");
   assert.equal(getCognitiveLevel(999), "easy");
-  assert.equal(isSubbabCompleted(1600), true);
-  assert.equal(isSubbabCompleted(1599), false);
+  assert.equal(isSubbabMastered(MASTERY_RATING_THRESHOLD, true), true);
+  assert.equal(isSubbabMastered(1599, true), false);
+});
+
+test("mastery requires a submitted quiz, not only a high rating", () => {
+  assert.equal(isSubbabMastered(1700, false), false);
+  assert.equal(isSubbabMastered("1650", true), true);
+  assert.equal(isSubbabMastered(undefined, true), false);
+  assert.equal(isSubbabMastered(null, true), false);
 });

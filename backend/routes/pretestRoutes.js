@@ -398,7 +398,16 @@ router.get("/:pretestId/question", authMiddleware, getNextQuestion);
  *               response_time:
  *                 type: number
  *                 nullable: true
- *                 description: Waktu menjawab dalam detik
+ *                 description: (Lama) waktu menjawab dalam detik
+ *               response_time_ms:
+ *                 type: integer
+ *                 nullable: true
+ *                 minimum: 0
+ *                 description: Waktu menjawab dalam milidetik; null bila tidak diketahui (jangan diisi 0)
+ *               response_time_partial:
+ *                 type: boolean
+ *                 nullable: true
+ *                 description: true bila sebagian waktu tidak terukur (refresh, tab tersembunyi)
  *     responses:
  *       200:
  *         description: Jawaban berhasil disimpan dan soal berikutnya dikembalikan
@@ -519,7 +528,7 @@ router.get("/:pretestId/question", authMiddleware, getNextQuestion);
  *       404:
  *         description: Pretest atau soal tidak ditemukan
  *       409:
- *         description: Pretest selesai, soal sudah dijawab, atau bukan soal aktif
+ *         description: Pretest selesai/dibatalkan, soal sudah dijawab, bukan soal aktif, atau jawaban lain diproses bersamaan
  *       500:
  *         description: Terjadi kesalahan saat menyimpan jawaban
  */
@@ -666,7 +675,7 @@ router.post("/:pretestId/answer", authMiddleware, answerPretestQuestion);
  *       404:
  *         description: Pretest tidak ditemukan
  *       409:
- *         description: Pretest sudah diselesaikan
+ *         description: Pretest sudah diselesaikan (termasuk oleh submit paralel lain)
  *       500:
  *         description: Terjadi kesalahan saat finalisasi pretest
  */
@@ -903,6 +912,10 @@ router.get("/:pretestId/review", authMiddleware, getPretestReview);
  *                     discarded:
  *                       type: boolean
  *                       example: true
+ *                     already_cancelled:
+ *                       type: boolean
+ *                       description: true bila pretest sudah dibatalkan sebelumnya (retry aman)
+ *                       example: false
  *       400:
  *         description: pretestId tidak valid
  *       401:
@@ -912,7 +925,7 @@ router.get("/:pretestId/review", authMiddleware, getPretestReview);
  *       404:
  *         description: Pretest tidak ditemukan
  *       409:
- *         description: Pretest yang sudah selesai tidak dapat dibatalkan
+ *         description: Pretest sudah selesai atau berubah status sehingga tidak dapat dibatalkan
  *       500:
  *         description: Terjadi kesalahan saat membatalkan pretest
  */

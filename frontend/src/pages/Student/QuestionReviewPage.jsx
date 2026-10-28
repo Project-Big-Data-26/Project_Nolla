@@ -7,6 +7,7 @@ import { Check, X } from "lucide-react";
 import Navbar from "../../components/Navbar";
 
 import API from "../../api/axios";
+import { track } from "../../analytics/client";
 import QuestionImage from "../../components/QuestionImage";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -161,6 +162,9 @@ const QuestionReviewPage = () => {
 
   const [showQuizResult, setShowQuizResult] = useState(false);
 
+  // review_viewed hanya untuk hasil nyata dari server, bukan data contoh/fallback.
+  const [serverReviewLoaded, setServerReviewLoaded] = useState(false);
+
   useEffect(() => {
     if (!sessionId) {
       setReviewLoading(false);
@@ -220,6 +224,7 @@ const QuestionReviewPage = () => {
         });
 
         setReviewError("");
+        setServerReviewLoaded(true);
       })
       .catch((error) => {
         if (isCurrent) {
@@ -259,6 +264,30 @@ const QuestionReviewPage = () => {
       solution: "",
     }));
   }, [reviewData]);
+
+  const reviewedItem = reviewData?.questions?.[currentQuestion];
+
+  useEffect(() => {
+    if (!serverReviewLoaded || !reviewData?.sessionId) return;
+    track("review_viewed", {
+      assessmentType: reviewMode,
+      attemptId: reviewData.sessionId,
+      properties: showQuizResult
+        ? { mode: "summary" }
+        : {
+            mode: "per_question",
+            question_id: reviewedItem?.question.id,
+            sequence: reviewedItem?.sequence,
+          },
+    });
+  }, [
+    serverReviewLoaded,
+    reviewData?.sessionId,
+    reviewMode,
+    showQuizResult,
+    reviewedItem?.question.id,
+    reviewedItem?.sequence,
+  ]);
 
   if (sessionId && reviewLoading && !reviewData) {
     return (

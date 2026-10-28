@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../api/axios";
 
-const QuestionImage = ({ src, alt = "Ilustrasi Soal", className = "" }) => {
+const QuestionImage = ({ src, alt = "Ilustrasi Soal", className = "", onFail }) => {
   const [displaySrc, setDisplaySrc] = useState("");
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -43,6 +43,7 @@ const QuestionImage = ({ src, alt = "Ilustrasi Soal", className = "" }) => {
       })
       .catch(() => {
         if (!active) return;
+        onFail?.();
         setFailed(true);
         setLoading(false);
       });
@@ -61,7 +62,10 @@ const QuestionImage = ({ src, alt = "Ilustrasi Soal", className = "" }) => {
       src={displaySrc}
       alt={alt}
       className={className}
-      onError={() => setFailed(true)}
+      onError={() => {
+        onFail?.();
+        setFailed(true);
+      }}
     />
   );
 };

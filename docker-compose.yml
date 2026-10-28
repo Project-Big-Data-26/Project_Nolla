@@ -12,25 +12,32 @@ services:
     env_file:
       - ./backend/.env
 
+    # Di dalam jaringan Docker, backend memakai MongoDB lokal (service mongodb).
+    # FRONTEND_URL = frontend Docker (port 5173), tujuan redirect callback Google.
     environment:
-      - MONGO_URI=mongodb+srv://romadhonim1_db_user:cEaG3NBp2wKc99VF@cluster0.nn1euxs.mongodb.net/math_learning_db?retryWrites=true&w=majority
+      - MONGO_URI=mongodb+srv://romadhonim1_db_user:cEaG3NBp2wKc99VF@cluster0.nn1euxs.mongodb.net/db_nolla_dev?retryWrites=true&w=majority
+      - FRONTEND_URL=http://localhost:5173
 
     volumes:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
 
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # Diakses dari browser di host, bukan dari jaringan Docker.
+        VITE_API_BASE_URL: http://localhost:5000/api
 
     container_name: project_assessment_frontend
 
     ports:
-      - "3000:80"
+      - "5173:80"
 
     depends_on:
       - backend
@@ -40,11 +47,27 @@ services:
 
     container_name: project_assessment_mongodb
 
+    # Replica set 1-node: transaksi submit kuis/pretest + event analytics butuh replica set.
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+
     ports:
       - "27017:27017"
 
     volumes:
       - mongodb_data:/data/db
+
+    # Inisialisasi replica set sekali (idempoten), sehat setelah menjadi primary.
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }) } if (!db.hello().isWritablePrimary) quit(1)"
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 10s
 
     restart: unless-stopped
 

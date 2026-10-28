@@ -5,17 +5,8 @@ import { toast } from "sonner";
 import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import { useAuth } from "../../context/AuthContext";
+import { API_BASE_URL } from "../../api/baseUrl";
 
-const configuredApiBaseUrl =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-const API_BASE_URL = `${
-  /^https?:\/\//i.test(configuredApiBaseUrl)
-    ? configuredApiBaseUrl
-    : `http://${configuredApiBaseUrl}`
-}`.replace(/\/+$/, "");
-const API_ROOT = API_BASE_URL.endsWith("/api")
-  ? API_BASE_URL
-  : `${API_BASE_URL}/api`;
 const OTP_EMAIL_KEY = "otpVerificationEmail";
 const OTP_ACTION_KEY = "otpVerificationAction";
 
@@ -59,7 +50,7 @@ const VerifyEmail = () => {
       setCooldownStatusError("");
 
       try {
-        const response = await fetch(`${API_ROOT}/auth/otp-resend-status`, {
+        const response = await fetch(`${API_BASE_URL}/auth/otp-resend-status`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -118,7 +109,7 @@ const VerifyEmail = () => {
     setResending(true);
     setErrorMessage("");
     try {
-      const response = await fetch(`${API_ROOT}/auth/send-otp`, {
+      const response = await fetch(`${API_BASE_URL}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -196,7 +187,7 @@ const VerifyEmail = () => {
       if (action === "reset-password") {
         //Cek OTP ke Backend
         const response = await fetch(
-          "http://localhost:5000/api/auth/verify-reset-otp",
+          `${API_BASE_URL}/auth/verify-reset-otp`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -229,7 +220,7 @@ const VerifyEmail = () => {
       } else {
         // Alur Verifikasi Email Registrasi biasa
         const response = await fetch(
-          "http://localhost:5000/api/auth/verify-email",
+          `${API_BASE_URL}/auth/verify-email`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

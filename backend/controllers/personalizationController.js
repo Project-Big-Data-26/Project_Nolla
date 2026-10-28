@@ -1,10 +1,27 @@
 const User = require("../models/User");
-const Jenjang = require("../models/Jenjang");
-const mongoose = require("mongoose");
+const {
+  resolveJenjang,
+  recordPersonalizationSaved,
+} = require("../services/personalizationPreferences");
+
 const setPersonalization = async (req, res) => {
   try {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      return res.status(400).json({
+        statusCode: 400, status: "error", message: "Data personalisasi tidak valid",
+      });
+    }
     const { educationLevel: jenjangId, skipAllJenjang } = req.body;
+    if (skipAllJenjang !== undefined && typeof skipAllJenjang !== "boolean") {
+      return res.status(400).json({
+        statusCode: 400, status: "error", message: "skipAllJenjang harus berupa boolean",
+      });
+    }
     const userId = req.user.id;
+    const previousUser = await User.findById(userId)
+      .select("isProfileComplete")
+      .lean();
+    const entryContext = previousUser?.isProfileComplete ? "profile" : "onboarding";
 
     if (skipAllJenjang) {
       const user = await User.findByIdAndUpdate(
@@ -24,6 +41,13 @@ const setPersonalization = async (req, res) => {
           message: "User tidak ditemukan",
         });
       }
+
+      // Pilihan jenjang adalah preferensi, bukan bukti usia/kelas siswa.
+      await recordPersonalizationSaved(req, {
+        selectedJenjang: null,
+        allJenjang: true,
+        entryContext,
+      });
 
       return res.status(200).json({
         statusCode: 200,
@@ -49,15 +73,15 @@ const setPersonalization = async (req, res) => {
       });
     }
 
-    let jenjang;
-    if (mongoose.Types.ObjectId.isValid(jenjangId)) {
-      jenjang = await Jenjang.findById(jenjangId);
-    }
-    if (!jenjang) {
-      jenjang = await Jenjang.findOne({
-        name: { $regex: new RegExp(`^${jenjangId}$`, "i") },
+    if (typeof jenjangId !== "string" || jenjangId.length > 32) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        message: "jenjangId tidak valid",
       });
     }
+
+    const jenjang = await resolveJenjang(jenjangId);
 
     if (!jenjang) {
       return res.status(400).json({
@@ -77,8 +101,6 @@ const setPersonalization = async (req, res) => {
       { new: true },
     );
 
-    // ... sisanya tetap sama
-
     if (!user) {
       return res.status(404).json({
         statusCode: 404,
@@ -86,6 +108,12 @@ const setPersonalization = async (req, res) => {
         message: "User tidak ditemukan",
       });
     }
+
+    await recordPersonalizationSaved(req, {
+      selectedJenjang: jenjang.name,
+      allJenjang: false,
+      entryContext,
+    });
 
     return res.status(200).json({
       statusCode: 200,

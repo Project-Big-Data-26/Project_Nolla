@@ -25,9 +25,12 @@ function quantile(values, probability) {
   return sorted[base + 1] === undefined ? sorted[base] : sorted[base] + remainder * (sorted[base + 1] - sorted[base]);
 }
 
+// Waktu null/partial berarti tidak diketahui: bukan rapid guess dan tidak ikut statistik waktu.
+const hasMeasuredTime = (response) => Number.isFinite(response.responseTimeMs) && response.responseTimeMs >= 0 && response.timingPartial !== true;
+
 function analyzeItem(responses, optionIds = [], options = {}) {
   const threshold = Number.isFinite(options.rapidGuessThresholdMs) ? options.rapidGuessThresholdMs : null;
-  const normalized = responses.map((response) => ({ ...response, rapidGuess: response.rapidGuess === true || (threshold !== null && response.responseTimeMs < threshold) }));
+  const normalized = responses.map((response) => ({ ...response, rapidGuess: response.rapidGuess === true || (threshold !== null && hasMeasuredTime(response) && response.responseTimeMs < threshold) }));
   const valid = normalized.filter((response) => response.validForAnalysis !== false && !response.rapidGuess);
   if (!valid.length) throw new Error('At least one valid response is required');
   const correctCount = valid.filter((response) => response.isCorrect).length;
@@ -49,7 +52,7 @@ function analyzeItem(responses, optionIds = [], options = {}) {
     return { optionId: option, selectionRate, upperRate, lowerRate, functions };
   });
   const functioningDistractors = distractorStats.filter((item) => item.functions).length;
-  const times = valid.map((response) => response.responseTimeMs);
+  const times = valid.filter(hasMeasuredTime).map((response) => response.responseTimeMs);
   return {
     validResponseCount: valid.length, difficultyIndex,
     empiricalDifficulty: difficultyIndex > 0.7 ? 'Easy' : difficultyIndex < 0.3 ? 'Hard' : 'Medium',
@@ -58,7 +61,8 @@ function analyzeItem(responses, optionIds = [], options = {}) {
     optionSelection: selection,
     distractorStats,
     distractorEfficiency: distractors.length ? functioningDistractors / distractors.length : null,
-    medianResponseTimeMs: median(times), responseTimeIqrMs: quantile(times, 0.75) - quantile(times, 0.25),
+    medianResponseTimeMs: median(times), responseTimeIqrMs: times.length ? quantile(times, 0.75) - quantile(times, 0.25) : null,
+    timedResponseCount: times.length, timingCoverage: times.length / valid.length,
     rapidGuessThresholdMs: threshold,
     rapidGuessRate: normalized.filter((response) => response.rapidGuess).length / normalized.length,
     analysisStatus: valid.length < 30 ? 'exploratory' : valid.length < 100 ? 'provisional' : 'operational_review',

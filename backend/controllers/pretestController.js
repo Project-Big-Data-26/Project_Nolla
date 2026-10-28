@@ -8,6 +8,36 @@ const PertanyaanPretest = require("../models/MenjawabSoalPretest");
 const UserProficiency = require("../models/MendapatkanDifficulty");
 const BabPrasyarat = require("../models/MemilikiPrasyarat");
 const { toPublicImageUrls } = require("../utils/questionImage");
+const { parseAnswerTiming } = require("../utils/timing");
+const {
+  TransactionAbort,
+  isDuplicateKeyError,
+  withOptionalTransaction,
+} = require("../utils/transaction");
+const PretestDibatalkan = require("../models/PretestDibatalkan");
+const {
+  contextFromRequest,
+  recordApplicationError,
+  recordServerEvents,
+  toId,
+} = require("../services/analyticsService");
+
+// Naikkan versi bila aturan rating awal dari pretest berubah.
+const PRETEST_SCORING_VERSION = "pretest_subbab_performance_v1";
+
+const pretestAssignedEvent = (pretestId, questionId, sequence, stage) => ({
+  name: "question_assigned",
+  businessKey: `question_assigned:${pretestId}:${questionId}`,
+  assessmentType: "pretest",
+  attemptId: pretestId,
+  itemId: `${pretestId}:${sequence}`,
+  properties: {
+    question_id: toId(questionId),
+    sequence,
+    stage,
+    selection_reason: "pretest_adaptive_next",
+  },
+});
 
 const serializeQuestion = (question, req) => {
   if (!question) return null;
@@ -607,6 +637,29 @@ const startPretest = async (req, res) => {
       await pretest.save();
     }
 
+    await recordServerEvents(contextFromRequest(req), [
+      {
+        name: "assessment_started",
+        businessKey: `assessment_started:pretest:${pretest._id}`,
+        assessmentType: "pretest",
+        attemptId: pretest._id,
+        properties: {
+          bab_id: toId(bab_id),
+          planned_question_count: expectedTotalQuestions,
+        },
+      },
+      ...(firstQuestion
+        ? [
+            pretestAssignedEvent(
+              pretest._id,
+              firstQuestion.question_id,
+              1,
+              questionState.stage || "prerequisite",
+            ),
+          ]
+        : []),
+    ]);
+
     return res.status(201).json({
       statusCode: 201,
       success: true,
@@ -628,6 +681,7 @@ const startPretest = async (req, res) => {
     });
   } catch (error) {
     console.error("Start pretest error:", error);
+    await recordApplicationError(req, { operation: "pretest_start", statusCode: 500 });
     return res.status(500).json({
       statusCode: 500,
       success: false,
@@ -730,6 +784,14 @@ const getNextQuestion = async (req, res) => {
       await Pretest.findByIdAndUpdate(pretestId, {
         current_question_id: finalNextQuestion._id,
       });
+      await recordServerEvents(contextFromRequest(req), [
+        pretestAssignedEvent(
+          pretest._id,
+          finalNextQuestion._id,
+          nextQuestionSequence,
+          stage || "subbab",
+        ),
+      ]);
     }
 
     return res.status(200).json({
@@ -762,7 +824,7 @@ const getNextQuestion = async (req, res) => {
 const answerPretestQuestion = async (req, res) => {
   try {
     const { pretestId } = req.params;
-    const { question_id, selected_answer, response_time } = req.body;
+    const { question_id, selected_answer } = req.body ?? {};
 
     if (!mongoose.Types.ObjectId.isValid(pretestId)) {
       return res.status(400).json({
@@ -785,6 +847,15 @@ const answerPretestQuestion = async (req, res) => {
         statusCode: 400,
         success: false,
         message: "selected_answer wajib diisi.",
+      });
+    }
+
+    const timing = parseAnswerTiming(req.body);
+    if (timing.error) {
+      return res.status(400).json({
+        statusCode: 400,
+        success: false,
+        message: timing.error,
       });
     }
 
@@ -894,16 +965,28 @@ const answerPretestQuestion = async (req, res) => {
     });
     const answerStage = questionStateBeforeAnswer.stage || "subbab";
 
-    const answerRecord = await PertanyaanPretest.create({
-      pretest_id: pretestId,
-      soal_id: question_id,
-      stage: answerStage,
-      selected_answer: String(selected_answer),
-      is_correct: isCorrect,
-      response_time: response_time ?? null,
-      sequence: answerSequence + 1,
-      answered_at: new Date(),
-    });
+    let answerRecord;
+    try {
+      answerRecord = await PertanyaanPretest.create({
+        pretest_id: pretestId,
+        soal_id: question_id,
+        stage: answerStage,
+        selected_answer: String(selected_answer),
+        is_correct: isCorrect,
+        kunci_jawaban: String(question.jawaban),
+        ...timing.value,
+        sequence: answerSequence + 1,
+        answered_at: new Date(),
+      });
+    } catch (error) {
+      if (!isDuplicateKeyError(error)) throw error;
+      return res.status(409).json({
+        statusCode: 409,
+        success: false,
+        message:
+          "Soal ini sudah dijawab atau jawaban lain sedang diproses. Muat ulang soal.",
+      });
+    }
 
     const {
       totalQuestions,
@@ -920,15 +1003,65 @@ const answerPretestQuestion = async (req, res) => {
         }
       : null;
 
-    if (nextQuestionPayload) {
-      await Pretest.findByIdAndUpdate(pretestId, {
-        current_question_id: new mongoose.Types.ObjectId(
-          nextQuestionPayload.question_id,
-        ),
+    // Kunci optimistis pada pointer soal: bila sesi dijawab/dibatalkan/selesai
+    // bersamaan, jawaban ini dibatalkan.
+    const { matchedCount } = await Pretest.updateOne(
+      {
+        _id: pretestId,
+        completed_at: null,
+        current_question_id: currentQuestionId
+          ? new mongoose.Types.ObjectId(currentQuestionId)
+          : null,
+      },
+      {
+        $set: {
+          current_question_id: nextQuestionPayload
+            ? new mongoose.Types.ObjectId(nextQuestionPayload.question_id)
+            : null,
+        },
+      },
+    );
+
+    if (matchedCount === 0) {
+      await PertanyaanPretest.deleteOne({ _id: answerRecord._id });
+      return res.status(409).json({
+        statusCode: 409,
+        success: false,
+        message:
+          "Sesi pretest sudah berubah (dijawab, dibatalkan, atau selesai). Muat ulang soal.",
       });
-    } else {
-      await Pretest.findByIdAndUpdate(pretestId, { current_question_id: null });
     }
+
+    await recordServerEvents(contextFromRequest(req), [
+      {
+        name: "question_answer_recorded",
+        businessKey: `question_answer_recorded:${pretestId}:${question_id}`,
+        assessmentType: "pretest",
+        attemptId: pretestId,
+        itemId: `${pretestId}:${answerRecord.sequence}`,
+        properties: {
+          question_id: toId(question_id),
+          sequence: answerRecord.sequence,
+          stage: answerStage,
+          selected_option: answerRecord.selected_answer,
+          is_correct: isCorrect,
+          answered_at: answerRecord.answered_at,
+          response_time_ms: answerRecord.response_time_ms ?? null,
+          response_time_partial: answerRecord.response_time_partial ?? null,
+          legacy_response_time_s: answerRecord.response_time ?? null,
+        },
+      },
+      ...(nextQuestionPayload
+        ? [
+            pretestAssignedEvent(
+              pretestId,
+              nextQuestionPayload.question_id,
+              answerRecord.sequence + 1,
+              stage || "subbab",
+            ),
+          ]
+        : []),
+    ]);
 
     return res.status(200).json({
       statusCode: 200,
@@ -951,6 +1084,7 @@ const answerPretestQuestion = async (req, res) => {
     });
   } catch (error) {
     console.error("Answer pretest question error:", error);
+    await recordApplicationError(req, { operation: "pretest_answer", statusCode: 500 });
     return res.status(500).json({
       statusCode: 500,
       success: false,
@@ -972,149 +1106,19 @@ const submitPretest = async (req, res) => {
       });
     }
 
-    const pretest = await Pretest.findById(pretestId);
-
-    if (!pretest) {
-      return res.status(404).json({
-        statusCode: 404,
-        success: false,
-        message: "Pretest tidak ditemukan.",
-      });
-    }
-
-    if (pretest.user_id.toString() !== req.user.id.toString()) {
-      return res.status(403).json({
-        statusCode: 403,
-        success: false,
-        message: "Anda tidak memiliki akses ke pretest ini.",
-      });
-    }
-
-    if (pretest.completed_at) {
-      return res.status(409).json({
-        statusCode: 409,
-        success: false,
-        message: "Pretest ini sudah diselesaikan sebelumnya.",
-      });
-    }
-
     const {
-      questions: allPretestQuestions,
-      totalQuestions: expectedTotalQuestions,
-    } = await getPretestQuestionPool(pretest.bab_id.toString());
-    const answeredRecords = await PertanyaanPretest.find({
-      pretest_id: pretestId,
-    })
-      .populate("soal_id")
-      .lean();
-
-    const answeredQuestionIds = new Set(
-      answeredRecords.map((record) => record.soal_id._id.toString()),
+      pretest,
+      answeredRecords,
+      score,
+      totalQuestions,
+      correctAnswers,
+      difficultySummary,
+    } = await withOptionalTransaction((dbSession) =>
+      finalizePretestSubmission(
+        { pretestId, userId: req.user.id, context: contextFromRequest(req) },
+        dbSession,
+      ),
     );
-    const missingQuestionCount = Math.max(
-      0,
-      expectedTotalQuestions - answeredRecords.length,
-    );
-
-    if (missingQuestionCount > 0) {
-      return res.status(400).json({
-        statusCode: 400,
-        success: false,
-        message: `Pretest belum lengkap, masih ada ${missingQuestionCount} soal yang belum dijawab.`,
-      });
-    }
-
-    const totalQuestions = expectedTotalQuestions;
-    const correctAnswers = answeredRecords.filter(
-      (record) => record.is_correct,
-    ).length;
-    const score = Number(((correctAnswers / totalQuestions) * 100).toFixed(2));
-
-    pretest.score = mongoose.Types.Decimal128.fromString(score.toString());
-    pretest.completed_at = new Date();
-    pretest.duration = pretest.started_at
-      ? Math.max(
-          0,
-          Math.round((pretest.completed_at - pretest.started_at) / 1000),
-        )
-      : null;
-
-    const questionMap = new Map(
-      allPretestQuestions.map((question) => [
-        question._id.toString(),
-        question,
-      ]),
-    );
-
-    const subbabPerformance = new Map();
-
-    for (const record of answeredRecords) {
-      const question = questionMap.get(record.soal_id._id.toString());
-      if (!question || !question.subbab_id || record.stage === "prerequisite") {
-        continue;
-      }
-
-      const subbabId = question.subbab_id.toString();
-      const performance = subbabPerformance.get(subbabId) || {
-        correct: 0,
-        total: 0,
-      };
-
-      performance.total += 1;
-      performance.correct += record.is_correct ? 1 : 0;
-      subbabPerformance.set(subbabId, performance);
-    }
-
-    const subbabCognitiveScores = [...subbabPerformance].map(
-      ([subbabId, performance]) => {
-        const subbabDifficulty = getSubbabDifficultyFromPerformance(
-          performance.correct,
-          performance.total,
-        );
-
-        return {
-          subbab_id: subbabId,
-          current_cognitive_level: subbabDifficulty.difficulty,
-          current_cognitive_score: subbabDifficulty.score,
-          pretest_subbab_correct: performance.correct,
-          pretest_subbab_total: performance.total,
-        };
-      },
-    );
-    pretest.subbab_cognitive_scores = subbabCognitiveScores;
-    await pretest.save();
-
-    const difficultySummary = [];
-
-    for (const subbabScore of subbabCognitiveScores) {
-      const difficultyRecord = await UserProficiency.findOneAndUpdate(
-        {
-          user_id: req.user.id,
-          subbab_id: subbabScore.subbab_id,
-        },
-        {
-          $set: {
-            user_id: req.user.id,
-            subbab_id: subbabScore.subbab_id,
-            current_cognitive_level: subbabScore.current_cognitive_level,
-            current_cognitive_score: subbabScore.current_cognitive_score,
-            pretest_subbab_correct: subbabScore.pretest_subbab_correct,
-            pretest_subbab_total: subbabScore.pretest_subbab_total,
-            updated_at: new Date(),
-          },
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      );
-
-      difficultySummary.push({
-        subbab_id: difficultyRecord.subbab_id,
-        current_cognitive_level: difficultyRecord.current_cognitive_level,
-        current_cognitive_score: difficultyRecord.current_cognitive_score,
-        pretest_subbab_correct: difficultyRecord.pretest_subbab_correct,
-        pretest_subbab_total: difficultyRecord.pretest_subbab_total,
-        updated_at: difficultyRecord.updated_at,
-      });
-    }
 
     const babBreakdown = await getPretestBabBreakdown(
       pretest.bab_id,
@@ -1139,7 +1143,15 @@ const submitPretest = async (req, res) => {
       },
     });
   } catch (error) {
+    if (error instanceof TransactionAbort) {
+      return res.status(error.statusCode).json({
+        statusCode: error.statusCode,
+        success: false,
+        message: error.message,
+      });
+    }
     console.error("Submit pretest error:", error);
+    await recordApplicationError(req, { operation: "pretest_submit", statusCode: 500 });
     return res.status(500).json({
       statusCode: 500,
       success: false,
@@ -1147,6 +1159,211 @@ const submitPretest = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+const finalizePretestSubmission = async (
+  { pretestId, userId, context },
+  dbSession,
+) => {
+  const pretest = await Pretest.findById(pretestId).session(dbSession).lean();
+
+  if (!pretest) throw new TransactionAbort(404, "Pretest tidak ditemukan.");
+
+  if (pretest.user_id.toString() !== userId.toString()) {
+    throw new TransactionAbort(403, "Anda tidak memiliki akses ke pretest ini.");
+  }
+
+  if (pretest.completed_at) {
+    throw new TransactionAbort(409, "Pretest ini sudah diselesaikan sebelumnya.");
+  }
+
+  const {
+    questions: allPretestQuestions,
+    totalQuestions: expectedTotalQuestions,
+  } = await getPretestQuestionPool(pretest.bab_id.toString());
+  const answeredRecords = await PertanyaanPretest.find({
+    pretest_id: pretestId,
+  })
+    .session(dbSession)
+    .populate({ path: "soal_id", options: { session: dbSession } })
+    .lean();
+
+  const missingQuestionCount = Math.max(
+    0,
+    expectedTotalQuestions - answeredRecords.length,
+  );
+
+  if (missingQuestionCount > 0) {
+    throw new TransactionAbort(
+      400,
+      `Pretest belum lengkap, masih ada ${missingQuestionCount} soal yang belum dijawab.`,
+    );
+  }
+
+  const totalQuestions = expectedTotalQuestions;
+  const correctAnswers = answeredRecords.filter(
+    (record) => record.is_correct,
+  ).length;
+  const score = Number(((correctAnswers / totalQuestions) * 100).toFixed(2));
+  const completedAt = new Date();
+
+  const questionMap = new Map(
+    allPretestQuestions.map((question) => [
+      question._id.toString(),
+      question,
+    ]),
+  );
+
+  const subbabPerformance = new Map();
+
+  for (const record of answeredRecords) {
+    const question = questionMap.get(record.soal_id._id.toString());
+    if (!question || !question.subbab_id || record.stage === "prerequisite") {
+      continue;
+    }
+
+    const subbabId = question.subbab_id.toString();
+    const performance = subbabPerformance.get(subbabId) || {
+      correct: 0,
+      total: 0,
+    };
+
+    performance.total += 1;
+    performance.correct += record.is_correct ? 1 : 0;
+    subbabPerformance.set(subbabId, performance);
+  }
+
+  const subbabCognitiveScores = [...subbabPerformance].map(
+    ([subbabId, performance]) => {
+      const subbabDifficulty = getSubbabDifficultyFromPerformance(
+        performance.correct,
+        performance.total,
+      );
+
+      return {
+        subbab_id: subbabId,
+        current_cognitive_level: subbabDifficulty.difficulty,
+        current_cognitive_score: subbabDifficulty.score,
+        pretest_subbab_correct: performance.correct,
+        pretest_subbab_total: performance.total,
+      };
+    },
+  );
+  // Klaim atomik: submit paralel kedua gagal di sini sebelum menulis rating.
+  const claimed = await Pretest.findOneAndUpdate(
+    { _id: pretest._id, completed_at: null },
+    {
+      $set: {
+        score: mongoose.Types.Decimal128.fromString(score.toString()),
+        completed_at: completedAt,
+        duration: pretest.started_at
+          ? Math.max(
+              0,
+              Math.round((completedAt - new Date(pretest.started_at)) / 1000),
+            )
+          : null,
+        subbab_cognitive_scores: subbabCognitiveScores,
+        difficulty_sync: dbSession ? "applied" : "pending",
+      },
+    },
+    { returnDocument: "after", session: dbSession, lean: true },
+  );
+
+  if (!claimed) {
+    throw new TransactionAbort(409, "Pretest ini sudah diselesaikan sebelumnya.");
+  }
+
+  const difficultySummary = [];
+
+  for (const subbabScore of subbabCognitiveScores) {
+    const previousDifficulty = await UserProficiency.findOneAndUpdate(
+      {
+        user_id: userId,
+        subbab_id: subbabScore.subbab_id,
+      },
+      {
+        $set: {
+          current_cognitive_level: subbabScore.current_cognitive_level,
+          current_cognitive_score: subbabScore.current_cognitive_score,
+          pretest_subbab_correct: subbabScore.pretest_subbab_correct,
+          pretest_subbab_total: subbabScore.pretest_subbab_total,
+          updated_at: completedAt,
+        },
+      },
+      {
+        upsert: true,
+        returnDocument: "before",
+        setDefaultsOnInsert: true,
+        session: dbSession,
+        lean: true,
+      },
+    );
+
+    difficultySummary.push({
+      subbab_id: subbabScore.subbab_id,
+      current_cognitive_level: subbabScore.current_cognitive_level,
+      current_cognitive_score: subbabScore.current_cognitive_score,
+      pretest_subbab_correct: subbabScore.pretest_subbab_correct,
+      pretest_subbab_total: subbabScore.pretest_subbab_total,
+      updated_at: completedAt,
+      rating_before: previousDifficulty?.current_cognitive_score ?? null,
+    });
+  }
+
+  await recordServerEvents(
+    context,
+    [
+      ...difficultySummary.map((item) => ({
+        name: "rating_updated",
+        businessKey: `rating_updated:${pretestId}:student:${item.subbab_id}`,
+        assessmentType: "pretest",
+        attemptId: pretestId,
+        properties: {
+          target_type: "student_subbab",
+          subbab_id: toId(item.subbab_id),
+          rating_before: item.rating_before,
+          rating_after: item.current_cognitive_score,
+          pretest_subbab_correct: item.pretest_subbab_correct,
+          pretest_subbab_total: item.pretest_subbab_total,
+          scoring_version: PRETEST_SCORING_VERSION,
+        },
+      })),
+      {
+        name: "assessment_completed",
+        businessKey: `assessment_completed:pretest:${pretestId}`,
+        assessmentType: "pretest",
+        attemptId: pretestId,
+        properties: {
+          bab_id: toId(pretest.bab_id),
+          correct_count: correctAnswers,
+          question_count: totalQuestions,
+          answered_count: answeredRecords.length,
+          score_pct: score,
+          wall_time_ms: pretest.started_at
+            ? completedAt - new Date(pretest.started_at)
+            : null,
+          scoring_version: PRETEST_SCORING_VERSION,
+        },
+      },
+    ],
+    dbSession,
+  );
+
+  if (!dbSession) {
+    await Pretest.updateOne(
+      { _id: pretest._id },
+      { $set: { difficulty_sync: "applied" } },
+    );
+  }
+
+  return {
+    pretest: claimed,
+    answeredRecords,
+    score,
+    totalQuestions,
+    correctAnswers,
+    difficultySummary,
+  };
 };
 
 const getPretestResult = async (req, res) => {
@@ -1466,9 +1683,11 @@ const getPretestReview = async (req, res) => {
           : [],
         image_url: toPublicImageUrls(record.soal_id.image_url, req),
         selected_answer: record.selected_answer,
-        correct_answer: record.soal_id.jawaban,
+        correct_answer: record.kunci_jawaban ?? record.soal_id.jawaban,
         is_correct: Boolean(record.is_correct),
         response_time: record.response_time ?? null,
+        response_time_ms: record.response_time_ms ?? null,
+        response_time_partial: record.response_time_partial ?? null,
       }));
 
     const correctAnswers = questions.filter(
@@ -1513,34 +1732,12 @@ const discardPretest = async (req, res) => {
       });
     }
 
-    const pretest = await Pretest.findById(pretestId);
-
-    if (!pretest) {
-      return res.status(404).json({
-        statusCode: 404,
-        success: false,
-        message: "Pretest tidak ditemukan.",
-      });
-    }
-
-    if (pretest.user_id.toString() !== req.user.id.toString()) {
-      return res.status(403).json({
-        statusCode: 403,
-        success: false,
-        message: "Anda tidak memiliki akses untuk membatalkan pretest ini.",
-      });
-    }
-
-    if (pretest.completed_at) {
-      return res.status(409).json({
-        statusCode: 409,
-        success: false,
-        message: "Pretest yang sudah selesai tidak dapat dibatalkan.",
-      });
-    }
-
-    await PertanyaanPretest.deleteMany({ pretest_id: pretestId });
-    await Pretest.findByIdAndDelete(pretestId);
+    const { alreadyCancelled } = await withOptionalTransaction((dbSession) =>
+      cancelPretest(
+        { pretestId, userId: req.user.id, context: contextFromRequest(req) },
+        dbSession,
+      ),
+    );
 
     return res.status(200).json({
       statusCode: 200,
@@ -1549,10 +1746,19 @@ const discardPretest = async (req, res) => {
       data: {
         pretest_id: pretestId,
         discarded: true,
+        already_cancelled: alreadyCancelled,
       },
     });
   } catch (error) {
+    if (error instanceof TransactionAbort) {
+      return res.status(error.statusCode).json({
+        statusCode: error.statusCode,
+        success: false,
+        message: error.message,
+      });
+    }
     console.error("Discard pretest error:", error);
+    await recordApplicationError(req, { operation: "pretest_discard", statusCode: 500 });
     return res.status(500).json({
       statusCode: 500,
       success: false,
@@ -1560,6 +1766,118 @@ const discardPretest = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+// Arsip -> hapus sesi (bersyarat belum selesai) -> hapus jawaban.
+// Tanpa transaksi, urutan ini membuat retry dapat menyelesaikan pembersihan.
+const cancelPretest = async ({ pretestId, userId, context }, dbSession) => {
+  const pretest = await Pretest.findById(pretestId).session(dbSession).lean();
+
+  if (!pretest) {
+    const archived = await PretestDibatalkan.exists({
+      pretest_id: pretestId,
+      user_id: userId,
+    }).session(dbSession);
+
+    if (!archived) throw new TransactionAbort(404, "Pretest tidak ditemukan.");
+
+    await PertanyaanPretest.deleteMany(
+      { pretest_id: pretestId },
+      { session: dbSession },
+    );
+    return { alreadyCancelled: true };
+  }
+
+  if (pretest.user_id.toString() !== userId.toString()) {
+    throw new TransactionAbort(
+      403,
+      "Anda tidak memiliki akses untuk membatalkan pretest ini.",
+    );
+  }
+
+  if (pretest.completed_at) {
+    throw new TransactionAbort(
+      409,
+      "Pretest yang sudah selesai tidak dapat dibatalkan.",
+    );
+  }
+
+  const answerRecords = await PertanyaanPretest.find({ pretest_id: pretestId })
+    .sort({ sequence: 1 })
+    .session(dbSession)
+    .lean();
+
+  const archiveResult = await PretestDibatalkan.updateOne(
+    { pretest_id: pretest._id },
+    {
+      $setOnInsert: {
+        user_id: pretest.user_id,
+        bab_id: pretest.bab_id,
+        started_at: pretest.started_at ?? null,
+        cancelled_at: new Date(),
+        last_question_id: pretest.current_question_id ?? null,
+        answered_count: answerRecords.length,
+        jawaban: answerRecords.map((record) => ({
+          soal_id: record.soal_id,
+          stage: record.stage,
+          selected_answer: record.selected_answer ?? null,
+          is_correct: record.is_correct ?? null,
+          kunci_jawaban: record.kunci_jawaban ?? null,
+          response_time: record.response_time ?? null,
+          response_time_ms: record.response_time_ms ?? null,
+          response_time_partial: record.response_time_partial ?? null,
+          sequence: record.sequence,
+          answered_at: record.answered_at ?? null,
+        })),
+      },
+    },
+    { upsert: true, session: dbSession },
+  );
+
+  const { deletedCount } = await Pretest.deleteOne(
+    { _id: pretest._id, completed_at: null },
+    { session: dbSession },
+  );
+
+  if (deletedCount === 0) {
+    // Selesai/dihapus bersamaan. Dalam transaksi, throw membatalkan arsip.
+    if (!dbSession && archiveResult.upsertedCount) {
+      await PretestDibatalkan.deleteOne({ pretest_id: pretest._id });
+    }
+    throw new TransactionAbort(
+      409,
+      "Pretest sudah berubah status dan tidak dapat dibatalkan.",
+    );
+  }
+
+  await PertanyaanPretest.deleteMany(
+    { pretest_id: pretestId },
+    { session: dbSession },
+  );
+
+  await recordServerEvents(
+    context,
+    [
+      {
+        name: "assessment_cancelled",
+        businessKey: `assessment_cancelled:pretest:${pretestId}`,
+        assessmentType: "pretest",
+        attemptId: pretestId,
+        properties: {
+          bab_id: toId(pretest.bab_id),
+          answered_count: answerRecords.length,
+          last_question_id: toId(pretest.current_question_id),
+          reason_code: "user_discarded",
+          wall_time_ms: pretest.started_at
+            ? Date.now() - new Date(pretest.started_at)
+            : null,
+        },
+      },
+    ],
+    dbSession,
+  );
+
+  return { alreadyCancelled: false };
 };
 
 module.exports = {

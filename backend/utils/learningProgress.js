@@ -4,16 +4,28 @@ const getCognitiveLevel = (score) => {
   return "easy";
 };
 
+const MASTERY_RATING_THRESHOLD = 1600;
+const PROGRESS_RATING_FLOOR = 600;
+
 const getSubbabProgress = (score) => {
   const numericScore = Number(score);
-  if (!Number.isFinite(numericScore) || numericScore <= 600) return 0;
-  if (numericScore >= 1600) return 100;
+  if (!Number.isFinite(numericScore) || numericScore <= PROGRESS_RATING_FLOOR)
+    return 0;
+  if (numericScore >= MASTERY_RATING_THRESHOLD) return 100;
 
-  return Math.round(((numericScore - 600) / 1000) * 100);
+  return Math.round(
+    ((numericScore - PROGRESS_RATING_FLOOR) /
+      (MASTERY_RATING_THRESHOLD - PROGRESS_RATING_FLOOR)) *
+      100,
+  );
 };
 
-const isSubbabCompleted = (score) =>
-  Number.isFinite(Number(score)) && Number(score) >= 1600;
+// Mastery saat ini: sudah pernah submit kuis subbab DAN rating terkini >= ambang.
+// Berbeda dari "pernah submit kuis" (menyelesaikan_subbab) dan "pernah mencapai mastery" (belum dilacak).
+const isSubbabMastered = (score, hasSubmittedQuiz) =>
+  Boolean(hasSubmittedQuiz) &&
+  Number.isFinite(Number(score)) &&
+  Number(score) >= MASTERY_RATING_THRESHOLD;
 
 const getBabProgress = (
   subbabList,
@@ -38,5 +50,6 @@ module.exports = {
   getBabProgress,
   getCognitiveLevel,
   getSubbabProgress,
-  isSubbabCompleted,
+  isSubbabMastered,
+  MASTERY_RATING_THRESHOLD,
 };

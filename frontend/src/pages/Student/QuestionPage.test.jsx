@@ -11,7 +11,7 @@ vi.mock("../../components/Navbar", () => ({
 }));
 
 vi.mock("../../api/axios", () => ({
-  default: { get: vi.fn(), post: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }));
 
 const firstPretestQuestion = {
@@ -35,6 +35,7 @@ const renderPage = (path) =>
       <Routes>
         <Route path="/quiz" element={<QuestionPage />} />
         <Route path="/review-quiz" element={<QuestionReviewPage />} />
+        <Route path="/topik" element={<p>Halaman topik</p>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -46,6 +47,7 @@ beforeEach(() => {
   sessionStorage.clear();
   API.get.mockReset();
   API.post.mockReset();
+  API.delete.mockReset();
 });
 
 describe("QuestionPage", () => {
@@ -99,7 +101,8 @@ describe("QuestionPage", () => {
     expect(API.post).toHaveBeenNthCalledWith(2, "/pretest/pretest-1/answer", {
       question_id: "pretest-q1",
       selected_answer: "A",
-      response_time: expect.any(Number),
+      response_time_ms: expect.any(Number),
+      response_time_partial: false,
     });
   });
 
@@ -352,12 +355,117 @@ describe("QuestionPage", () => {
         "/quiz/quiz-1/submit",
         expect.objectContaining({
           answers: [
-            { question_id: "quiz-q1", selected_option: "B" },
-            { question_id: "quiz-q2", selected_option: "C" },
+            expect.objectContaining({
+              question_id: "quiz-q1",
+              selected_option: "B",
+              response_time_ms: expect.any(Number),
+              response_time_partial: false,
+            }),
+            expect.objectContaining({
+              question_id: "quiz-q2",
+              selected_option: "C",
+              response_time_ms: expect.any(Number),
+            }),
           ],
           duration: expect.any(Number),
+          timing_method: "client_visible_v1",
         }),
       );
     });
+  });
+
+  const startActivePretest = () => {
+    sessionStorage.setItem(
+      "pretest:pretest-9",
+      JSON.stringify({ startedAt: Date.now(), history: [] }),
+    );
+    API.get
+      .mockResolvedValueOnce({
+        data: { data: { status: "active", pretest_id: "pretest-9" } },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          data: { question: firstPretestQuestion, sequence: 1, total_questions: 2 },
+        },
+      });
+    renderPage("/quiz?mode=pretest&babId=bab-1");
+  };
+
+  it("keluar sementara tidak membatalkan pretest", async () => {
+    startActivePretest();
+    fireEvent.click(await screen.findByRole("button", { name: "Keluar dari pengerjaan" }));
+    expect(screen.getByText("Keluar dari pretest?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Keluar, lanjutkan nanti" }));
+
+    expect(await screen.findByText("Halaman topik")).toBeInTheDocument();
+    expect(API.delete).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem("pretest:pretest-9")).not.toBeNull();
+  });
+
+  it("membatalkan pretest setelah konfirmasi dan menghapus data lokal", async () => {
+    API.delete.mockResolvedValueOnce({ data: { data: { discarded: true } } });
+    startActivePretest();
+    fireEvent.click(await screen.findByRole("button", { name: "Keluar dari pengerjaan" }));
+    fireEvent.click(screen.getByRole("button", { name: "Batalkan pretest" }));
+    expect(screen.getByText("Batalkan pretest ini?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ya, batalkan pretest" }));
+
+    expect(await screen.findByText("Halaman topik")).toBeInTheDocument();
+    expect(API.delete).toHaveBeenCalledWith("/pretest/pretest-9/discard");
+    expect(sessionStorage.getItem("pretest:pretest-9")).toBeNull();
+    expect(sessionStorage.getItem("pretest:pretest-9:timing")).toBeNull();
+  });
+
+  it("menampilkan error dan tetap di halaman bila pembatalan gagal", async () => {
+    API.delete.mockRejectedValueOnce({
+      response: { status: 409, data: { message: "Pretest yang sudah selesai tidak dapat dibatalkan." } },
+    });
+    startActivePretest();
+    fireEvent.click(await screen.findByRole("button", { name: "Keluar dari pengerjaan" }));
+    fireEvent.click(screen.getByRole("button", { name: "Batalkan pretest" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ya, batalkan pretest" }));
+
+    expect(
+      await screen.findByText("Pretest yang sudah selesai tidak dapat dibatalkan."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Halaman topik")).not.toBeInTheDocument();
+  });
+
+  it("menganggap submit pretest 409 sebagai sudah selesai lalu membuka review", async () => {
+    API.get
+      .mockResolvedValueOnce({ data: { data: { status: "not_started" } } })
+      .mockResolvedValueOnce({
+        data: { data: { pretest_id: "pretest-409", score: 100, total_questions: 1, correct_answers: 1 } },
+      })
+      .mockResolvedValue({ data: { data: { questions: [] } } });
+    API.post
+      .mockResolvedValueOnce({
+        data: {
+          data: {
+            pretest_id: "pretest-409",
+            started_at: new Date().toISOString(),
+            total_questions: 1,
+            first_question: firstPretestQuestion,
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: { data: { is_correct: true, next_question: null, total_questions: 1 } },
+      })
+      .mockRejectedValueOnce({
+        response: { status: 409, data: { message: "Pretest ini sudah diselesaikan sebelumnya." } },
+      });
+
+    renderPage("/quiz?mode=pretest&babId=bab-1");
+    await screen.findByText("Soal pretest pertama");
+    selectOption("Pilihan dua");
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+    await waitFor(() => {
+      expect(API.get).toHaveBeenCalledWith("/pretest/pretest-409/result");
+    });
+    expect(
+      screen.queryByText("Pretest ini sudah diselesaikan sebelumnya."),
+    ).not.toBeInTheDocument();
   });
 });

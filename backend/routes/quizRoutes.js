@@ -84,13 +84,29 @@ router.post("/start", authMiddleware, startQuiz);
  *                     response_time:
  *                       type: number
  *                       nullable: true
+ *                       description: (Lama) waktu menjawab dalam detik
+ *                     response_time_ms:
+ *                       type: integer
+ *                       nullable: true
+ *                       minimum: 0
+ *                       description: Waktu tampil/menjawab soal dalam milidetik; null bila tidak diketahui (jangan diisi 0)
+ *                     response_time_partial:
+ *                       type: boolean
+ *                       nullable: true
+ *                       description: true bila sebagian waktu tidak terukur (refresh, tab tersembunyi)
  *               duration:
  *                 type: number
  *                 nullable: true
+ *                 minimum: 0
  *                 description: Durasi quiz dalam detik
+ *               timing_method:
+ *                 type: string
+ *                 nullable: true
+ *                 enum: [client_visible_v1]
+ *                 description: Versi metode pengukuran waktu di frontend
  *     responses:
  *       200:
- *         description: Quiz berhasil disubmit dan rating cognitive diperbarui
+ *         description: "Quiz berhasil disubmit dan rating cognitive diperbarui. Submit ulang (retry/paralel) pada sesi yang sudah selesai juga 200 dengan already_submitted=true dan hasil tersimpan, tanpa memperbarui rating lagi."
  *       400:
  *         description: Format answers atau question_id tidak valid
  *       401:
@@ -98,7 +114,7 @@ router.post("/start", authMiddleware, startQuiz);
  *       404:
  *         description: Sesi quiz tidak ditemukan
  *       409:
- *         description: Sesi sudah disubmit, soal tidak tersedia, atau rating subbab tidak ditemukan
+ *         description: Soal sesi tidak lagi tersedia atau rating subbab tidak ditemukan (tidak ada data yang ditulis)
  *       500:
  *         description: Gagal mengirim hasil quiz
  */

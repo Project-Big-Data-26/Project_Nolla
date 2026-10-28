@@ -7,6 +7,11 @@ const User = require("../models/User");
 const OTP = require("../models/OTP");
 const RefreshToken = require("../models/RefreshToken");
 const RevokedToken = require("../models/RevokedToken");
+const GoogleAuthCode = require("../models/GoogleAuthCode");
+const {
+  contextFromRequest,
+  recordServerEvents,
+} = require("../services/analyticsService");
 const {
   sendOtp,
   getOtpResendStatus: getOtpResendStatusFromService,
@@ -140,6 +145,14 @@ const register = async (req, res) => {
       isProfileComplete: false,
     });
 
+    await recordServerEvents(contextFromRequest(req, user), [
+      {
+        name: "registration_completed",
+        businessKey: `registration_completed:${user._id}`,
+        properties: { auth_method: "password" },
+      },
+    ]);
+
     const otpResult = await sendOtp(normalizedEmail, "EMAIL_VERIFICATION");
 
     return res.status(200).json({
@@ -227,6 +240,14 @@ const verifyEmail = async (req, res) => {
     user.isVerified = true;
 
     await user.save();
+
+    await recordServerEvents(contextFromRequest(req, user), [
+      {
+        name: "email_verified",
+        businessKey: `email_verified:${user._id}`,
+        properties: { method: "otp" },
+      },
+    ]);
 
     // OTP sudah digunakan → hapus
     await OTP.deleteOne({
@@ -378,6 +399,14 @@ const login = async (req, res) => {
       expiresAt: sessionExpiresAt,
       rememberMe: rememberSession,
     });
+
+    // Login baru saja; refresh token dan GET /auth/me tidak dihitung.
+    await recordServerEvents(contextFromRequest(req, user), [
+      {
+        name: "login_succeeded",
+        properties: { auth_method: "password", remember_me: rememberSession },
+      },
+    ]);
 
     return res.status(200).json({
       statusCode: 200,
@@ -1180,31 +1209,123 @@ const handleGoogleCallback = async (req, res, next) => {
         isVerified: true,
         isProfileComplete: false,
       });
+
+      await recordServerEvents(contextFromRequest(req, user), [
+        {
+          name: "registration_completed",
+          businessKey: `registration_completed:${user._id}`,
+          properties: { auth_method: "google" },
+        },
+        {
+          name: "email_verified",
+          businessKey: `email_verified:${user._id}`,
+          properties: { method: "google" },
+        },
+      ]);
     }
 
     req.user = user;
     next();
   } catch (error) {
-    console.error("Google callback exchange error:", error);
+    // Error google-auth-library dapat memuat body request (code, verifier, client secret).
+    console.error("Google callback exchange error:", error.message);
     return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
 };
 
+const GOOGLE_AUTH_CODE_TTL_MS = 60 * 1000;
+
 const googleCallback = async (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL;
   try {
-    // Buat token JWT untuk user yang berhasil login via Google
-    const accessToken = generateAccessToken(req.user); // sesuaikan dengan helper token di controller kalian
-    const refreshToken = await createRefreshToken(req.user);
+    const code = crypto.randomBytes(32).toString("base64url");
 
+    await GoogleAuthCode.create({
+      codeHash: hashRefreshToken(code),
+      userId: req.user._id,
+      expiresAt: new Date(Date.now() + GOOGLE_AUTH_CODE_TTL_MS),
+    });
+
+    // Fragment tidak dikirim ke server maupun header Referer.
     const callbackUrl = new URL("/auth/google/callback", frontendUrl);
-    callbackUrl.searchParams.set("accessToken", accessToken);
-    callbackUrl.searchParams.set("refreshToken", refreshToken);
+    callbackUrl.hash = new URLSearchParams({ code }).toString();
 
     return res.redirect(callbackUrl.toString());
   } catch (error) {
-    console.error("Error Google Callback Controller:", error);
+    console.error("Error Google Callback Controller:", error.message);
     return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+  }
+};
+
+const exchangeGoogleAuthCode = async (req, res) => {
+  try {
+    const { code } = req.body ?? {};
+
+    if (typeof code !== "string" || !code) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        code: "GOOGLE_AUTH_CODE_INVALID",
+        message: "Kode login Google tidak valid atau sudah kedaluwarsa",
+      });
+    }
+
+    const authCode = await GoogleAuthCode.findOneAndDelete({
+      codeHash: hashRefreshToken(code),
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!authCode) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "error",
+        code: "GOOGLE_AUTH_CODE_INVALID",
+        message: "Kode login Google tidak valid atau sudah kedaluwarsa",
+      });
+    }
+
+    const user = await User.findById(authCode.userId);
+
+    if (!user) {
+      return res.status(401).json({
+        statusCode: 401,
+        status: "error",
+        message: "User tidak ditemukan",
+      });
+    }
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = await createRefreshToken(user);
+
+    await recordServerEvents(contextFromRequest(req, user), [
+      { name: "login_succeeded", properties: { auth_method: "google" } },
+    ]);
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      message: "Login Google berhasil",
+      data: {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          isProfileComplete: user.isProfileComplete,
+          allJenjang: user.allJenjang,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Google auth code exchange error:", error.message);
+
+    return res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Terjadi kesalahan pada server",
+    });
   }
 };
 
@@ -1228,4 +1349,5 @@ module.exports = {
   googleLogin,
   googleCallback,
   handleGoogleCallback,
+  exchangeGoogleAuthCode,
 };

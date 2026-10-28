@@ -13,27 +13,23 @@ export default function GoogleAuthCallback() {
     if (callbackHandled.current) return;
     callbackHandled.current = true;
 
-    const query = new URLSearchParams(location.search);
-    const accessToken = query.get("accessToken");
-    const refreshToken = query.get("refreshToken");
+    const code = new URLSearchParams(location.hash.slice(1)).get("code");
 
     window.history.replaceState({}, document.title, window.location.pathname);
 
-    if (!accessToken || !refreshToken) {
+    if (!code) {
       navigate("/login?error=google_auth_failed", { replace: true });
       return;
     }
 
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
-
-    API.get("/auth/me", {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    API.post("/auth/google/exchange", { code })
       .then(({ data }) => {
-        const user = data?.data?.user;
-        if (!user) throw new Error("Profil pengguna tidak ditemukan");
+        const { accessToken, refreshToken, user } = data?.data ?? {};
+        if (!accessToken || !refreshToken || !user) {
+          throw new Error("Respons login Google tidak lengkap");
+        }
 
+        localStorage.setItem("refreshToken", refreshToken);
         login(user, accessToken);
         navigate(user.isProfileComplete ? "/topik" : "/personalization", {
           replace: true,
@@ -46,7 +42,7 @@ export default function GoogleAuthCallback() {
         window.dispatchEvent(new Event("auth:expired"));
         navigate("/login?error=google_auth_failed", { replace: true });
       });
-  }, [location.search, login, navigate]);
+  }, [location.hash, login, navigate]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-neutral-bg px-4">

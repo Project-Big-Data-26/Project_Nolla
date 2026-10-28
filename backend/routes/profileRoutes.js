@@ -54,6 +54,7 @@ router.get("/", authMiddleware, getProfile);
  *                 example: Prita Aulia
  *               jenjang_id:
  *                 type: string
+ *                 nullable: true
  *                 example: SMP
  *               allJenjang:
  *                 type: boolean
@@ -64,9 +65,9 @@ router.get("/", authMiddleware, getProfile);
  *                 example: avatar_2
  *     responses:
  *       200:
- *         description: Profil berhasil diperbarui, termasuk waktu updatedAt dari server
+ *         description: Profil berhasil diperbarui; perubahan preferensi jenjang mencatat personalization_saved dari server bila analytics aktif. Nama/avatar saja dan preferensi sama tidak mencatat perubahan personalisasi.
  *       400:
- *         description: Data profil tidak valid
+ *         description: Body harus objek JSON; name harus teks, allJenjang harus boolean, dan jenjang_id bila tidak null harus nama SD/SMP/SMA atau ObjectId jenjang yang tersedia. Data profil lain harus sesuai schema.
  *       401:
  *         description: Token tidak valid atau sudah kedaluwarsa
  *       404:
