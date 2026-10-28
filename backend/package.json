@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "seed:fresh": "node seeders/index.js fresh",
     "reset:quiz": "node seeders/resetStudentProgress.js --mode reset-quiz --apply --confirm RESET-STUDENT-PROGRESS",
     "reset:pretest": "node seeders/resetStudentProgress.js --mode reset-pretest --apply --confirm RESET-STUDENT-PROGRESS",
     "test:pretest": "node tests/pretest-api.test.js",
