@@ -15,7 +15,7 @@ services:
     # Di dalam jaringan Docker, backend memakai MongoDB lokal (service mongodb).
     # FRONTEND_URL = frontend Docker (port 5173), tujuan redirect callback Google.
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/project_assessment?replicaSet=rs0
+      - MONGO_URI=mongodb+srv://romadhonim1_db_user:cEaG3NBp2wKc99VF@cluster0.nn1euxs.mongodb.net/db_nolla_dev?retryWrites=true&w=majority
       - FRONTEND_URL=http://localhost:5173
 
     volumes:

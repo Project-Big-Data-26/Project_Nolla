@@ -1,28 +1,27 @@
 const User = require("../models/User");
-const Jenjang = require("../models/Jenjang");
-const mongoose = require("mongoose");
 const {
-  contextFromRequest,
-  recordServerEvents,
-} = require("../services/analyticsService");
-const recordPersonalizationSaved = (req, wasProfileComplete, properties) =>
-  recordServerEvents(contextFromRequest(req), [
-    {
-      name: "personalization_saved",
-      properties: {
-        ...properties,
-        entry_context: wasProfileComplete ? "profile" : "onboarding",
-      },
-    },
-  ]);
+  resolveJenjang,
+  recordPersonalizationSaved,
+} = require("../services/personalizationPreferences");
 
 const setPersonalization = async (req, res) => {
   try {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      return res.status(400).json({
+        statusCode: 400, status: "error", message: "Data personalisasi tidak valid",
+      });
+    }
     const { educationLevel: jenjangId, skipAllJenjang } = req.body;
+    if (skipAllJenjang !== undefined && typeof skipAllJenjang !== "boolean") {
+      return res.status(400).json({
+        statusCode: 400, status: "error", message: "skipAllJenjang harus berupa boolean",
+      });
+    }
     const userId = req.user.id;
     const previousUser = await User.findById(userId)
       .select("isProfileComplete")
       .lean();
+    const entryContext = previousUser?.isProfileComplete ? "profile" : "onboarding";
 
     if (skipAllJenjang) {
       const user = await User.findByIdAndUpdate(
@@ -44,9 +43,10 @@ const setPersonalization = async (req, res) => {
       }
 
       // Pilihan jenjang adalah preferensi, bukan bukti usia/kelas siswa.
-      await recordPersonalizationSaved(req, previousUser?.isProfileComplete, {
-        selected_jenjang: null,
-        all_jenjang: true,
+      await recordPersonalizationSaved(req, {
+        selectedJenjang: null,
+        allJenjang: true,
+        entryContext,
       });
 
       return res.status(200).json({
@@ -81,14 +81,7 @@ const setPersonalization = async (req, res) => {
       });
     }
 
-    let jenjang;
-    if (mongoose.Types.ObjectId.isValid(jenjangId)) {
-      jenjang = await Jenjang.findById(jenjangId);
-    }
-    if (!jenjang) {
-      // Nama jenjang berupa enum (SD/SMP/SMA): cocokkan eksak, bukan regex dari input.
-      jenjang = await Jenjang.findOne({ name: jenjangId.trim().toUpperCase() });
-    }
+    const jenjang = await resolveJenjang(jenjangId);
 
     if (!jenjang) {
       return res.status(400).json({
@@ -108,8 +101,6 @@ const setPersonalization = async (req, res) => {
       { new: true },
     );
 
-    // ... sisanya tetap sama
-
     if (!user) {
       return res.status(404).json({
         statusCode: 404,
@@ -118,9 +109,10 @@ const setPersonalization = async (req, res) => {
       });
     }
 
-    await recordPersonalizationSaved(req, previousUser?.isProfileComplete, {
-      selected_jenjang: jenjang.name,
-      all_jenjang: false,
+    await recordPersonalizationSaved(req, {
+      selectedJenjang: jenjang.name,
+      allJenjang: false,
+      entryContext,
     });
 
     return res.status(200).json({

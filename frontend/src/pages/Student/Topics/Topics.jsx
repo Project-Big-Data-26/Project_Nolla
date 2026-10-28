@@ -138,9 +138,24 @@ const Topics = () => {
   const [searchQuery, setSearchQuery] = useState(
     () => returnTopicState.searchQuery || "",
   );
-  const [selectedGrade, setSelectedGrade] = useState(
-    () => returnTopicState.selectedGrade || ALL_GRADES,
-  );
+  const [gradeChoice, setGradeChoice] = useState(() => ({
+    grade: returnTopicState.selectedGrade || ALL_GRADES,
+    revision: 0,
+  }));
+  const selectedGrade = gradeChoice.grade;
+  const gradeChoiceRef = useRef(gradeChoice);
+  const pendingGradeChangeRef = useRef(null);
+  const babRequestIdRef = useRef(0);
+  const [loadedBabRequest, setLoadedBabRequest] = useState(null);
+
+  const changeGrade = (grade) => {
+    const previous = gradeChoiceRef.current;
+    if (grade === previous.grade) return;
+    const choice = { grade, revision: previous.revision + 1 };
+    gradeChoiceRef.current = choice;
+    pendingGradeChangeRef.current = choice;
+    setGradeChoice(choice);
+  };
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterDropdownRef = useRef(null);
   const [classes, setClasses] = useState([]);
@@ -201,21 +216,29 @@ const Topics = () => {
   useEffect(() => {
     if (!classesLoaded) return undefined;
     let isCurrent = true;
+    const requestId = ++babRequestIdRef.current;
+    const isActive = () =>
+      isCurrent &&
+      requestId === babRequestIdRef.current &&
+      gradeChoice.revision === gradeChoiceRef.current.revision;
 
     const loadBab = async () => {
       setIsLoading(true);
       setLoadError("");
+      setLoadedBabRequest(null);
       try {
         const babList = await fetchBabList(classes, selectedGrade);
-        if (isCurrent) setChaptersData(babList);
+        if (!isActive()) return;
+        setChaptersData(babList);
+        setLoadedBabRequest({ ...gradeChoice, requestId });
       } catch (error) {
-        if (!isCurrent) return;
+        if (!isActive()) return;
         setLoadError(
           error.response?.data?.message || "Daftar BAB gagal dimuat.",
         );
         setChaptersData([]);
       } finally {
-        if (isCurrent) setIsLoading(false);
+        if (isActive()) setIsLoading(false);
       }
     };
 
@@ -223,7 +246,7 @@ const Topics = () => {
     return () => {
       isCurrent = false;
     };
-  }, [classes, classesLoaded, selectedGrade]);
+  }, [classes, classesLoaded, selectedGrade, gradeChoice]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -400,10 +423,19 @@ const Topics = () => {
     return () => window.clearTimeout(timer);
   }, [searchQuery, filteredChapters.length]);
 
-  const gradeTrackedRef = useRef(selectedGrade);
+  // Event menyatakan hasil filter yang sudah tampil, dengan request untuk aksi
+  // yang sama. Nomor revisi membedakan A→B→A dari hasil A yang lebih lama.
   useEffect(() => {
-    if (selectedGrade === gradeTrackedRef.current) return;
-    gradeTrackedRef.current = selectedGrade;
+    const pending = pendingGradeChangeRef.current;
+    if (
+      !pending ||
+      !loadedBabRequest ||
+      isLoading ||
+      pending.revision !== gradeChoice.revision ||
+      loadedBabRequest.revision !== pending.revision ||
+      loadedBabRequest.grade !== selectedGrade ||
+      loadedBabRequest.requestId !== babRequestIdRef.current
+    ) return;
     track("topic_filter_changed", {
       properties: {
         filter_name: "kelas",
@@ -411,7 +443,8 @@ const Topics = () => {
         result_count: filteredChapters.length,
       },
     });
-  }, [selectedGrade, filteredChapters.length]);
+    pendingGradeChangeRef.current = null;
+  }, [selectedGrade, gradeChoice.revision, loadedBabRequest, isLoading, filteredChapters.length]);
 
   const showPretestResult = async (chapter, pretestId) => {
     const response = await API.get(
@@ -498,7 +531,7 @@ const Topics = () => {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             selectedGrade={selectedGrade}
-            setSelectedGrade={setSelectedGrade}
+            setSelectedGrade={changeGrade}
             isFilterOpen={isFilterOpen}
             setIsFilterOpen={setIsFilterOpen}
             filterDropdownRef={filterDropdownRef}
@@ -526,7 +559,7 @@ const Topics = () => {
               <button
                 onClick={() => {
                   setSearchQuery("");
-                  setSelectedGrade(ALL_GRADES);
+                  changeGrade(ALL_GRADES);
                 }}
                 className="cursor-pointer rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-hover"
               >
