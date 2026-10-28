@@ -1,6 +1,10 @@
 const User = require("../models/User");
-const Jenjang = require("../models/Jenjang");
-const mongoose = require("mongoose");
+const {
+  resolveJenjang,
+  snapshotPreference,
+  preferenceChanged,
+  recordPersonalizationSaved,
+} = require("../services/personalizationPreferences");
 
 // GET PROFILE
 const getProfile = async (req, res) => {
@@ -38,7 +42,17 @@ const getProfile = async (req, res) => {
 // UPDATE PROFILE
 const updateProfile = async (req, res) => {
   try {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      return res.status(400).json({ message: "Data profil tidak valid" });
+    }
     const { name, jenjang_id, allJenjang, avatar } = req.body;
+    if (
+      (name !== undefined && typeof name !== "string") ||
+      (allJenjang !== undefined && typeof allJenjang !== "boolean") ||
+      (jenjang_id != null && typeof jenjang_id !== "string")
+    ) {
+      return res.status(400).json({ message: "Data profil tidak valid" });
+    }
 
     const user = await User.findById(req.user.id);
 
@@ -47,6 +61,9 @@ const updateProfile = async (req, res) => {
         message: "User tidak ditemukan",
       });
     }
+
+    const previousPreference = snapshotPreference(user);
+    let selectedJenjang = null;
 
     // Update nama
     if (name !== undefined) {
@@ -66,21 +83,7 @@ const updateProfile = async (req, res) => {
       user.allJenjang = true;
       user.jenjang_id = null;
     } else if (jenjang_id !== undefined && jenjang_id !== null) {
-      let jenjang;
-
-      // Bisa menerima ObjectId
-      if (mongoose.Types.ObjectId.isValid(jenjang_id)) {
-        jenjang = await Jenjang.findById(jenjang_id);
-      }
-
-      // Bisa juga menerima "SD", "SMP", atau "SMA"
-      if (!jenjang) {
-        jenjang = await Jenjang.findOne({
-          name: {
-            $regex: new RegExp(`^${jenjang_id}$`, "i"),
-          },
-        });
-      }
+      const jenjang = await resolveJenjang(jenjang_id);
 
       if (!jenjang) {
         return res.status(400).json({
@@ -90,6 +93,7 @@ const updateProfile = async (req, res) => {
 
       user.jenjang_id = jenjang._id;
       user.allJenjang = false;
+      selectedJenjang = jenjang.name;
     }
 
     // Update avatar
@@ -98,6 +102,14 @@ const updateProfile = async (req, res) => {
     }
 
     await user.save();
+
+    if (preferenceChanged(previousPreference, user)) {
+      await recordPersonalizationSaved(req, {
+        selectedJenjang,
+        allJenjang: user.allJenjang === true,
+        entryContext: "profile",
+      });
+    }
 
     // Supaya response PATCH sama dengan GET
     await user.populate("jenjang_id");
