@@ -108,7 +108,7 @@ export default function PersonalizationWizard() {
         toast.success(result.message);
 
         setTimeout(() => {
-          navigate("/");
+          navigate("/topik");
         }, 1200);
       } else {
         toast.error(result.message || "Gagal menyimpan personalisasi.");

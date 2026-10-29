@@ -707,10 +707,10 @@ const LandingPage = () => {
 
             <div className="text-center p-2 border-t md:border-t-0 border-l border-slate-100 group cursor-default">
               <span className="block text-2xl sm:text-3xl font-black text-[#2b3fd6] mb-1 group-hover:scale-105 transition-transform">
-                Soal Adaptif
+                Ragam Soal
               </span>
               <span className="text-xs sm:text-sm font-medium text-[#5b6088]">
-                Tiap sesi baru selalu segar
+                Tiap sesi baru selalu berbeda
               </span>
             </div>
           </div>
@@ -863,11 +863,12 @@ const LandingPage = () => {
                   3️⃣
                 </div>
                 <h3 className="text-xl font-bold text-[#1b1f3b] mb-3 group-hover:text-emerald-600 transition-colors">
-                  Naik level &amp; pantau
+                  Tingkatkan Level Belajar
                 </h3>
                 <p className="text-sm text-[#5b6088] leading-relaxed">
-                  Dapatkan XP harian, pertahankan streak latihan, buka badge
-                  kehormatan, dan lihat grafik perkembangan kemampuanmu.
+                  Kumpulkan poin untuk membuka level kesulitan soal yang lebih
+                  tinggi, sekaligus pantau perkembangan kemampuan dan hasil
+                  belajarmu.
                 </p>
               </div>
             </FadeInSection>
@@ -1030,8 +1031,8 @@ const LandingPage = () => {
             </p>
           </FadeInSection>
 
-          {/* 4 Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* 3 Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <FadeInSection delay={0}>
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
                 <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
@@ -1062,22 +1063,10 @@ const LandingPage = () => {
               </div>
             </FadeInSection>
 
-            <FadeInSection delay={200}>
-              <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
-                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
-                  🏆
-                </div>
-                <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">
-                  Gamifikasi
-                </h3>
-                <p className="text-xs sm:text-sm text-[#5b6088] leading-relaxed">
-                  Level, streak harian, dan badge prestasi yang membangkitkan
-                  rasa percaya diri belajar.
-                </p>
-              </div>
-            </FadeInSection>
-
-            <FadeInSection delay={300}>
+            <FadeInSection
+              delay={200}
+              className="sm:col-span-2 sm:justify-self-center sm:w-[calc((100%-1.5rem)/2)] lg:col-span-1 lg:w-full"
+            >
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
                 <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
                   🧠

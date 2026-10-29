@@ -167,7 +167,7 @@ describe("Topics", () => {
 
     it("search menyaring bab yang cocok dan otomatis menampilkan subbabnya", async () => {
         await renderLoaded();
-        fireEvent.change(screen.getByPlaceholderText(/search bab/i), {
+        fireEvent.change(screen.getByPlaceholderText(/Cari bab atau topik pembelajaran/i), {
             target: { value: "Bangun" },
         });
 
@@ -179,7 +179,7 @@ describe("Topics", () => {
 
     it("search tanpa hasil menampilkan pesan kosong dan tombol reset mengembalikan tampilan", async () => {
         await renderLoaded();
-        fireEvent.change(screen.getByPlaceholderText(/search bab/i), {
+        fireEvent.change(screen.getByPlaceholderText(/Cari bab atau topik pembelajaran/i), {
             target: { value: "zzzxxx" },
         });
 

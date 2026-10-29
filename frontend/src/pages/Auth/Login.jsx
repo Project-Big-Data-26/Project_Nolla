@@ -104,7 +104,7 @@ const Login = () => {
     <AuthCard
       topAction={(
         <Link
-          to="/nolla"
+          to="/"
           className="inline-flex items-center gap-2 rounded-lg border border-neutral-border bg-neutral-card px-3 py-2 text-xs font-semibold text-neutral-muted shadow-sm transition-colors hover:border-primary hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" />
