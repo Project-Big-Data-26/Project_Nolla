@@ -139,16 +139,7 @@ const Register = () => {
             <GoogleAuthButton
               label="Daftar dengan Google"
               onClick={() => {
-                // ✅ BENAR (Menggunakan relative path berawalan /):
-window.location.href = '/api/auth/google';
-
-// ATAU jika ingin dinamis dengan env:
-const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
-const cleanBaseURL = baseURL.startsWith('http') || baseURL.startsWith('/') 
-  ? baseURL 
-  : `/${baseURL}`;
-
-window.location.href = `${cleanBaseURL}/auth/google`;
+                window.location.href = `${API_BASE_URL}/auth/google`;
               }}
             />
           </div>
