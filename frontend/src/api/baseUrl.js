@@ -2,6 +2,10 @@
 // Menerima "localhost:5000", "http://host:5000", atau "http://host:5000/api".
 export const normalizeApiBaseUrl = (value) => {
   const raw = String(value || "http://localhost:5000/api").trim();
+  if (raw.startsWith("/")) {
+    const path = raw.replace(/\/+$/, "");
+    return path.endsWith("/api") ? path : `${path}/api`;
+  }
   const withScheme = /^https?:\/\//i.test(raw) ? raw : `http://${raw}`;
   const trimmed = withScheme.replace(/\/+$/, "");
   return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
