@@ -33,8 +33,9 @@ import Settings from "../pages/Student/Settings"; // Ditambahkan kembali Setting
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public / Landing Route */}
-      <Route path="/nolla" element={<LandingPage />} />
+      {/* Public landing page at the site root. Keep /nolla as a legacy alias. */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/nolla" element={<Navigate to="/" replace />} />
 
       {/* ========================================
           AUTH ROUTES
@@ -58,7 +59,6 @@ const AppRoutes = () => {
       ======================================== */}
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Topics />} />
         <Route path="/personalization" element={<PersonalizationWizard />} />
         <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
         <Route path="/topik" element={<Topics />} />

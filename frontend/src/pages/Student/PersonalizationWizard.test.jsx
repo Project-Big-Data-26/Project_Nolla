@@ -114,7 +114,7 @@ describe("PersonalizationWizard", () => {
         expect(JSON.parse(options.body)).toEqual({ educationLevel: "sd" });
 
         await waitFor(() => expect(mockedToast.success).toHaveBeenCalled());
-        await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith("/"), {
+        await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith("/topik"), {
             timeout: 2000,
         });
     });

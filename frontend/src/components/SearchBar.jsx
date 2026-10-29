@@ -23,7 +23,7 @@ const Searchbar = ({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search bab atau topik pembelajaran..."
+          placeholder="Cari bab atau topik pembelajaran..."
           className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
         />
         {searchQuery && (
@@ -67,8 +67,10 @@ const Searchbar = ({
 
             <div className="space-y-1">
               {filterOptions.map((option) => {
-                const value = typeof option === "string" ? option : option.value;
-                const label = typeof option === "string" ? option : option.label;
+                const value =
+                  typeof option === "string" ? option : option.value;
+                const label =
+                  typeof option === "string" ? option : option.label;
                 const isSelected = selectedGrade === value;
                 return (
                   <button
@@ -84,7 +86,8 @@ const Searchbar = ({
                     }`}
                   >
                     <span>
-                      {value === filterDefaultValue && filterTitle === "Filter Berdasarkan Kelas"
+                      {value === filterDefaultValue &&
+                      filterTitle === "Filter Berdasarkan Kelas"
                         ? `${label} (Default)`
                         : label}
                     </span>

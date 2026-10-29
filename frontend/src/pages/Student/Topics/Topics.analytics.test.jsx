@@ -42,7 +42,7 @@ const renderLoaded = async ({ strict = false } = {}) => {
   const tree = <MemoryRouter><Topics /></MemoryRouter>;
   const view = render(strict ? <StrictMode>{tree}</StrictMode> : tree);
   await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(5));
-  fireEvent.change(screen.getByPlaceholderText(/search bab/i), { target: { value: "Peluang" } });
+  fireEvent.change(screen.getByPlaceholderText(/Cari bab atau topik pembelajaran/i), { target: { value: "Peluang" } });
   return view;
 };
 
@@ -190,7 +190,7 @@ describe("event analytics filter kelas", () => {
         ? pending.promise : defaultGet(path, config)
     ));
     selectGrade("Kelas 12");
-    fireEvent.change(screen.getByPlaceholderText(/search bab/i), { target: { value: "Analisis" } });
+    fireEvent.change(screen.getByPlaceholderText(/Cari bab atau topik pembelajaran/i), { target: { value: "Analisis" } });
     await act(async () => pending.resolve(response(babByKelas[12])));
     await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(1));
     await expectFilterEvents([{ filter_name: "kelas", filter_value: "kelas_12", result_count: 1 }]);
