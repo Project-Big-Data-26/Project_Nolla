@@ -170,12 +170,13 @@ const getBab = async (req, res) => {
       bab_id: { $in: babIds },
       completed_at: { $ne: null },
     })
-      .select("_id bab_id completed_at")
+      .select("_id bab_id completed_at score")
       .lean();
 
-    const completedPretestBabIds = new Set(
-      pretestList.map((pretest) => pretest.bab_id.toString()),
+    const completedPretestByBabId = new Map(
+      pretestList.map((pretest) => [pretest.bab_id.toString(), pretest]),
     );
+    const completedPretestBabIds = new Set(completedPretestByBabId.keys());
 
     // =========================================================
     // 8. FILTER SUBBAB YANG SUDAH TERBUKA
@@ -247,6 +248,7 @@ const getBab = async (req, res) => {
           description: bab.description,
           display_order: bab.display_order,
           has_pretest: false,
+          pretest_score: null,
           progress: 0,
           total_subbab: babSubbab.length,
           completed_subbab: 0,
@@ -275,6 +277,11 @@ const getBab = async (req, res) => {
           quizzedSubbabIds.has(subbab._id.toString()),
         ),
       ).length;
+      const storedPretestScore = completedPretestByBabId.get(babId)?.score;
+      const pretestScore =
+        storedPretestScore == null
+          ? null
+          : Number(storedPretestScore.toString());
 
       return {
         id: bab._id,
@@ -282,6 +289,7 @@ const getBab = async (req, res) => {
         description: bab.description,
         display_order: bab.display_order,
         has_pretest: true,
+        pretest_score: Number.isFinite(pretestScore) ? pretestScore : null,
         progress,
         total_subbab: totalSubbab,
         started_subbab: startedCount,

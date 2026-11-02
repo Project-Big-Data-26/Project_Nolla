@@ -148,7 +148,9 @@ const ChapterCard = ({
                 </h4>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                  Selesai • Skor: {chapter.pretestResult?.score || 85}
+                  Selesai • Skor: {chapter.pretest_score == null
+                    ? "—"
+                    : Math.trunc(chapter.pretest_score)}
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed">
