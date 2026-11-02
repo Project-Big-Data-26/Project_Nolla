@@ -1,16 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Plus,
-  Minus,
-  Menu,
-  X,
-  Check,
-  MapPin,
-  Phone,
-  Mail,
-  ArrowRight,
-} from "lucide-react";
+import { Plus, Minus, Menu, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import sdIcon from "../../assets/icon/SD.png";
 import smpIcon from "../../assets/icon/SMP.png";
@@ -20,6 +10,7 @@ import siswaHero from "../../assets/siswa_hero.png";
 import siswaMenunjuk from "../../assets/siswa_menunjuk.png";
 import siswaSd from "../../assets/siswa_sd.png";
 import nollaMain from "../../assets/nolla_main.png";
+import whiteOrangeLogo from "../../assets/white_orange.png";
 import mathLightbulb from "../../assets/komponenTambahan2.png";
 import mathGeometry from "../../assets/komponenTambahan3.png";
 import mathPi from "../../assets/komponenTambahan4.png";
@@ -91,6 +82,23 @@ const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Landing page tidak memakai scroll horizontal; reset bila viewport berubah.
+  useEffect(() => {
+    const resetHorizontalScroll = () => {
+      if (window.scrollX !== 0) {
+        window.scrollTo({
+          left: 0,
+          top: window.scrollY,
+          behavior: "instant",
+        });
+      }
+    };
+
+    resetHorizontalScroll();
+    window.addEventListener("resize", resetHorizontalScroll);
+    return () => window.removeEventListener("resize", resetHorizontalScroll);
+  }, []);
+
   // Mencegah scroll background saat mobile drawer navbar terbuka
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -117,19 +125,6 @@ const LandingPage = () => {
 
   // Scroll Progress and Navbar background state
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [newsletterStatus, setNewsletterStatus] = useState(null);
-
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    if (newsletterEmail.trim()) {
-      setNewsletterStatus("success");
-      setNewsletterEmail("");
-      setTimeout(() => {
-        setNewsletterStatus(null);
-      }, 4000);
-    }
-  };
 
   // Scroll effect detection for navbar background blur & scroll progress bar
   useEffect(() => {
@@ -309,7 +304,7 @@ const LandingPage = () => {
     },
     {
       q: "Bagaimana tingkat kesulitan soal ditentukan?",
-      a: "Kami menggunakan klasifikasi Natural Language Processing (IndoBERT), validasi LLM mutakhir, dan kalibrasi Item Response Theory (IRT). Saat Anda sering menjawab benar, sistem menaikkan tantangan secara bertahap; jika Anda kesulitan, sistem memberikan latihan scaffolding yang pas.",
+      a: "Kami menggunakan klasifikasi Natural Language Processing, validasi LLM mutakhir, dan kalibrasi Item Response Theory (IRT). Saat Anda sering menjawab benar, sistem menaikkan tantangan secara bertahap; jika Anda kesulitan, sistem memberikan latihan scaffolding yang pas.",
     },
     {
       q: "Cocok untuk jenjang dan tingkatan kelas berapa saja?",
@@ -318,7 +313,7 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-[#1b1f3b] font-['Poppins',sans-serif] antialiased selection:bg-[#ff8a1f]/20 selection:text-[#ff8a1f]">
+    <div className="min-h-screen overflow-x-clip bg-white text-[#1b1f3b] font-['Poppins',sans-serif] antialiased selection:bg-[#ff8a1f]/20 selection:text-[#ff8a1f]">
       {/* -------------------- TOP SCROLL PROGRESS BAR -------------------- */}
       <div className="fixed top-0 left-0 w-full h-[3.5px] z-[100] bg-transparent pointer-events-none">
         <div
@@ -355,7 +350,7 @@ const LandingPage = () => {
           </button>
 
           {/* Desktop Navigation Links */}
-          <ul className="hidden md:flex items-center gap-6 lg:gap-8 text-[0.925rem] font-bold text-slate-700">
+          <ul className="hidden lg:flex items-center gap-6 xl:gap-8 text-[0.925rem] font-bold text-slate-700">
             <li>
               <a
                 href="#masalah"
@@ -404,7 +399,7 @@ const LandingPage = () => {
           </ul>
 
           {/* Right Action CTA Buttons */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             {isAuthenticated ? (
               <button
                 onClick={() => navigate("/topik")}
@@ -436,7 +431,7 @@ const LandingPage = () => {
           {/* Mobile Menu Toggle Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label="Buka navigasi menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -447,7 +442,7 @@ const LandingPage = () => {
       {/* -------------------- MOBILE DRAWER SIDEBAR & BACKDROP -------------------- */}
       {/* Backdrop di sisi kanan: klik area bukan putih untuk menutup sidebar */}
       <div
-        className={`fixed inset-0 bg-slate-950/60 z-[90] transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 bg-slate-950/60 z-[90] transition-opacity duration-300 lg:hidden ${
           mobileMenuOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -458,7 +453,7 @@ const LandingPage = () => {
 
       {/* Panel Drawer dari samping kiri - Sesuai referensi Nurul Fikri */}
       <div
-        className={`fixed top-0 bottom-0 left-0 w-[76%] max-w-[300px] h-full bg-white z-[100] shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-out md:hidden ${
+        className={`fixed top-0 bottom-0 left-0 w-[min(82%,320px)] h-full bg-white z-[100] shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-out lg:hidden ${
           mobileMenuOpen
             ? "translate-x-0"
             : "-translate-x-full pointer-events-none"
@@ -596,10 +591,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start lg:items-center">
             {/* Left Hero Content - rapi di mobile tanpa minus translate yang menabrak navbar */}
-            <div className="translate-y-0 lg:-translate-y-8 lg:col-span-7 space-y-3 sm:space-y-3.5 text-center lg:text-left pt-3 sm:pt-5 lg:pt-0 pb-4 sm:pb-6 lg:pb-10 relative z-20">
+            <div className="translate-y-0 lg:translate-y-0 2xl:-translate-y-8 lg:col-span-6 2xl:col-span-7 space-y-3 sm:space-y-3.5 text-center lg:text-left pt-3 sm:pt-5 lg:pt-0 pb-4 sm:pb-6 lg:pb-16 2xl:pb-10 relative z-20">
               {/* Main Headline Container with Piala hovering right above headline */}
               <div className="relative inline-block max-w-lg mx-auto lg:mx-0">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.35rem] xl:text-[2.75rem] font-semibold leading-[1.25] tracking-tight text-white drop-shadow-md pr-0 sm:pr-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.75rem] font-semibold leading-[1.25] tracking-tight text-white drop-shadow-md pr-0 sm:pr-4">
                   Tingkatkan{" "}
                   <span className="bg-gradient-to-r from-white via-[#ff8a1f] to-white bg-clip-text text-transparent animate-shimmer">
                     Nilai Matematika
@@ -615,7 +610,7 @@ const LandingPage = () => {
                     right: "20px",
                     transform: `translate3d(${heroParallax.x * 0.3}px, ${heroParallax.y * 0.3}px, 0)`,
                   }}
-                  className="hidden sm:block absolute sm:w-16 lg:w-20 h-auto drop-shadow-[0_12px_24px_rgba(0,0,0,0.4)] animate-float-slow select-none pointer-events-none z-30 transition-transform duration-200 ease-out"
+                  className="hidden 2xl:block absolute sm:w-16 lg:w-20 h-auto drop-shadow-[0_12px_24px_rgba(0,0,0,0.4)] animate-float-slow select-none pointer-events-none z-30 transition-transform duration-200 ease-out"
                 />
               </div>
 
@@ -651,14 +646,14 @@ const LandingPage = () => {
             </div>
 
             {/* Right Side: Students Photo (Centered di mobile, dipertahankan posisi desktop) */}
-            <div className="lg:col-span-5 flex items-end justify-center lg:justify-end self-end h-full relative z-10 pointer-events-none">
+            <div className="lg:col-span-6 2xl:col-span-5 flex items-end justify-center lg:justify-center 2xl:justify-end self-end relative z-10 pointer-events-none">
               <img
                 src={siswaHero}
                 alt="Siswa Siswi SD, SMP, SMA Nolla"
                 style={{
                   transform: `translate3d(${-heroParallax.x * 0.4}px, ${-heroParallax.y * 0.4}px, 0)`,
                 }}
-                className="translate-x-0 lg:translate-x-11 mx-auto w-auto h-[320px] xs:h-[360px] sm:h-[430px] md:h-[460px] lg:h-[480px] xl:h-[530px] 2xl:h-[580px] max-w-full lg:max-w-none object-contain object-bottom align-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.5)] select-none pointer-events-none block -mb-0.5 transition-transform duration-200 ease-out"
+                className="mx-auto block h-auto w-full max-w-[32rem] object-contain object-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,0.5)] select-none pointer-events-none transition-transform duration-200 ease-out lg:mx-0 lg:h-[360px] lg:w-full lg:max-w-[30rem] lg:translate-x-0 xl:h-[420px] xl:w-auto xl:max-w-none xl:translate-x-0 2xl:h-[580px] 2xl:translate-x-11"
               />
             </div>
           </div>
@@ -675,7 +670,7 @@ const LandingPage = () => {
       </header>
 
       {/* -------------------- STATS BAR -------------------- */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-10 sm:-mt-12 relative z-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 sm:-mt-12 relative z-20">
         <FadeInSection variant="scale-up">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/95 backdrop-blur-sm rounded-2xl p-5 sm:p-7 shadow-xl shadow-slate-200/70 border border-[#e3e6f8] hover:shadow-2xl transition-all duration-300">
             <div className="text-center p-2 group cursor-default">
@@ -707,10 +702,10 @@ const LandingPage = () => {
 
             <div className="text-center p-2 border-t md:border-t-0 border-l border-slate-100 group cursor-default">
               <span className="block text-2xl sm:text-3xl font-black text-[#2b3fd6] mb-1 group-hover:scale-105 transition-transform">
-                Ragam Soal
+                Variatif
               </span>
               <span className="text-xs sm:text-sm font-medium text-[#5b6088]">
-                Tiap sesi baru selalu berbeda
+                Soal berbeda setiap sesi
               </span>
             </div>
           </div>
@@ -742,7 +737,7 @@ const LandingPage = () => {
             </p>
           </FadeInSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 text-center">
             <FadeInSection delay={0}>
               <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-amber-300/70 hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center text-center cursor-default h-full">
                 <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
@@ -773,7 +768,10 @@ const LandingPage = () => {
               </div>
             </FadeInSection>
 
-            <FadeInSection delay={240}>
+            <FadeInSection
+              delay={240}
+              className="sm:col-span-2 sm:mx-auto sm:w-[calc((100%-2rem)/2)] lg:col-span-1 lg:mx-0 lg:w-full"
+            >
               <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-emerald-300/70 hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center text-center cursor-default h-full">
                 <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
                   🎯
@@ -822,7 +820,7 @@ const LandingPage = () => {
             </p>
           </FadeInSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 text-center relative">
             <FadeInSection delay={0}>
               <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center group cursor-default h-full">
                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#2b3fd6]/0 to-transparent group-hover:via-[#2b3fd6] transition-all duration-500" />
@@ -856,7 +854,10 @@ const LandingPage = () => {
               </div>
             </FadeInSection>
 
-            <FadeInSection delay={240}>
+            <FadeInSection
+              delay={240}
+              className="sm:col-span-2 sm:mx-auto sm:w-[calc((100%-2rem)/2)] lg:col-span-1 lg:mx-0 lg:w-full"
+            >
               <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-emerald-500/40 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center group cursor-default h-full">
                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-500/0 to-transparent group-hover:via-emerald-500 transition-all duration-500" />
                 <div className="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center font-black text-xl mb-6 group-hover:scale-110 transition-transform">
@@ -902,7 +903,7 @@ const LandingPage = () => {
             </p>
           </FadeInSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 text-center">
             {/* SD */}
             <FadeInSection delay={0} variant="scale-up">
               <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-2xl hover:border-amber-400/50 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between items-center text-center group cursor-default h-full">
@@ -968,7 +969,11 @@ const LandingPage = () => {
             </FadeInSection>
 
             {/* SMA */}
-            <FadeInSection delay={240} variant="scale-up">
+            <FadeInSection
+              delay={240}
+              variant="scale-up"
+              className="sm:col-span-2 sm:mx-auto sm:w-[calc((100%-1.5rem)/2)] lg:col-span-1 lg:mx-0 lg:w-full"
+            >
               <div className="bg-white rounded-3xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-2xl hover:border-indigo-400/50 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between items-center text-center group cursor-default h-full">
                 <div className="flex flex-col items-center">
                   <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center overflow-hidden p-2 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300 mx-auto mb-5 shadow-xs">
@@ -1075,8 +1080,8 @@ const LandingPage = () => {
                   Soal tervalidasi AI
                 </h3>
                 <p className="text-xs sm:text-sm text-[#5b6088] leading-relaxed">
-                  Diklasifikasi IndoBERT, diverifikasi LLM, dan dikalibrasi
-                  akurat dengan Item Response Theory (IRT).
+                  Diproses dengan AI untuk memastikan kualitas soal dan
+                  dikalibrasi menggunakan Item Response Theory (IRT).
                 </p>
               </div>
             </FadeInSection>
@@ -1235,9 +1240,9 @@ const LandingPage = () => {
                         <button
                           type="button"
                           onClick={() => toggleFaq(index)}
-                          className="w-full py-5 px-6 text-left flex items-center justify-between gap-4 font-bold text-base text-white transition-colors cursor-pointer select-none"
+                          className="flex w-full min-w-0 items-center justify-between gap-3 px-4 py-4 text-left text-sm font-bold text-white transition-colors cursor-pointer select-none sm:gap-4 sm:px-6 sm:py-5 sm:text-base"
                         >
-                          <span className="leading-snug drop-shadow-xs">
+                          <span className="min-w-0 flex-1 break-words leading-snug drop-shadow-xs">
                             {item.q}
                           </span>
                           <div
@@ -1293,7 +1298,7 @@ const LandingPage = () => {
       {/* -------------------- SECTION 7: CTA SECTION -------------------- */}
       <section
         id="cta"
-        className="relative py-16 sm:py-20 lg:py-20 bg-gradient-to-r from-[#ff8a1f] to-[#ff5d5d] text-white overflow-visible"
+        className="relative overflow-x-clip py-16 sm:py-20 lg:py-20 bg-gradient-to-r from-[#ff8a1f] to-[#ff5d5d] text-white"
       >
         {/* Ambient Pulsing Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-amber-400/25 blur-3xl rounded-full pointer-events-none animate-pulse-glow" />
@@ -1363,226 +1368,151 @@ const LandingPage = () => {
       </section>
 
       {/* -------------------- FOOTER -------------------- */}
-      <footer className="bg-[#0b1739] text-slate-300 pt-10 sm:pt-14 pb-0 text-sm border-t border-[#1e2e5c]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Grid Layout: 2 Kolom di Mobile, 5 Kolom di Desktop */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-x-6 sm:gap-x-8 gap-y-8 lg:gap-8 mb-10">
-            {/* Col 1: Brand & Socials (Full width 2 kolom di mobile, 1 kolom di desktop) */}
+      <footer className="bg-[#1b1f3b] text-white/80 pt-10 sm:pt-14 pb-0 text-sm border-t border-[#2b3fd6]/40">
+        <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10">
+          {/* Mobile memakai dua kolom konten; desktop memisahkan brand dari kelompok tautan. */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 mb-10 sm:gap-x-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-8 lg:gap-y-0">
+            {/* Brand NOLLA */}
             <div className="col-span-2 lg:col-span-1">
               <button
                 type="button"
                 onClick={scrollToTop}
-                className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-sm mb-4 cursor-pointer hover:opacity-90 transition-opacity border-0"
+                className="inline-flex items-center gap-2 mb-4 cursor-pointer hover:opacity-80 transition-opacity border-0 bg-transparent p-0"
                 title="Kembali ke atas"
               >
                 <img
-                  src={nollaMain}
+                  src={whiteOrangeLogo}
                   alt=""
                   aria-hidden="true"
                   className="h-7 w-auto object-contain"
                 />
-                <span className="font-heading text-lg font-semibold translate-y-0.5 text-[#1b1f3b]">
+                <span className="font-heading text-lg font-semibold translate-y-0.5 text-white">
                   NOLLA
                 </span>
               </button>
-              <p className="text-slate-400 text-xs leading-relaxed mb-5 max-w-sm lg:max-w-xs">
+              <p className="text-white/75 text-xs leading-relaxed mb-5 max-w-sm lg:max-w-xs">
                 Skill drill matematika adaptif untuk siswa SD–SMA. Melatih
                 intuisi dan keterampilan berhitung secara bertahap dan
                 menyenangkan.
               </p>
-              {/* Authentic App Icons for Instagram, TikTok, YouTube */}
-              <div className="flex items-center gap-2.5">
-                {/* Instagram */}
-                <a
-                  href="https://www.instagram.com/celestiall24?"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                  title="Instagram Nolla"
-                  className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-pink-500 hover:bg-gradient-to-tr hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 shadow-sm transition-all duration-300 group cursor-pointer"
-                >
-                  <svg
-                    className="w-4 h-4 fill-current transition-transform group-hover:scale-110"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                  </svg>
-                </a>
+            </div>
 
-                {/* TikTok */}
-                <a
-                  href="https://www.tiktok.com/@celestiall.24?"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="TikTok"
-                  title="TikTok Nolla"
-                  className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-cyan-400 hover:bg-[#000000] shadow-sm transition-all duration-300 group cursor-pointer"
-                >
-                  <svg
-                    className="w-4 h-4 fill-current transition-transform group-hover:scale-110"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.76 1.42-.03 2.67-.97 3.03-2.34.19-.61.24-1.25.24-1.89l.01-17.43z" />
-                  </svg>
-                </a>
+            <div className="col-span-2 grid grid-cols-2 gap-x-6 gap-y-8 sm:gap-x-8 lg:col-span-1 lg:w-[42rem] lg:grid-cols-3 lg:gap-x-8 lg:gap-y-0 lg:justify-self-end">
+              {/* Baris 1 di Mobile: Quick Links (Kiri) */}
+              <div className="col-span-1 min-w-0">
+                <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
+                  QUICK LINKS
+                </h4>
+                <ul className="space-y-2 text-xs text-white/75">
+                  <li>
+                    <a
+                      href="#masalah"
+                      onClick={(e) => scrollToSection(e, "masalah")}
+                      className="hover:text-[#ff8a1f] transition-colors cursor-pointer"
+                    >
+                      Kenapa Nolla
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#cara"
+                      onClick={(e) => scrollToSection(e, "cara")}
+                      className="hover:text-[#ff8a1f] transition-colors cursor-pointer"
+                    >
+                      Cara Kerja
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#jenjang"
+                      onClick={(e) => scrollToSection(e, "jenjang")}
+                      className="hover:text-[#ff8a1f] transition-colors cursor-pointer"
+                    >
+                      Jenjang SD–SMA
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#faq"
+                      onClick={(e) => scrollToSection(e, "faq")}
+                      className="hover:text-[#ff8a1f] transition-colors cursor-pointer"
+                    >
+                      FAQ
+                    </a>
+                  </li>
+                </ul>
+              </div>
 
-                {/* YouTube */}
-                <a
-                  href="https://www.youtube.com/@FakultasTeknikUM"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="YouTube"
-                  title="YouTube Nolla"
-                  className="w-9 h-9 rounded-full border border-slate-600/70 bg-white/5 flex items-center justify-center text-slate-300 hover:text-white hover:border-red-500 hover:bg-[#ff0000] shadow-sm transition-all duration-300 group cursor-pointer"
-                >
-                  <svg
-                    className="w-4 h-4 fill-current transition-transform group-hover:scale-110"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                  </svg>
-                </a>
+              {/* Baris 1 di Mobile: Resources (Kanan) */}
+              <div className="col-span-1 min-w-0">
+                <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
+                  RESOURCES
+                </h4>
+                <ul className="space-y-2 text-xs text-white/75">
+                  <li>
+                    <a
+                      href="https://buku.kemendikdasmen.go.id/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-[#ff8a1f] transition-colors"
+                    >
+                      SIBI (Sistem Informasi Perbukuan Indonesia)
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Social media */}
+              <div className="col-span-2 min-w-0 text-center lg:col-span-1 lg:text-left">
+                <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
+                  SOCIAL MEDIA
+                </h4>
+                <ul className="flex flex-row flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-white/75 lg:flex-col lg:items-start lg:gap-3">
+                  <li>
+                    <a
+                      href="https://www.instagram.com/nolla.academy/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Instagram NOLLA"
+                      className="inline-flex items-center gap-2 hover:text-[#ff8a1f] transition-colors"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        className="h-4 w-4 shrink-0 fill-current"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                      </svg>
+                      <span>@nolla.academy</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.tiktok.com/@nolla.academy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="TikTok NOLLA"
+                      className="inline-flex items-center gap-2 hover:text-[#ff8a1f] transition-colors"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        className="h-4 w-4 shrink-0 fill-current"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.76 1.42-.03 2.67-.97 3.03-2.34.19-.61.24-1.25.24-1.89l.01-17.43z" />
+                      </svg>
+                      <span>@nolla.academy</span>
+                    </a>
+                  </li>
+                </ul>
               </div>
             </div>
-
-            {/* Baris 1 di Mobile: Quick Links (Kiri) */}
-            <div className="col-span-1">
-              <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
-                QUICK LINKS
-              </h4>
-              <ul className="space-y-2 text-xs text-slate-400">
-                <li>
-                  <a
-                    href="#masalah"
-                    onClick={(e) => scrollToSection(e, "masalah")}
-                    className="hover:text-white transition-colors cursor-pointer"
-                  >
-                    Kenapa Nolla
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#cara"
-                    onClick={(e) => scrollToSection(e, "cara")}
-                    className="hover:text-white transition-colors cursor-pointer"
-                  >
-                    Cara Kerja
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#jenjang"
-                    onClick={(e) => scrollToSection(e, "jenjang")}
-                    className="hover:text-white transition-colors cursor-pointer"
-                  >
-                    Jenjang SD–SMA
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#faq"
-                    onClick={(e) => scrollToSection(e, "faq")}
-                    className="hover:text-[#0284c7] transition-colors cursor-pointer"
-                  >
-                    FAQ
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Baris 1 di Mobile: Resources (Kanan) */}
-            <div className="col-span-1">
-              <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
-                RESOURCES
-              </h4>
-              <ul className="space-y-2 text-xs text-slate-400">
-                <li>
-                  <a
-                    href="https://buku.kemendikdasmen.go.id/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-white transition-colors"
-                  >
-                    SIBI (Sistem Informasi Perbukuan Indonesia)
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Baris 2 di Mobile: Contact Us (Kiri) */}
-            <div className="col-span-1">
-              <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
-                CONTACT US
-              </h4>
-              <ul className="space-y-2.5 text-xs text-slate-400">
-                <li className="flex items-start gap-2">
-                  <MapPin
-                    size={15}
-                    className="text-[#ff8a1f] shrink-0 mt-0.5"
-                  />
-                  <span className="leading-relaxed">
-                    Jalan Semarang No. 5, Sumbersari, Kecamatan Lowokwaru, Kota
-                    Malang, Jawa Timur 65145
-                    <br />
-                  </span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Phone size={15} className="text-[#ff8a1f] shrink-0" />
-                  <a
-                    href="tel:+15551234567"
-                    className="hover:text-white transition-colors truncate"
-                  >
-                    (0341) 551312
-                  </a>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Mail size={15} className="text-[#ff8a1f] shrink-0" />
-                  <a
-                    href="mailto:info@brightfuture.edu"
-                    className="hover:text-white transition-colors break-all"
-                  >
-                    qa.nolla.akun01@gmail.com
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Baris 2 di Mobile: Newsletter (Kanan) */}
-            <div className="col-span-1">
-              <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
-                NEWSLETTER
-              </h4>
-              <p className="text-xs text-slate-400 mb-3 leading-relaxed">
-                Dapatkan informasi terkini mengenai berita dan acara kami.
-              </p>
-              {/* <form onSubmit={handleNewsletterSubmit} className="flex items-center w-full rounded-md overflow-hidden bg-white shadow-md">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="w-full bg-white text-slate-800 text-xs px-3 py-2.5 outline-none placeholder:text-slate-400 min-w-0"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="bg-[#ff8a1f] hover:bg-[#ff7605] active:bg-[#e06800] text-white px-3 py-2.5 flex items-center justify-center shrink-0 transition-colors cursor-pointer"
-                  title="Kirim"
-                  aria-label="Subscribe Newsletter"
-                >
-                  <ArrowRight size={16} className="stroke-[2.5]" />
-                </button>
-              </form> */}
-              {newsletterStatus === "success" && (
-                <p className="text-[11px] text-emerald-400 mt-2 font-medium animate-in fade-in">
-                  ✓ Terima kasih sudah berlangganan!
-                </p>
-              )}
-            </div>
           </div>
+        </div>
 
-          <div className="border-t border-[#1e2e5c] py-3 text-center text-xs text-slate-400/80 leading-tight">
-            © 2026 NOLLA. Proyek Big Data 2026. Hak cipta dilindungi.
+        <div className="border-t border-white/20">
+          <div className="mx-auto w-full max-w-7xl px-5 py-3 text-center text-xs leading-tight text-white/70 sm:px-8 lg:px-10">
+            © 2026 NOLLA. Hak cipta dilindungi.
           </div>
         </div>
       </footer>
