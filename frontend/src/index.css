@@ -34,10 +34,13 @@
 
 /* Reset Dasar agar Tampilan Full Width & Rapi */
 html {
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 
 body {
+  width: 100%;
+  overflow-x: clip;
   margin: 0;
   padding: 0;
   background-color: var(--color-neutral-bg);
@@ -47,6 +50,8 @@ body {
 }
 
 #root {
+  width: 100%;
+  overflow-x: clip;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

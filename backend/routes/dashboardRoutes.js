@@ -182,7 +182,7 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                   type: array
  *                   items:
  *                     type: object
- *                     required: [id, name, description, display_order, has_pretest, progress, total_subbab, completed_subbab, subbab]
+ *                     required: [id, name, description, display_order, has_pretest, pretest_score, progress, total_subbab, completed_subbab, subbab]
  *                     properties:
  *                       id:
  *                         type: string
@@ -200,6 +200,11 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                         type: boolean
  *                         description: Apakah user sudah menyelesaikan pretest bab ini
  *                         example: true
+ *                       pretest_score:
+ *                         type: number
+ *                         nullable: true
+ *                         description: Skor pretest tersimpan dari 0 sampai 100; null jika belum tersedia
+ *                         example: 85
  *                       progress:
  *                         type: integer
  *                         description: Rata-rata progress seluruh subbab, dari 0 sampai 100
@@ -262,6 +267,7 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                       description: Materi peluang
  *                       display_order: 4
  *                       has_pretest: true
+ *                       pretest_score: 85
  *                       progress: 50
  *                       total_subbab: 2
  *                       completed_subbab: 1
@@ -293,6 +299,7 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                       description: null
  *                       display_order: 2
  *                       has_pretest: false
+ *                       pretest_score: null
  *                       progress: 0
  *                       total_subbab: 4
  *                       completed_subbab: 0

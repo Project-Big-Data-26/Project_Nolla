@@ -459,7 +459,7 @@ const QuestionReviewPage = () => {
                 const isActive = idx === currentQuestion;
 
                 const badgeBg = isCorrect
-                  ? "bg-primary text-white"
+                  ? "bg-emerald-600 text-white"
                   : "bg-rose-500 text-white";
 
                 return (
