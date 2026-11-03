@@ -184,23 +184,23 @@ export default function ChangePassword() {
       <Navbar activePage="Profil" />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 pb-24 sm:px-8 lg:px-10 md:pb-8">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-24 sm:px-8 sm:py-8 lg:px-10 md:pb-8">
           <div className="overflow-hidden rounded-2xl border border-neutral-border bg-neutral-card shadow-xs">
-            <div className="flex items-center justify-between border-b border-neutral-border bg-white px-6 py-5">
+            <div className="flex items-center justify-between border-b border-neutral-border bg-white px-4 py-4 sm:px-6 sm:py-5">
               <div className="flex items-center gap-3.5">
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 shadow-2xs transition-colors hover:border-slate-300 hover:bg-slate-100 cursor-pointer"
+                  className="group flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 shadow-2xs transition-colors hover:border-slate-300 hover:bg-slate-100 cursor-pointer"
                   title="Kembali ke Profil"
                 >
-                  <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:-translate-x-0.5" />
                 </button>
                 <div>
-                  <h1 className="font-heading text-lg font-bold leading-tight text-neutral-text sm:text-xl">
+                  <h1 className="font-heading text-sm font-semibold leading-tight text-neutral-text sm:text-xl sm:font-bold">
                     Ganti Kata Sandi
                   </h1>
-                  <p className="mt-0.5 text-xs text-neutral-muted">
+                  <p className="mt-0.5 text-[11px] sm:text-xs text-neutral-muted">
                     Perbarui kata sandi akunmu untuk menjaga keamanan akun.
                   </p>
                 </div>
@@ -208,7 +208,7 @@ export default function ChangePassword() {
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div className="space-y-5 p-6 md:p-8">
+              <div className="space-y-4 p-4 sm:space-y-5 sm:p-6 md:p-8">
                 {hasPassword !== false && (
                   <PasswordInput
                     label="Kata Sandi Saat Ini"
@@ -328,18 +328,18 @@ export default function ChangePassword() {
                 )}
               </div>
 
-              <div className="flex flex-col items-center justify-end gap-3 border-t border-neutral-border bg-slate-50/50 px-6 py-4 sm:flex-row">
+              <div className="flex flex-col items-center justify-end gap-3 border-t border-neutral-border bg-slate-50/50 px-4 py-3 sm:px-6 sm:py-4 sm:flex-row">
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 sm:w-auto cursor-pointer"
+                  className="min-h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 sm:w-auto sm:rounded-xl sm:px-6 sm:text-sm cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={saving || hasPassword === null}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto cursor-pointer"
+                  className="min-h-10 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:rounded-xl sm:px-6 sm:text-sm cursor-pointer"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                   {hasPassword === null

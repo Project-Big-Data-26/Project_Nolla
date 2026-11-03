@@ -172,14 +172,14 @@ export default function PersonalizationProfile() {
       {/* Main Content Column: TopHeader edge-to-edge konsisten dengan halaman Topik & Setting */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Area Konten: padding dan batas lebar sejajar persis dengan halaman Topik */}
-        <main className="mt-10 flex-1 max-w-6xl px-5 sm:px-8 lg:px-10 mx-auto w-full pb-24 md:pb-8">
+        <main className="mt-4 flex-1 max-w-6xl px-4 sm:mt-10 sm:px-8 lg:px-10 mx-auto w-full pb-24 md:pb-8">
           {/* CARD 1: PERSONAL INFO (Foto Profil menyatu rapi di dalam card, tanpa header biru yang bentrok) */}
-          <SectionCard className="mb-5 p-6 sm:p-8">
+          <SectionCard padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
             {/* Bagian Atas Card: Foto Profil, Label Info & Tombol Edit */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5 pb-6 border-b border-neutral-border">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-5 pb-4 sm:pb-6 border-b border-neutral-border">
               <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
                 {/* Foto Profil: jika ada tampilkan gambar, jika belum ada gunakan default avatar */}
-                <div className="relative h-20 w-20 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-300 shadow-2xs flex items-center justify-center shrink-0">
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-300 shadow-2xs flex items-center justify-center shrink-0">
                   <img
                     src={userPhoto || defaultAvatar}
                     alt="Foto Profil"
@@ -189,11 +189,11 @@ export default function PersonalizationProfile() {
 
                 <div>
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                    <h2 className="text-base sm:text-lg font-bold font-heading text-neutral-text">
+                    <h2 className="text-sm font-semibold sm:text-lg sm:font-bold font-heading text-neutral-text">
                       Personal Info
                     </h2>
                   </div>
-                  <p className="text-xs text-neutral-muted mt-1">
+                  <p className="text-xs sm:text-sm text-neutral-muted mt-1">
                     Informasi identitas akun dan preferensi belajar Anda
                   </p>
                 </div>
@@ -202,7 +202,7 @@ export default function PersonalizationProfile() {
               {/* Tombol Edit Profil */}
               <Link
                 to="/profile/edit"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4.5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition hover:bg-primary-hover cursor-pointer shrink-0"
+                className="inline-flex min-h-9 items-center gap-2 rounded-2xl bg-primary px-3 py-2 text-[11px] font-semibold text-white shadow-xs transition hover:bg-primary-hover cursor-pointer shrink-0 sm:min-h-10 sm:rounded-xl sm:px-4.5 sm:py-2.5 sm:text-sm"
                 id="btn-edit-profile"
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -241,11 +241,11 @@ export default function PersonalizationProfile() {
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
                       <UserIcon className="h-4 w-4" />
                     </div>
-                    <div>
-                      <p className="text-[11px] font-medium text-slate-500">
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-[11px] font-medium text-slate-500">
                         Nama Lengkap
                       </p>
-                      <p className="text-sm font-semibold text-neutral-text">
+                      <p className="break-words text-[13px] sm:text-sm font-semibold text-neutral-text">
                         {userName}
                       </p>
                     </div>
@@ -258,11 +258,11 @@ export default function PersonalizationProfile() {
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
                       <Mail className="h-4 w-4" />
                     </div>
-                    <div>
-                      <p className="text-[11px] font-medium text-slate-500">
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-[11px] font-medium text-slate-500">
                         Alamat Email
                       </p>
-                      <p className="text-sm font-semibold text-neutral-text">
+                      <p className="break-all text-[13px] sm:text-sm font-semibold text-neutral-text">
                         {userEmail}
                       </p>
                     </div>
@@ -275,11 +275,11 @@ export default function PersonalizationProfile() {
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
                       <GraduationCap className="h-4 w-4" />
                     </div>
-                    <div>
-                      <p className="text-[11px] font-medium text-slate-500">
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-[11px] font-medium text-slate-500">
                         Jenjang Belajar
                       </p>
-                      <p className="text-sm font-semibold text-neutral-text">
+                      <p className="break-words text-[13px] sm:text-sm font-semibold text-neutral-text">
                         {userEducationLevel
                           ? `${userEducationLevel}`
                           : "Belum Dipilih"}
@@ -292,7 +292,7 @@ export default function PersonalizationProfile() {
           </SectionCard>
 
           {/* CARD 2: SETTING (Tombol Ganti Password) */}
-          <SectionCard className="mb-5 p-6 sm:p-8">
+          <SectionCard padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Setting
@@ -314,7 +314,7 @@ export default function PersonalizationProfile() {
                     <p className="text-sm font-semibold text-neutral-text group-hover:text-primary transition-colors">
                       Ganti Kata Sandi
                     </p>
-                    <p className="text-[11px] text-neutral-muted">
+                    <p className="text-xs text-neutral-muted">
                       Perbarui kata sandi akun untuk keamanan
                     </p>
                   </div>
@@ -324,7 +324,7 @@ export default function PersonalizationProfile() {
             </div>
           </SectionCard>
 
-          <SectionCard className="mb-5 p-6 sm:p-8">
+          <SectionCard padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Akun
@@ -352,7 +352,7 @@ export default function PersonalizationProfile() {
                     <p className="text-sm font-semibold text-neutral-text transition-colors group-hover:text-red-600">
                       {isLoggingOut ? "Keluar..." : "Keluar"}
                     </p>
-                    <p className="text-[11px] text-neutral-muted">
+                    <p className="text-xs text-neutral-muted">
                       Keluar dari akun ini
                     </p>
                   </div>

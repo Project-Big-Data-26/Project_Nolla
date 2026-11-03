@@ -334,26 +334,26 @@ export default function EditProfile() {
 
       {/* Main Content Column: Batasan persis sejajar dengan halaman Topik & Profil */}
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10 w-full flex-1 pb-24 md:pb-8">
+        <main className="mx-auto max-w-6xl px-4 py-5 sm:px-8 sm:py-8 lg:px-10 w-full flex-1 pb-24 md:pb-8">
           {/* CARD UTAMA: Panah Kembali + 'Edit Profil' masuk ke dalam card informasi pengguna */}
           <div className="rounded-2xl border border-neutral-border bg-neutral-card shadow-xs overflow-hidden">
             {/* Header di dalam Card: Tombol Panah Kembali + Edit Profil / Informasi Pengguna */}
-            <div className="flex items-center justify-between border-b border-neutral-border px-6 py-5 bg-white">
+            <div className="flex items-center justify-between border-b border-neutral-border px-4 py-4 sm:px-6 sm:py-5 bg-white">
               <div className="flex items-center gap-3.5">
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-700 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-colors cursor-pointer group"
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-700 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-colors cursor-pointer group"
                   title="Kembali ke Profil"
                   id="btn-back-to-profile"
                 >
-                  <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:-translate-x-0.5" />
                 </button>
                 <div>
-                  <h1 className="font-heading text-lg sm:text-xl font-bold text-neutral-text leading-tight">
+                  <h1 className="font-heading text-sm font-semibold text-neutral-text leading-tight sm:text-xl sm:font-bold">
                     Edit Profil
                   </h1>
-                  <p className="text-xs text-neutral-muted mt-0.5">
+                  <p className="text-[11px] sm:text-xs text-neutral-muted mt-0.5">
                     Informasi Pengguna · Perbarui data pribadi dan foto profil
                     akun Anda
                   </p>
@@ -363,9 +363,9 @@ export default function EditProfile() {
 
             {/* Form Konten */}
             <form onSubmit={handleSubmit}>
-              <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+              <div className="p-4 sm:p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5 items-start">
                 {/* Kolom Kiri: Form Input Fields */}
-                <div className="md:col-span-7 space-y-5">
+                <div className="md:col-span-7 space-y-4 sm:space-y-5">
                   {/* Input Nama Lengkap / Username */}
                   <div>
                     <label
@@ -513,7 +513,7 @@ export default function EditProfile() {
                 </div>
 
                 {/* Kolom Kanan: Pratinjau & Pilihan Avatar */}
-                <div className="md:col-span-5 flex flex-col items-center border-t md:border-t-0 md:border-l md:border-dashed border-neutral-border pt-6 md:pt-0 md:pl-8">
+                <div className="md:col-span-5 flex flex-col items-center border-t md:border-t-0 md:border-l md:border-dashed border-neutral-border pt-5 sm:pt-6 md:pt-0 md:pl-8">
                   <div
                     className="relative mb-4 flex w-full flex-col items-center"
                     ref={avatarPickerRef}
@@ -658,7 +658,7 @@ export default function EditProfile() {
               </div>
 
               {/* Footer Card: Tombol Batal Dihapus, Simpan Perubahan Hanya Muncul Jika Ada Perubahan */}
-              <div className="border-t border-neutral-border bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="border-t border-neutral-border bg-slate-50/50 px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
                 <span className="text-xs text-neutral-muted order-2 sm:order-1 text-center sm:text-left">
                   Terakhir diperbarui: {lastUpdated}
                 </span>
@@ -669,7 +669,7 @@ export default function EditProfile() {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-hover disabled:opacity-60 cursor-pointer animate-in fade-in"
+                      className="min-h-10 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl sm:rounded-xl bg-primary px-4 sm:px-6 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition hover:bg-primary-hover disabled:opacity-60 cursor-pointer animate-in fade-in"
                       id="btn-save-profile"
                     >
                       {saving && <Loader2 className="h-4 w-4 animate-spin" />}

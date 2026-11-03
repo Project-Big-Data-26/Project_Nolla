@@ -24,7 +24,7 @@ const inlineMarkdownComponents = {
   p: ({ children }) => <span>{children}</span>,
 };
 const markdownComponents = {
-  p: ({ children }) => <p className="my-2 first:mt-0 last:mb-0">{children}</p>,
+  p: ({ children }) => <p className="my-1 first:mt-0 last:mb-0 sm:my-2">{children}</p>,
   h1: ({ children }) => <h1 className="my-2 text-lg font-bold">{children}</h1>,
   h2: ({ children }) => <h2 className="my-2 text-base font-bold">{children}</h2>,
   h3: ({ children }) => <h3 className="my-2 text-sm font-bold">{children}</h3>,
@@ -160,6 +160,8 @@ const QuestionPage = () => {
   const initializationRef = useRef(null);
   const viewedQuestionsRef = useRef({ sessionId: null, ids: new Set() });
   const selectionRevisionsRef = useRef({});
+  const questionNumberNavRef = useRef(null);
+  const questionContentRef = useRef(null);
 
   // ================================
   // TIMER
@@ -481,6 +483,41 @@ const QuestionPage = () => {
       : question
         ? (answers[question.id] ?? null)
         : null;
+
+  const activeNavigationNumber =
+    session?.mode === "pretest"
+      ? (viewedSequence ?? session.sequence ?? 1)
+      : currentIndex + 1;
+
+  useEffect(() => {
+    const navigation = questionNumberNavRef.current;
+    const activeButton = navigation?.querySelector(
+      `[data-question-number="${activeNavigationNumber}"]`,
+    );
+    if (!navigation || !activeButton) return;
+
+    const navigationRect = navigation.getBoundingClientRect();
+    const buttonRect = activeButton.getBoundingClientRect();
+    const buttonLeft = buttonRect.left - navigationRect.left + navigation.scrollLeft;
+    const buttonRight = buttonLeft + buttonRect.width;
+    let nextScrollLeft = navigation.scrollLeft;
+
+    if (buttonLeft < navigation.scrollLeft) {
+      nextScrollLeft = buttonLeft;
+    } else if (buttonRight > navigation.scrollLeft + navigation.clientWidth) {
+      nextScrollLeft = buttonRight - navigation.clientWidth;
+    } else {
+      return;
+    }
+
+    navigation.scrollTo({ left: nextScrollLeft, behavior: "smooth" });
+  }, [activeNavigationNumber]);
+
+  useEffect(() => {
+    if (questionContentRef.current) {
+      questionContentRef.current.scrollTop = 0;
+    }
+  }, [question?.id]);
 
   // Waktu tampil per soal: soal pretest yang sudah dikirim (riwayat) tidak dihitung.
   const { getTiming, clearTiming } = useQuestionTimer(
@@ -1304,14 +1341,14 @@ const QuestionPage = () => {
               ? handlePretestOptionSelect(option.id)
               : handleQuizAnswer(option.id)
           }
-          className={`flex w-full items-center gap-3 rounded-2xl p-2.5 text-left transition-all duration-200 disabled:cursor-not-allowed sm:gap-4 sm:p-3.5 ${
+          className={`flex w-full items-start gap-3 rounded-2xl p-2.5 text-left transition-all duration-200 disabled:cursor-not-allowed sm:items-center sm:gap-4 sm:p-3.5 ${
             isSelected
               ? "bg-primary text-white"
               : "border border-slate-100 bg-slate-50/80 text-slate-700 hover:bg-slate-100"
           }`}
         >
           <div
-            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors sm:h-9 sm:w-9 sm:text-sm ${
+            className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors sm:mt-0 sm:h-9 sm:w-9 sm:text-sm ${
               isSelected
                 ? "bg-white text-primary"
                 : "bg-primary/10 text-primary"
@@ -1323,7 +1360,7 @@ const QuestionPage = () => {
           {/* ==========================================
                 OPTION TEXT + LATEX
                 ========================================== */}
-          <span className="flex-1 text-xs font-semibold sm:text-sm">
+          <span className="min-w-0 flex-1 text-[13px] font-medium leading-relaxed sm:text-sm sm:font-semibold">
             <ReactMarkdown
               remarkPlugins={remarkPlugins}
               rehypePlugins={rehypePlugins}
@@ -1364,7 +1401,7 @@ const QuestionPage = () => {
                 : session.sequence <= 1
               : currentIndex === 0
           }
-          className="flex items-center justify-center rounded-xl bg-primary/10 px-4 py-2 text-xs font-bold text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:py-2.5 sm:text-sm"
+        className="flex min-h-9 items-center justify-center rounded-2xl bg-primary/10 px-3 py-2 text-[11px] font-semibold text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-10 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-sm sm:font-bold"
         >
           Sebelumnya
         </button>
@@ -1379,7 +1416,7 @@ const QuestionPage = () => {
               !session.lastQuestionSubmitted &&
               !selectedAnswer)
           }
-          className="flex items-center justify-center rounded-xl bg-primary px-5 py-2 text-xs font-bold text-white transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-2.5 sm:text-sm"
+          className="flex min-h-9 items-center justify-center rounded-2xl bg-primary px-4 py-2 text-[11px] font-semibold text-white transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-10 sm:rounded-xl sm:px-6 sm:py-2.5 sm:text-sm sm:font-bold"
         >
           {isSubmitting
             ? "Mengirim..."
@@ -1400,8 +1437,8 @@ const QuestionPage = () => {
     <div className="flex h-screen max-h-screen w-full overflow-hidden bg-neutral-bg font-sans">
       <Navbar />
 
-      <main className="flex flex-1 flex-col overflow-y-auto p-3 pb-20 md:overflow-hidden md:p-6 md:pb-6">
-        <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-3 sm:gap-4">
+      <main className="flex flex-1 flex-col overflow-y-auto p-4 pb-20 sm:p-5 sm:pb-20 md:overflow-hidden md:p-6 md:pb-6">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col gap-3.5 sm:gap-4">
           {/* ==========================================
               QUESTION NUMBER NAVIGATION
               ========================================== */}
@@ -1421,8 +1458,9 @@ const QuestionPage = () => {
             </button>
 
             <div
+              ref={questionNumberNavRef}
               aria-label="Navigasi nomor soal"
-              className="no-scrollbar flex items-center gap-1.5 overflow-x-auto px-1 py-0.5 sm:gap-2"
+              className="no-scrollbar flex min-w-0 flex-1 items-center justify-center gap-1.5 overflow-x-auto scroll-smooth px-1 py-0.5 sm:gap-2"
             >
               {Array.from(
                 {
@@ -1445,6 +1483,7 @@ const QuestionPage = () => {
                   return (
                     <button
                       key={sequence}
+                      data-question-number={sequence}
                       type="button"
                       aria-label={`Soal ${sequence}${
                         !canNavigate ? ", terkunci" : ""
@@ -1495,15 +1534,15 @@ const QuestionPage = () => {
           {/* ==========================================
               QUESTION CONTENT
               ========================================== */}
-          <div className="no-scrollbar flex-1 overflow-y-auto">
+          <div ref={questionContentRef} className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-3 md:pb-0">
             {hasImage ? (
               <div className="grid h-full grid-cols-1 items-stretch gap-3 sm:gap-6 md:grid-cols-2">
                 {/* ======================================
                     QUESTION + IMAGE
                     ====================================== */}
                 <div className="flex flex-col gap-2.5 sm:gap-4">
-                  <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
-                    <div className="whitespace-pre-wrap text-xs font-semibold leading-relaxed text-slate-800 sm:text-sm md:text-base">
+                  <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-3.5 sm:p-5">
+                    <div className="min-w-0 whitespace-pre-wrap text-justify text-[13px] font-medium leading-[1.55] text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
                       {/* ==================================
                           QUESTION TEXT + LATEX
                           ================================== */}
@@ -1520,8 +1559,8 @@ const QuestionPage = () => {
                   {/* ====================================
                       IMAGE
                       ==================================== */}
-                  <div className="flex flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 sm:p-4">
-                    <div className="flex max-h-full flex-wrap items-center justify-center gap-3">
+                  <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 sm:p-4">
+                    <div className="flex h-full w-full items-center justify-center gap-3">
                       {question.images.map((imageUrl) => (
                         <QuestionImage
                           key={imageUrl}
@@ -1534,7 +1573,7 @@ const QuestionPage = () => {
                             })
                           }
                           alt="Ilustrasi Soal"
-                          className="max-h-36 max-w-full rounded-xl object-contain sm:max-h-52 md:max-h-60"
+                          className="h-full w-full rounded-xl object-contain"
                         />
                       ))}
                     </div>
@@ -1557,8 +1596,8 @@ const QuestionPage = () => {
                 {/* ====================================
                     QUESTION WITHOUT IMAGE
                     ==================================== */}
-                <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
-                  <div className="whitespace-pre-wrap text-xs font-semibold leading-relaxed text-slate-800 sm:text-sm md:text-base">
+                <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-3.5 sm:p-5">
+                  <div className="min-w-0 whitespace-pre-wrap text-justify text-[13px] font-medium leading-[1.55] text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
                     {/* ==================================
                         QUESTION TEXT + LATEX
                         ================================== */}
@@ -1596,11 +1635,11 @@ const QuestionPage = () => {
         >
           {exitDialog.step === "menu" ? (
             <div className="space-y-4">
-              <h2 className="pr-8 text-lg font-bold text-slate-900">
+              <h2 className="pr-8 text-base font-bold text-slate-900 sm:text-lg">
                 {isPretest ? "Keluar dari pretest?" : "Keluar dari kuis?"}
               </h2>
 
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="text-[13px] leading-relaxed text-slate-600 sm:text-sm">
                 {isPretest
                   ? "Jawaban yang sudah dikirim tersimpan. Kamu bisa melanjutkan pretest ini nanti dari soal terakhir."
                   : "Kuis ini tetap aktif dan bisa dilanjutkan nanti. Pilihan jawaban yang belum disubmit hanya tersimpan di tab browser ini."}
@@ -1610,7 +1649,7 @@ const QuestionPage = () => {
                 <button
                   type="button"
                   onClick={() => setExitDialog(null)}
-                  className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-hover"
+                  className="rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white hover:bg-primary-hover sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Lanjut mengerjakan
                 </button>
@@ -1618,7 +1657,7 @@ const QuestionPage = () => {
                 <button
                   type="button"
                   onClick={handleExitLater}
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Keluar, lanjutkan nanti
                 </button>
@@ -1628,7 +1667,7 @@ const QuestionPage = () => {
                 <button
                   type="button"
                   onClick={() => setExitDialog({ step: "confirm-discard" })}
-                  className="w-full text-center text-xs font-bold text-red-600 hover:underline"
+                  className="w-full text-center text-[11px] font-bold text-red-600 hover:underline sm:text-xs"
                 >
                   Batalkan pretest
                 </button>
@@ -1636,17 +1675,17 @@ const QuestionPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <h2 className="pr-8 text-lg font-bold text-slate-900">
+              <h2 className="pr-8 text-base font-bold text-slate-900 sm:text-lg">
                 Batalkan pretest ini?
               </h2>
 
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="text-[13px] leading-relaxed text-slate-600 sm:text-sm">
                 Jawaban yang sudah kamu kirim di pretest ini tidak akan dipakai,
                 dan kamu akan memulai pretest dari awal.
               </p>
 
               {exitDialog.error && (
-                <p role="alert" className="text-xs text-red-600">
+                <p role="alert" className="text-[11px] text-red-600 sm:text-xs">
                   {exitDialog.error}
                 </p>
               )}
@@ -1656,7 +1695,7 @@ const QuestionPage = () => {
                   type="button"
                   onClick={handleDiscardPretest}
                   disabled={exitDialog.step === "discarding"}
-                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl bg-red-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   {exitDialog.step === "discarding"
                     ? "Membatalkan..."
@@ -1667,7 +1706,7 @@ const QuestionPage = () => {
                   type="button"
                   onClick={() => setExitDialog({ step: "menu" })}
                   disabled={exitDialog.step === "discarding"}
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                  className="rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-60 sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Kembali
                 </button>

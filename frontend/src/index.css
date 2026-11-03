@@ -49,6 +49,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 #root {
   width: 100%;
   overflow-x: clip;

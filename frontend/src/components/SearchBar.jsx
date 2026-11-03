@@ -15,9 +15,9 @@ const Searchbar = ({
   filterTitle = "Filter Berdasarkan Kelas",
 }) => {
   return (
-    <div className="flex items-center gap-3 mb-6">
+    <div className="flex items-center gap-2.5 sm:gap-3 mb-4 sm:mb-6">
       {/* Search Input */}
-      <div className="flex-1 bg-white border border-slate-200 rounded-2xl px-4 py-3 flex items-center shadow-xs transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
+      <div className="flex-1 bg-white border border-slate-200 rounded-xl sm:rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center shadow-xs transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
         <Search className="w-4 h-4 text-slate-400 mr-2.5 shrink-0" />
         <input
           type="text"
@@ -41,7 +41,7 @@ const Searchbar = ({
       <div className="relative" ref={filterDropdownRef}>
         <button
           onClick={() => setIsFilterOpen((prev) => !prev)}
-          className={`bg-white border rounded-2xl px-4 sm:px-5 py-3 flex items-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-xs select-none ${
+          className={`bg-white border rounded-xl sm:rounded-2xl px-3.5 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-xs select-none ${
             isFilterOpen || selectedGrade !== filterDefaultValue
               ? "border-primary text-primary bg-blue-50/40 ring-1 ring-primary/20"
               : "border-slate-200 text-slate-700 hover:bg-slate-50"

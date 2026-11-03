@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -25,7 +25,7 @@ const inlineMarkdownComponents = {
   p: ({ children }) => <span>{children}</span>,
 };
 const markdownComponents = {
-  p: ({ children }) => <p className="my-2 first:mt-0 last:mb-0">{children}</p>,
+  p: ({ children }) => <p className="my-1 first:mt-0 last:mb-0 sm:my-2">{children}</p>,
   h1: ({ children }) => <h1 className="my-2 text-lg font-bold">{children}</h1>,
   h2: ({ children }) => <h2 className="my-2 text-base font-bold">{children}</h2>,
   h3: ({ children }) => <h3 className="my-2 text-sm font-bold">{children}</h3>,
@@ -193,6 +193,8 @@ const QuestionReviewPage = () => {
   const [reviewError, setReviewError] = useState("");
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const questionNumberNavRef = useRef(null);
+  const questionContentRef = useRef(null);
 
   const [showQuizResult, setShowQuizResult] = useState(false);
 
@@ -298,6 +300,38 @@ const QuestionReviewPage = () => {
       solution: "",
     }));
   }, [reviewData]);
+
+  const currentReviewQuestionId = questionsToReview[currentQuestion]?.id;
+
+  useEffect(() => {
+    if (questionContentRef.current) {
+      questionContentRef.current.scrollTop = 0;
+    }
+  }, [currentReviewQuestionId]);
+
+  useEffect(() => {
+    const navigation = questionNumberNavRef.current;
+    const activeButton = navigation?.querySelector(
+      `[data-question-number="${currentQuestion + 1}"]`,
+    );
+    if (!navigation || !activeButton) return;
+
+    const navigationRect = navigation.getBoundingClientRect();
+    const buttonRect = activeButton.getBoundingClientRect();
+    const buttonLeft = buttonRect.left - navigationRect.left + navigation.scrollLeft;
+    const buttonRight = buttonLeft + buttonRect.width;
+    let nextScrollLeft = navigation.scrollLeft;
+
+    if (buttonLeft < navigation.scrollLeft) {
+      nextScrollLeft = buttonLeft;
+    } else if (buttonRight > navigation.scrollLeft + navigation.clientWidth) {
+      nextScrollLeft = buttonRight - navigation.clientWidth;
+    } else {
+      return;
+    }
+
+    navigation.scrollTo({ left: nextScrollLeft, behavior: "smooth" });
+  }, [currentQuestion, questionsToReview.length]);
 
   const reviewedItem = reviewData?.questions?.[currentQuestion];
 
@@ -480,11 +514,15 @@ const QuestionReviewPage = () => {
     <div className="flex h-screen max-h-screen w-full bg-neutral-bg font-sans overflow-hidden">
       <Navbar />
 
-      <main className="flex-1 flex flex-col p-3 sm:p-5 md:p-6 pb-20 md:pb-6 overflow-y-auto md:overflow-hidden">
-        <div className="mx-auto w-full max-w-6xl flex flex-col h-full gap-3 sm:gap-4">
+      <main className="flex flex-1 flex-col overflow-y-auto p-4 pb-20 sm:p-5 sm:pb-20 md:overflow-hidden md:p-6 md:pb-6">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col gap-3 sm:gap-4">
           {/* HEADER TOP */}
           <div className="flex items-center justify-between gap-2 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-100 shrink-0">
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 px-1">
+            <div
+              ref={questionNumberNavRef}
+              aria-label="Navigasi nomor soal review"
+              className="no-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-smooth px-1 py-0.5 sm:gap-2"
+            >
               {questionsToReview.map((q, idx) => {
                 const isCorrect = reviewData
                   ? q.isCorrect === true
@@ -499,6 +537,7 @@ const QuestionReviewPage = () => {
                 return (
                   <button
                     key={q.id}
+                    data-question-number={idx + 1}
                     onClick={() => setCurrentQuestion(idx)}
                     className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full text-xs font-semibold flex items-center justify-center transition-all cursor-pointer shrink-0 ${badgeBg} ${
                       isActive
@@ -526,14 +565,14 @@ const QuestionReviewPage = () => {
           </div>
 
           {/* DYNAMIC CONTENT AREA */}
-          <div className="flex-1 overflow-y-auto no-scrollbar">
+          <div ref={questionContentRef} className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-3 md:pb-0">
             {hasImage ? (
               /* ================= CONDITIONAL 1: ADA GAMBAR ================= */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 h-full items-stretch">
                 {/* KIRI: TEKS & GAMBAR SOAL */}
                 <div className="flex flex-col gap-2.5 sm:gap-4">
-                  <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shrink-0">
-                    <div className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
+                  <div className="bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-5 shrink-0">
+                    <div className="min-w-0 text-justify text-[13px] leading-[1.55] font-medium text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
                       <ReactMarkdown
                         remarkPlugins={remarkPlugins}
                         rehypePlugins={rehypePlugins}
@@ -544,14 +583,14 @@ const QuestionReviewPage = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 flex items-center justify-center flex-1 overflow-hidden">
-                    <div className="flex max-h-full flex-wrap items-center justify-center gap-3">
+                  <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 flex min-h-0 items-center justify-center flex-1 overflow-hidden">
+                    <div className="flex h-full w-full items-center justify-center gap-3">
                       {question.images.map((imageUrl) => (
                         <QuestionImage
                           key={imageUrl}
                           src={imageUrl}
                           alt="Ilustrasi Soal"
-                          className="max-h-36 sm:max-h-52 md:max-h-60 max-w-full object-contain rounded-xl"
+                          className="h-full w-full object-contain rounded-xl"
                         />
                       ))}
                     </div>
@@ -600,15 +639,15 @@ const QuestionReviewPage = () => {
                       return (
                         <div
                           key={opt.label}
-                          className={`w-full flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl text-left border transition-all ${btnStyle}`}
+                          className={`w-full flex items-start sm:items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl text-left border transition-all ${btnStyle}`}
                         >
                           <div
-                            className={`h-7 w-7 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${badgeStyle}`}
+                            className={`mt-0.5 sm:mt-0 h-7 w-7 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${badgeStyle}`}
                           >
                             {opt.label}
                           </div>
 
-                          <span className="text-xs sm:text-sm font-semibold flex-1">
+                          <span className="min-w-0 flex-1 text-[13px] leading-relaxed font-medium sm:text-sm sm:font-semibold">
                             <ReactMarkdown
                               remarkPlugins={remarkPlugins}
                               rehypePlugins={rehypePlugins}
@@ -649,7 +688,7 @@ const QuestionReviewPage = () => {
                       type="button"
                       onClick={handlePrev}
                       disabled={currentQuestion === 0}
-                      className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex min-h-9 items-center justify-center gap-1.5 rounded-2xl bg-primary/10 px-3 py-2 text-[11px] font-semibold text-primary transition-all hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed sm:min-h-10 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-sm sm:font-bold"
                     >
                       Sebelumnya
                     </button>
@@ -657,7 +696,7 @@ const QuestionReviewPage = () => {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="flex items-center justify-center gap-1.5 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-primary text-white font-bold text-xs sm:text-sm hover:bg-primary-hover transition-all cursor-pointer"
+                      className="flex min-h-9 items-center justify-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-[11px] font-semibold text-white transition-all hover:bg-primary-hover cursor-pointer sm:min-h-10 sm:rounded-xl sm:px-6 sm:py-2.5 sm:text-sm sm:font-bold"
                     >
                       {isLastQuestion
                         ? reviewMode === "quiz"
@@ -673,8 +712,8 @@ const QuestionReviewPage = () => {
             ) : (
               /* ================= CONDITIONAL 2: TANPA GAMBAR ================= */
               <div className="flex flex-col gap-3 sm:gap-4 h-auto">
-                <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shrink-0">
-                  <div className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 leading-relaxed">
+                <div className="bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-5 shrink-0">
+                  <div className="min-w-0 text-justify text-[13px] leading-[1.55] font-medium text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
                     <ReactMarkdown
                       remarkPlugins={remarkPlugins}
                       rehypePlugins={rehypePlugins}
@@ -726,15 +765,15 @@ const QuestionReviewPage = () => {
                       return (
                         <div
                           key={opt.label}
-                          className={`w-full flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl text-left border transition-all ${btnStyle}`}
+                          className={`w-full flex items-start sm:items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl text-left border transition-all ${btnStyle}`}
                         >
                           <div
-                            className={`h-7 w-7 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${badgeStyle}`}
+                            className={`mt-0.5 sm:mt-0 h-7 w-7 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${badgeStyle}`}
                           >
                             {opt.label}
                           </div>
 
-                          <span className="text-xs sm:text-sm font-semibold flex-1">
+                          <span className="min-w-0 flex-1 text-[13px] leading-relaxed font-medium sm:text-sm sm:font-semibold">
                             <ReactMarkdown
                               remarkPlugins={remarkPlugins}
                               rehypePlugins={rehypePlugins}
@@ -775,7 +814,7 @@ const QuestionReviewPage = () => {
                       type="button"
                       onClick={handlePrev}
                       disabled={currentQuestion === 0}
-                      className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary/10 text-primary font-bold text-xs sm:text-sm hover:bg-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex min-h-9 items-center justify-center gap-1.5 rounded-2xl bg-primary/10 px-3 py-2 text-[11px] font-semibold text-primary transition-all hover:bg-primary/20 disabled:opacity-40 disabled:cursor-not-allowed sm:min-h-10 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-sm sm:font-bold"
                     >
                       Sebelumnya
                     </button>
@@ -783,7 +822,7 @@ const QuestionReviewPage = () => {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="flex items-center justify-center gap-1.5 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-primary text-white font-bold text-xs sm:text-sm hover:bg-primary-hover transition-all cursor-pointer"
+                      className="flex min-h-9 items-center justify-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-[11px] font-semibold text-white transition-all hover:bg-primary-hover cursor-pointer sm:min-h-10 sm:rounded-xl sm:px-6 sm:py-2.5 sm:text-sm sm:font-bold"
                     >
                       {isLastQuestion
                         ? reviewMode === "quiz"
