@@ -12,12 +12,16 @@ import { X } from "lucide-react";
  * - scrollable: true untuk modal yang isinya panjang (perlu scroll internal), dipakai di modal hasil pretest/posttest
  */
 const Modal = ({ onClose, maxWidth = "max-w-md", scrollable = false, children }) => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs modal-overlay-in">
         <div
-            className={`bg-neutral-card border border-neutral-border rounded-2xl ${maxWidth} w-full p-6 shadow-2xl relative ${scrollable ? "max-h-[90vh] overflow-y-auto" : ""
+            role="dialog"
+            aria-modal="true"
+            className={`modal-card-in bg-neutral-card border border-neutral-border rounded-2xl ${maxWidth} w-full p-6 shadow-2xl relative ${scrollable ? "max-h-[90vh] overflow-y-auto" : ""
                 }`}
         >
             <button
+                type="button"
+                aria-label="Tutup"
                 onClick={onClose}
                 className="absolute right-4 top-4 p-1.5 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
             >

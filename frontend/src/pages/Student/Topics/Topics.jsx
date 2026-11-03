@@ -1,10 +1,15 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../../../components/Navbar";
 import TopHeader from "../../../components/TopHeader";
 import TopicSearchBar from "../../../components/SearchBar";
 import ChapterCard from "../../../components/ChapterCard";
 import TopicModals from "../../../components/TopicModals";
+import Modal from "../../../components/Modal";
+import PlanBanner from "../../../components/PlanBanner";
+import PlanCatalog from "../../../components/PlanCatalog";
+import TrialCallout from "../../../components/TrialCallout";
+import crownIcon from "../../../assets/crown-icon.webp";
 import API from "../../../api/axios";
 import { track } from "../../../analytics/client";
 
@@ -64,24 +69,32 @@ const fetchBabList = async (classes, selectedGrade) => {
       ? classes
       : classes.filter((item) => item.name === selectedGrade);
 
+  // Setiap respons membawa entitlement yang sama (status paket user).
   if (!targetClasses.length) {
     const response = await API.get("/dashboard/bab", getAuthConfig());
-    return (response.data.data || []).map((bab) => normalizeBab(bab));
+    return {
+      babList: (response.data.data || []).map((bab) => normalizeBab(bab)),
+      entitlement: response.data.entitlement ?? null,
+    };
   }
 
   const responses = await Promise.all(
-    targetClasses.map(async (classInfo) => {
-      const response = await API.get("/dashboard/bab", {
+    targetClasses.map((classInfo) =>
+      API.get("/dashboard/bab", {
         ...getAuthConfig(),
         params: { kelas: classInfo.nomor_kelas },
-      });
-      return (response.data.data || []).map((bab) =>
-        normalizeBab(bab, classInfo),
-      );
-    }),
+      }),
+    ),
   );
 
-  return responses.flat();
+  return {
+    babList: responses.flatMap((response, index) =>
+      (response.data.data || []).map((bab) =>
+        normalizeBab(bab, targetClasses[index]),
+      ),
+    ),
+    entitlement: responses[0]?.data.entitlement ?? null,
+  };
 };
 
 const formatDuration = (seconds) => {
@@ -164,6 +177,16 @@ const Topics = () => {
     ALL_GRADES,
   ]);
   const [chaptersData, setChaptersData] = useState([]);
+  const [entitlement, setEntitlement] = useState(null);
+  // Dinaikkan setelah status paket berubah agar kunci & kuota dimuat ulang.
+  const [planVersion, setPlanVersion] = useState(0);
+  const [lockedChapter, setLockedChapter] = useState(null);
+  // Konfirmasi trial menggantikan isi modal paket (satu modal, dua tampilan).
+  const [isTrialConfirm, setIsTrialConfirm] = useState(false);
+  const closeLockedModal = () => {
+    setLockedChapter(null);
+    setIsTrialConfirm(false);
+  };
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [expandedChapters, setExpandedChapters] = useState(new Set());
@@ -227,9 +250,13 @@ const Topics = () => {
       setLoadError("");
       setLoadedBabRequest(null);
       try {
-        const babList = await fetchBabList(classes, selectedGrade);
+        const { babList, entitlement: plan } = await fetchBabList(
+          classes,
+          selectedGrade,
+        );
         if (!isActive()) return;
         setChaptersData(babList);
+        setEntitlement(plan);
         setLoadedBabRequest({ ...gradeChoice, requestId });
       } catch (error) {
         if (!isActive()) return;
@@ -246,7 +273,18 @@ const Topics = () => {
     return () => {
       isCurrent = false;
     };
-  }, [classes, classesLoaded, selectedGrade, gradeChoice]);
+  }, [classes, classesLoaded, selectedGrade, gradeChoice, planVersion]);
+
+  const reloadPlan = useCallback(() => setPlanVersion((value) => value + 1), []);
+  const handleTrialActivated = useCallback(
+    (nextEntitlement) => {
+      setEntitlement(nextEntitlement);
+      setLockedChapter(null);
+      setIsTrialConfirm(false);
+      reloadPlan();
+    },
+    [reloadPlan],
+  );
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -544,6 +582,8 @@ const Topics = () => {
             </div>
           )}
 
+          <PlanBanner entitlement={entitlement} onExpired={reloadPlan} />
+
           {isLoading ? (
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">
               Memuat daftar kelas dan BAB...
@@ -581,6 +621,7 @@ const Topics = () => {
                   pretestLoading={pretestLoadingId === chapter._id}
                   selectedGrade={selectedGrade}
                   handleSubtopicAction={handleSubtopicAction}
+                  onLockedClick={setLockedChapter}
                 />
               ))}
             </div>
@@ -600,6 +641,49 @@ const Topics = () => {
         setBypassedChapterPrerequisites={setBypassedChapterPrerequisites}
         setExpandedChapters={setExpandedChapters}
       />
+
+      {lockedChapter && (
+        <Modal
+          onClose={closeLockedModal}
+          maxWidth="max-w-3xl"
+          scrollable
+        >
+          {!isTrialConfirm && (
+            <>
+              <div className="mb-5">
+                <div className="mb-1 flex items-center gap-2.5 pr-8">
+                  <img
+                    src={crownIcon}
+                    alt=""
+                    width="32"
+                    height="32"
+                    className="h-8 w-8 shrink-0 object-contain"
+                  />
+                  <h3 className="text-lg font-bold text-slate-900">Paket</h3>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-500">
+                  {lockedChapter.name} terkunci di paket Free. Buka semua bab
+                  dan kuis tanpa batas dengan Premium.
+                </p>
+              </div>
+              <PlanCatalog />
+            </>
+          )}
+          <div
+            className={
+              isTrialConfirm
+                ? ""
+                : "mt-5 flex justify-end border-t border-slate-100 pt-4"
+            }
+          >
+            <TrialCallout
+              entitlement={entitlement}
+              onActivated={handleTrialActivated}
+              onConfirmChange={setIsTrialConfirm}
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

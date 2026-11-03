@@ -5,6 +5,7 @@ import {
   ChevronUp,
   CheckCircle2,
   Award,
+  Lock,
 } from "lucide-react";
 import SubbabItem from "./SubbabItem";
 
@@ -19,6 +20,7 @@ const ChapterCard = ({
   pretestLoading,
   selectedGrade,
   handleSubtopicAction,
+  onLockedClick,
 }) => {
   const chapterKey = chapter._id || chapter.id;
   const isExpanded =
@@ -62,10 +64,12 @@ const ChapterCard = ({
   return (
     <article
       id={`chapter-card-${chapterKey}`}
-      className={`bg-white border rounded-3xl transition-all duration-300 shadow-xs overflow-hidden ${
-        isExpanded
-          ? "border-primary/40 ring-1 ring-primary/10 shadow-sm"
-          : "border-slate-200 hover:border-slate-300 hover:shadow-sm"
+      className={`border rounded-3xl transition-all duration-300 shadow-xs overflow-hidden ${
+        chapter.locked
+          ? "bg-slate-50 border-dashed border-slate-300"
+          : isExpanded
+            ? "bg-white border-primary/40 ring-1 ring-primary/10 shadow-sm"
+            : "bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm"
       }`}
     >
       <div className="p-5 sm:p-6">
@@ -73,8 +77,18 @@ const ChapterCard = ({
           BAB {chapter.display_order || 1}
         </div>
 
-        <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug mb-1">
-          {chapter.name}
+        <h2
+          className={`text-lg sm:text-xl font-bold tracking-tight leading-snug mb-1 ${
+            chapter.locked ? "flex items-center gap-2 text-slate-500" : "text-slate-900"
+          }`}
+        >
+          {chapter.locked && (
+            <Lock className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+          )}
+          <span>
+            {chapter.name}
+            {chapter.locked && <span className="sr-only">, terkunci</span>}
+          </span>
         </h2>
 
         <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-4">
@@ -91,7 +105,7 @@ const ChapterCard = ({
               {progressPercentage}%
             </span>
           </div>
-          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div className={`w-full h-2 ${chapter.locked ? "bg-slate-200" : "bg-slate-100"} rounded-full overflow-hidden`}>
             <div
               className="h-full bg-primary rounded-full transition-all duration-500"
               style={{ width: `${progressPercentage}%` }}
@@ -106,7 +120,15 @@ const ChapterCard = ({
           </div>
 
           <div>
-            {!isPretestCompleted ? (
+            {!isPretestCompleted && chapter.locked ? (
+              <button
+                onClick={() => onLockedClick?.(chapter)}
+                className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 text-xs font-bold px-5 py-2.5 rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-sm"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Lihat Paket</span>
+              </button>
+            ) : !isPretestCompleted ? (
               <button
                 onClick={() => setPretestConfirmChapter(chapter)}
                 className="bg-primary hover:bg-primary-dark text-white text-xs font-bold px-5 py-2.5 rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-sm"

@@ -68,4 +68,50 @@ describe("SubbabItem adaptive quiz actions", () => {
       expect.objectContaining({ _id: "bab-1" }),
     );
   });
+
+  it("shows the remaining free quiz quota", () => {
+    render(
+      <SubbabItem
+        subbab={{ ...baseSubbab, status: "in_progress", quiz_sessions_used: 1, quiz_sessions_limit: 3 }}
+        chapter={{ _id: "bab-1", name: "Peluang" }}
+        handleSubtopicAction={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Sisa kuis: 2 dari 3")).toBeInTheDocument();
+  });
+
+  it("marks an exhausted quota without blocking resume of an active session", () => {
+    const handleStart = vi.fn();
+    render(
+      <SubbabItem
+        subbab={{ ...baseSubbab, status: "in_progress", quiz_sessions_used: 4, quiz_sessions_limit: 3 }}
+        chapter={{ _id: "bab-1", name: "Peluang" }}
+        handleSubtopicAction={handleStart}
+      />,
+    );
+    expect(screen.getByText("Kuota kuis paket Free untuk subbab ini habis")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Mulai" }));
+    expect(handleStart).toHaveBeenCalled();
+  });
+
+  it("hides the quota for premium and shows the premium note in a locked bab", () => {
+    const { rerender } = render(
+      <SubbabItem
+        subbab={{ ...baseSubbab, status: "not_started", quiz_sessions_used: 5, quiz_sessions_limit: null }}
+        chapter={{ _id: "bab-1", name: "Peluang" }}
+        handleSubtopicAction={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/Sisa kuis|Kuota kuis/)).not.toBeInTheDocument();
+
+    rerender(
+      <SubbabItem
+        subbab={{ ...baseSubbab, status: "not_started", quiz_sessions_used: 0, quiz_sessions_limit: 3 }}
+        chapter={{ _id: "bab-1", name: "Peluang", locked: true }}
+        handleSubtopicAction={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Kuis baru di bab ini khusus Premium")).toBeInTheDocument();
+    expect(screen.queryByText(/Sisa kuis/)).not.toBeInTheDocument();
+  });
 });
