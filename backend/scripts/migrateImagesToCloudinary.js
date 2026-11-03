@@ -1,14 +1,3 @@
-// Memindahkan gambar soal dari backend/public/soal ke Cloudinary, lalu mengganti
-// nama file di Soal.image_url dengan URL Cloudinary.
-//
-//   node scripts/migrateImagesToCloudinary.js            -> simulasi (tidak mengubah apa pun)
-//   node scripts/migrateImagesToCloudinary.js --apply    -> upload + update database
-//
-// Env yang dibutuhkan: MONGO_URI, dan (hanya untuk --apply)
-//   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
-//
-// Aman dijalankan ulang: upload memakai public_id tetap (overwrite), dan
-// URL yang sudah berawalan http(s):// tidak disentuh.
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
@@ -19,8 +8,12 @@ const REPORT_DIRECTORY = path.resolve(__dirname, "../reports");
 const CLOUDINARY_FOLDER = process.env.CLOUDINARY_FOLDER || "nolla/soal";
 const IMAGE_EXTENSIONS = new Set([".avif", ".gif", ".jpeg", ".jpg", ".png", ".webp"]);
 
-const listImageFiles = (directory, relativeDirectory = "") =>
-  fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+const listImageFiles = (directory, relativeDirectory = "") => {
+  if (!fs.existsSync(directory)) {
+    console.warn(`Peringatan: Direktori ${directory} tidak ditemukan.`);
+    return [];
+  }
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const relativePath = relativeDirectory
       ? `${relativeDirectory}/${entry.name}`
       : entry.name;
@@ -32,9 +25,8 @@ const listImageFiles = (directory, relativeDirectory = "") =>
       ? [relativePath]
       : [];
   });
+};
 
-// Mencocokkan nilai image_url di database dengan file di disk.
-// Menerima "images/a.png", "/images/a.png", "soal/images/a.png", atau "a.png".
 const createResolver = (files) => {
   const fileSet = new Set(files);
   const byBaseName = new Map();
@@ -98,6 +90,7 @@ const main = async () => {
   console.log(`Soal yang perlu diubah: ${plan.length}`);
   console.log(`File yang dipakai soal: ${needed.size}`);
   console.log(`File di disk yang tidak dipakai soal mana pun: ${files.length - needed.size}`);
+
   if (unmatched.size) {
     console.log(`\nPERINGATAN: ${unmatched.size} nilai image_url tidak cocok dengan file di disk:`);
     [...unmatched].slice(0, 20).forEach((value) => console.log(`  - ${value}`));
@@ -127,7 +120,7 @@ const main = async () => {
     backupPath,
     JSON.stringify(plan.map(({ _id, original }) => ({ _id, image_url: original })), null, 2),
   );
-  console.log(`\nBackup nilai lama: ${backupPath}`);
+  console.log(`\nBackup nilai lama disimpan di: ${backupPath}`);
 
   const urlByFile = new Map();
   let done = 0;
@@ -156,8 +149,14 @@ const main = async () => {
       },
     },
   }));
-  const result = await Soal.bulkWrite(operations);
-  console.log(`Database diperbarui: ${result.modifiedCount} soal.`);
+
+  if (operations.length > 0) {
+    const result = await Soal.bulkWrite(operations);
+    console.log(`Database diperbarui: ${result.modifiedCount} soal.`);
+  } else {
+    console.log("Tidak ada dokumen yang perlu diperbarui.");
+  }
+
   console.log(`Peta file -> URL: ${mapPath}`);
   await mongoose.disconnect();
 };
