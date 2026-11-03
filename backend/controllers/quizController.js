@@ -23,6 +23,12 @@ const {
 const { MASTERY_RATING_THRESHOLD } = require("../utils/learningProgress");
 const { getQuestionContentHash } = require("../utils/questionContent");
 const {
+  PREMIUM_REQUIRED_MESSAGE,
+  getEntitlement,
+  isBabLocked,
+  planLimitHitEvent,
+} = require("../services/entitlement");
+const {
   contextFromRequest,
   recordApplicationError,
   recordServerEvents,
@@ -117,11 +123,12 @@ const serializeQuestion = (question, req) => ({
 
 const isValidObjectId = (value) => mongoose.isValidObjectId(value);
 
-const sendError = (res, statusCode, message) =>
+const sendError = (res, statusCode, message, extra = {}) =>
   res.status(statusCode).json({
     statusCode,
     success: false,
     message,
+    ...extra,
   });
 
 const getUnlockedSubbab = async (userId, subbabId) => {
@@ -289,6 +296,58 @@ const startQuiz = async (req, res) => {
           ),
         },
       });
+    }
+
+    // Batas paket hanya untuk sesi baru; resume di atas tidak dihitung.
+    const entitlement = await getEntitlement(userId);
+    const sessionLimit = entitlement.limits.quiz_sessions_per_subbab;
+    if (sessionLimit !== null) {
+      const bab = await Bab.findById(subbab.bab_id).select("_id kelas_id").lean();
+      const limitEvent = (reason, used = null) =>
+        recordServerEvents(contextFromRequest(req), [
+          planLimitHitEvent({
+            reason,
+            surface: "quiz_start",
+            entitlement,
+            babId: subbab.bab_id,
+            subbabId,
+            used,
+          }),
+        ]);
+      if (await isBabLocked(entitlement, bab)) {
+        await limitEvent("locked_bab");
+        return sendError(res, 403, PREMIUM_REQUIRED_MESSAGE, {
+          code: "PREMIUM_REQUIRED",
+        });
+      }
+      const usedSessions = await MengerjakanKuis.countDocuments({
+        user_id: userId,
+        subbab_id: subbabId,
+      });
+      if (usedSessions >= sessionLimit) {
+        // Sesi yang baru dibuat start paralel ikut terhitung: lanjutkan sesi itu.
+        if (
+          !req.quizStartRetried &&
+          (await MengerjakanKuis.exists({
+            user_id: userId,
+            subbab_id: subbabId,
+            completed_at: null,
+          }))
+        ) {
+          req.quizStartRetried = true;
+          return startQuiz(req, res);
+        }
+        await limitEvent("quiz_limit", usedSessions);
+        return sendError(
+          res,
+          403,
+          `Batas ${sessionLimit} sesi kuis untuk subbab ini sudah tercapai pada paket free.`,
+          {
+            code: "QUIZ_LIMIT_REACHED",
+            data: { used: usedSessions, limit: sessionLimit },
+          },
+        );
+      }
     }
 
     const difficulty = await getOrCreateDifficulty(userId, subbabId);

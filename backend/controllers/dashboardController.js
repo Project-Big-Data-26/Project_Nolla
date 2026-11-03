@@ -11,6 +11,7 @@ const {
   getSubbabProgress,
   isSubbabMastered,
 } = require("../utils/learningProgress");
+const { getEntitlement, pickLockedBabIds } = require("../services/entitlement");
 
 const getBab = async (req, res) => {
   try {
@@ -35,6 +36,8 @@ const getBab = async (req, res) => {
 
     // Bisa null
     const userJenjangId = user.jenjang_id;
+    const entitlement = await getEntitlement(userId);
+    const quizSessionLimit = entitlement.limits.quiz_sessions_per_subbab;
 
     // =========================================================
     // 2. AMBIL PARAMETER KELAS
@@ -102,6 +105,7 @@ const getBab = async (req, res) => {
           jenjang: userJenjangId || null,
           all_jenjang: !userJenjangId,
         },
+        entitlement,
         data: [],
       });
     }
@@ -144,11 +148,19 @@ const getBab = async (req, res) => {
           jenjang: userJenjangId || null,
           all_jenjang: !userJenjangId,
         },
+        entitlement,
         data: [],
       });
     }
 
     const babIds = babList.map((bab) => bab._id);
+    // babList memuat semua bab dari kelas terpilih, cukup untuk menentukan bab terakhir.
+    const lockedBabIds =
+      entitlement.plan === "free" ? pickLockedBabIds(babList) : new Set();
+    const lockFields = (babId) => {
+      const locked = lockedBabIds.has(babId);
+      return { locked, lock_reason: locked ? "premium_required" : null };
+    };
 
     // =========================================================
     // 6. AMBIL SUBBAB
@@ -193,6 +205,7 @@ const getBab = async (req, res) => {
     const unlockedSubbabIds = unlockedSubbabList.map((subbab) => subbab._id);
     const startedSubbabIds = new Set();
     const quizzedSubbabIds = new Set();
+    const sessionCountBySubbabId = new Map();
     const difficultyBySubbabId = new Map();
 
     if (unlockedSubbabIds.length > 0) {
@@ -214,6 +227,10 @@ const getBab = async (req, res) => {
       for (const session of quizSessions) {
         const subbabId = session.subbab_id.toString();
         startedSubbabIds.add(subbabId);
+        sessionCountBySubbabId.set(
+          subbabId,
+          (sessionCountBySubbabId.get(subbabId) ?? 0) + 1,
+        );
         if (session.completed_at) {
           quizzedSubbabIds.add(subbabId);
         }
@@ -249,6 +266,7 @@ const getBab = async (req, res) => {
           display_order: bab.display_order,
           has_pretest: false,
           pretest_score: null,
+          ...lockFields(babId),
           progress: 0,
           total_subbab: babSubbab.length,
           completed_subbab: 0,
@@ -290,6 +308,7 @@ const getBab = async (req, res) => {
         display_order: bab.display_order,
         has_pretest: true,
         pretest_score: Number.isFinite(pretestScore) ? pretestScore : null,
+        ...lockFields(babId),
         progress,
         total_subbab: totalSubbab,
         started_subbab: startedCount,
@@ -304,6 +323,9 @@ const getBab = async (req, res) => {
             description: subbab.description,
             display_order: subbab.display_order,
             started: startedSubbabIds.has(subbabId),
+            // Semua sesi (termasuk yang sedang berjalan) dihitung, sama dengan guard start kuis.
+            quiz_sessions_used: sessionCountBySubbabId.get(subbabId) ?? 0,
+            quiz_sessions_limit: quizSessionLimit,
             progress: quizzedSubbabIds.has(subbabId)
               ? getSubbabProgress(difficulty?.current_cognitive_score ?? 0)
               : 0,
@@ -340,6 +362,7 @@ const getBab = async (req, res) => {
         jenjang: userJenjangId || null,
         all_jenjang: !userJenjangId,
       },
+      entitlement,
       data,
     });
   } catch (error) {

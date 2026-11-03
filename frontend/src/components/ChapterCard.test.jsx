@@ -91,4 +91,47 @@ describe("ChapterCard search accordion", () => {
 
     expect(handleViewPretestResult).toHaveBeenCalledWith(chapter);
   });
+
+  it("replaces Mulai Pretest with a premium action on a locked bab", () => {
+    const onLockedClick = vi.fn();
+    const setPretestConfirmChapter = vi.fn();
+    const lockedChapter = { ...chapter, has_pretest: false, locked: true, lock_reason: "premium_required" };
+    render(
+      <ChapterCard
+        chapter={lockedChapter}
+        isSearching={false}
+        expandedChapters={new Set()}
+        toggleChapter={vi.fn()}
+        setPretestConfirmChapter={setPretestConfirmChapter}
+        handleViewPretestResult={vi.fn()}
+        selectedGrade="Kelas 12"
+        handleSubtopicAction={vi.fn()}
+        onLockedClick={onLockedClick}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Peluang, terkunci" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mulai Pretest" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Lihat Paket" }));
+    expect(onLockedClick).toHaveBeenCalledWith(lockedChapter);
+    expect(setPretestConfirmChapter).not.toHaveBeenCalled();
+  });
+
+  it("keeps sub bab access for a locked bab whose pretest was done during trial", () => {
+    render(
+      <ChapterCard
+        chapter={{ ...chapter, locked: true }}
+        isSearching={false}
+        expandedChapters={new Set()}
+        toggleChapter={vi.fn()}
+        setPretestConfirmChapter={vi.fn()}
+        handleViewPretestResult={vi.fn()}
+        selectedGrade="Kelas 12"
+        handleSubtopicAction={vi.fn()}
+        onLockedClick={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText("Premium")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lihat Sub Bab" })).toBeInTheDocument();
+  });
 });
