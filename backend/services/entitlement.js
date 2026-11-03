@@ -72,11 +72,35 @@ const getLockedBabIds = async (kelasIds) => {
   return pickLockedBabIds(babList);
 };
 
+// bab wajib memuat _id dan kelas_id. Premium (termasuk trial) tidak pernah terkunci.
+const isBabLocked = async (entitlement, bab) =>
+  entitlement.plan === "free" &&
+  (await getLockedBabIds([bab.kelas_id])).has(bab._id.toString());
+
+// Event hambatan untuk analytics (tanpa dedup, seperti question_pool_insufficient).
+const planLimitHitEvent = ({ reason, surface, entitlement, babId, subbabId = null, used = null }) => ({
+  name: "plan_limit_hit",
+  properties: {
+    reason,
+    surface,
+    bab_id: String(babId),
+    subbab_id: subbabId == null ? null : String(subbabId),
+    sessions_used: used,
+    trial_available: entitlement.trial.available,
+  },
+});
+
+const PREMIUM_REQUIRED_MESSAGE =
+  "Bab ini khusus premium. Aktifkan trial atau upgrade untuk membukanya.";
+
 module.exports = {
   FREE_QUIZ_SESSIONS_PER_SUBBAB,
+  PREMIUM_REQUIRED_MESSAGE,
   TRIAL_DURATION_MS,
   getEntitlement,
   getLockedBabIds,
+  isBabLocked,
   pickLockedBabIds,
+  planLimitHitEvent,
   resolveEntitlement,
 };

@@ -4,6 +4,7 @@ const {
   FREE_QUIZ_SESSIONS_PER_SUBBAB,
   TRIAL_DURATION_MS,
   pickLockedBabIds,
+  planLimitHitEvent,
   resolveEntitlement,
 } = require("../services/entitlement");
 
@@ -93,4 +94,38 @@ test("ties at the highest order are all locked; missing orders are ignored", () 
     { _id: "c2", kelas_id: "C", display_order: null },
   ]);
   assert.deepEqual([...locked].sort(), ["a1", "a2"]);
+});
+
+test("plan_limit_hit carries only ids, counts and enums", () => {
+  const entitlement = resolveEntitlement([period("trial", -80, -8)], NOW);
+  assert.deepEqual(
+    planLimitHitEvent({
+      reason: "quiz_limit",
+      surface: "quiz_start",
+      entitlement,
+      babId: { toString: () => "b".repeat(24) },
+      subbabId: "c".repeat(24),
+      used: 3,
+    }),
+    {
+      name: "plan_limit_hit",
+      properties: {
+        reason: "quiz_limit",
+        surface: "quiz_start",
+        bab_id: "b".repeat(24),
+        subbab_id: "c".repeat(24),
+        sessions_used: 3,
+        trial_available: false,
+      },
+    },
+  );
+  const pretest = planLimitHitEvent({
+    reason: "locked_bab",
+    surface: "pretest_start",
+    entitlement: resolveEntitlement([], NOW),
+    babId: "b".repeat(24),
+  });
+  assert.equal(pretest.properties.subbab_id, null);
+  assert.equal(pretest.properties.sessions_used, null);
+  assert.equal(pretest.properties.trial_available, true);
 });

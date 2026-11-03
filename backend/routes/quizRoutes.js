@@ -38,7 +38,10 @@ const router = express.Router();
  *       401:
  *         description: Access token tidak valid atau tidak tersedia
  *       403:
- *         description: Subbab belum tersedia karena pretest bab belum selesai
+ *         description: >
+ *           Subbab belum tersedia karena pretest bab belum selesai; atau batas paket free:
+ *           code PREMIUM_REQUIRED (bab terkunci) atau QUIZ_LIMIT_REACHED dengan data { used, limit }.
+ *           Melanjutkan sesi yang belum selesai tidak dibatasi paket.
  *       409:
  *         description: Bank soal belum mencukupi, soal track habis, atau ada soal sesi yang sudah tidak tersedia
  *       500:

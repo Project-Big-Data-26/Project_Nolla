@@ -15,6 +15,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const learningResultsRoutes = require("./routes/learningResultsRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const { getQuestionImage } = require("./controllers/imageController");
 const { requestContext } = require("./middleware/requestContext");
 const { supportsTransactions } = require("./utils/transaction");
@@ -35,6 +36,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/learning-results", learningResultsRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 // --- SWAGGER SETUP ---
 const swaggerOptions = {
