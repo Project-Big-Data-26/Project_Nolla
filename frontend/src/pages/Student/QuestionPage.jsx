@@ -14,6 +14,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import katex from "katex-v016";
 
 import "katex-v016/dist/katex.min.css";
 
@@ -45,9 +46,42 @@ const markdownComponents = {
 };
 const normalizeMarkdown = (content) =>
   String(content ?? "")
-    .replace(/\\r\\n|\\n|\\r/g, "\n")
+    .replace(/\r\n|\n|\r/g, "\n")
     .replace(/\\\(([\s\S]*?)\\\)/g, (_, math) => `$${math}$`)
     .replace(/\\\[([\s\S]*?)\\\]/g, (_, math) => `$$\n${math}\n$$`);
+
+const hasKatexError = (content) => {
+  const formulas = content.matchAll(/(\${1,2})([\s\S]*?)\1/g);
+
+  for (const [, delimiter, formula] of formulas) {
+    try {
+      katex.renderToString(formula, {
+        displayMode: delimiter === "$$",
+        throwOnError: true,
+      });
+    } catch {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const normalizeAiLatex = (content) =>
+  content.replace(
+    /\\\\(?=(?:left|right|frac|dfrac|tfrac|sqrt|text|mathrm|mathbf|overline|underline|cdot|times|div|sum|prod|int|alpha|beta|gamma|theta|pi|log|ln|sin|cos|tan)\b)/g,
+    "\\",
+  );
+
+const getRenderableMarkdown = (content) => {
+  const normalized = normalizeMarkdown(content);
+  if (!hasKatexError(normalized)) return normalized;
+
+  const aiNormalized = normalizeAiLatex(normalized);
+  return aiNormalized !== normalized && !hasKatexError(aiNormalized)
+    ? aiNormalized
+    : normalized;
+};
 
 // ================================
 // SESSION STORAGE
@@ -1295,7 +1329,7 @@ const QuestionPage = () => {
               rehypePlugins={rehypePlugins}
               components={inlineMarkdownComponents}
             >
-              {normalizeMarkdown(option.text)}
+              {getRenderableMarkdown(option.text)}
             </ReactMarkdown>
           </span>
         </button>
@@ -1478,7 +1512,7 @@ const QuestionPage = () => {
                         rehypePlugins={rehypePlugins}
                         components={markdownComponents}
                       >
-                        {normalizeMarkdown(question.text)}
+                        {getRenderableMarkdown(question.text)}
                       </ReactMarkdown>
                     </div>
                   </div>
@@ -1533,7 +1567,7 @@ const QuestionPage = () => {
                       rehypePlugins={rehypePlugins}
                       components={markdownComponents}
                     >
-                      {normalizeMarkdown(question.text)}
+                      {getRenderableMarkdown(question.text)}
                     </ReactMarkdown>
                   </div>
                 </div>
