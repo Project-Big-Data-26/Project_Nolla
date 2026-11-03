@@ -18,6 +18,8 @@ const Modal = ({ onClose, maxWidth = "max-w-md", scrollable = false, children })
                 }`}
         >
             <button
+                type="button"
+                aria-label="Tutup"
                 onClick={onClose}
                 className="absolute right-3 top-3 p-1 text-neutral-muted hover:text-neutral-text rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer sm:right-4 sm:top-4 sm:p-1.5"
             >

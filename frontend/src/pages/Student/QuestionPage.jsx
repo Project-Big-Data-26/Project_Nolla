@@ -4,7 +4,10 @@ import { ArrowLeft, Check, LockKeyhole, LogOut } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Modal from "../../components/Modal";
 import API from "../../api/axios";
+import { fetchEntitlement, getPlanBlock } from "../../api/subscription";
 import QuestionImage from "../../components/QuestionImage";
+import TrialCallout from "../../components/TrialCallout";
+import PlanCatalog from "../../components/PlanCatalog";
 import useQuestionTimer, { TIMING_METHOD } from "../../hooks/useQuestionTimer";
 import { createClientId, track } from "../../analytics/client";
 import ReactMarkdown from "react-markdown";
@@ -138,6 +141,10 @@ const QuestionPage = () => {
   const [loading, setLoading] = useState(true);
   const [retryVersion, setRetryVersion] = useState(0);
   const [error, setError] = useState("");
+  // 403 paket (PREMIUM_REQUIRED / QUIZ_LIMIT_REACHED) saat memulai sesi.
+  const [planBlock, setPlanBlock] = useState(null);
+  const [planEntitlement, setPlanEntitlement] = useState(null);
+  const [isTrialConfirm, setIsTrialConfirm] = useState(false);
   const [session, setSession] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [history, setHistory] = useState([]);
@@ -174,6 +181,8 @@ const QuestionPage = () => {
     const initialize = async () => {
       setLoading(true);
       setError("");
+      setPlanBlock(null);
+      setPlanEntitlement(null);
       setResult(null);
       setSession(null);
       setQuestions([]);
@@ -373,11 +382,13 @@ const QuestionPage = () => {
           currentIndex: savedIndex,
         };
       } catch (requestError) {
-        throw new Error(
+        const loadError = new Error(
           requestError.response?.data?.message ||
             requestError.message ||
             "Sesi soal gagal dimuat.",
         );
+        loadError.planBlock = getPlanBlock(requestError);
+        throw loadError;
       }
     };
 
@@ -416,6 +427,7 @@ const QuestionPage = () => {
       .catch((requestError) => {
         if (isCurrent) {
           setError(requestError.message);
+          setPlanBlock(requestError.planBlock ?? null);
         }
       })
       .finally(() => {
@@ -985,6 +997,26 @@ const QuestionPage = () => {
   // ================================
   const handleBack = () => navigate("/topik");
 
+  // Status trial hanya dibutuhkan untuk panel blokir paket.
+  useEffect(() => {
+    if (!planBlock) return undefined;
+    let isCurrent = true;
+    fetchEntitlement()
+      .then((data) => {
+        if (isCurrent) setPlanEntitlement(data);
+      })
+      .catch(() => {});
+    return () => {
+      isCurrent = false;
+    };
+  }, [planBlock]);
+
+  const handlePlanTrialActivated = () => {
+    setPlanBlock(null);
+    setIsTrialConfirm(false);
+    setRetryVersion((value) => value + 1);
+  };
+
   // ================================
   // EXIT / DISCARD
   // ================================
@@ -1114,6 +1146,62 @@ const QuestionPage = () => {
   // ================================
   // ERROR
   // ================================
+  if (planBlock && !session) {
+    const isQuizLimit = planBlock.code === "QUIZ_LIMIT_REACHED";
+
+    return (
+      <div className="flex min-h-screen bg-neutral-bg">
+        <Navbar activePage="Topik" />
+
+        <main className="flex flex-1 items-center justify-center p-5 pb-24 md:pb-5">
+          <section className="w-full max-w-lg rounded-2xl border border-amber-200 bg-white p-6">
+            {!isTrialConfirm && (
+              <>
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-amber-50">
+                  <LockKeyhole className="h-5 w-5 text-amber-600" />
+                </div>
+
+                <h1 className="text-lg font-bold text-slate-900">
+                  {isQuizLimit ? "Kuota kuis habis" : "Materi khusus Premium"}
+                </h1>
+
+                <p className="mt-2 text-sm text-slate-600">
+                  {isQuizLimit
+                    ? `Paket Free hanya bisa mengerjakan kuis ${planBlock.limit ?? 3} kali per subbab. Lanjutkan latihan tanpa batas dengan Premium.`
+                    : planBlock.message}
+                </p>
+
+                <div className="mt-4">
+                  <PlanCatalog />
+                </div>
+              </>
+            )}
+
+            <div
+              className={`flex flex-wrap items-start gap-3 ${isTrialConfirm ? "" : "mt-5"}`}
+            >
+              <TrialCallout
+                entitlement={planEntitlement}
+                onActivated={handlePlanTrialActivated}
+                onConfirmChange={setIsTrialConfirm}
+              />
+
+              {!isTrialConfirm && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700"
+                >
+                  Kembali ke topik
+                </button>
+              )}
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   if (error && !session) {
     return (
       <div className="flex min-h-screen bg-neutral-bg">

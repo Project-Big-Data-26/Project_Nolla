@@ -4,6 +4,19 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
+// Saklar & harga Premium dari env: konfigurasi salah menghentikan server sebelum melayani request.
+const { initPlanCatalog, isPremiumFeatureEnabled } = require("./config/premiumPlans");
+try {
+  if (!isPremiumFeatureEnabled()) {
+    console.warn("⚠️ Fitur paket nonaktif (PREMIUM_FEATURE_ENABLED=false): semua bab terbuka, kuis tanpa batas.");
+  } else if (initPlanCatalog().length === 0) {
+    console.warn("⚠️ Harga Premium belum dikonfigurasi (PREMIUM_*_PRICE kosong); katalog paket kosong.");
+  }
+} catch (error) {
+  console.error(`❌ Konfigurasi harga Premium tidak valid:\n${error.message}`);
+  process.exit(1);
+}
+
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
@@ -15,6 +28,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const learningResultsRoutes = require("./routes/learningResultsRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const { getQuestionImage } = require("./controllers/imageController");
 const { requestContext } = require("./middleware/requestContext");
 const { supportsTransactions } = require("./utils/transaction");
@@ -35,6 +49,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/learning-results", learningResultsRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 // --- SWAGGER SETUP ---
 const swaggerOptions = {

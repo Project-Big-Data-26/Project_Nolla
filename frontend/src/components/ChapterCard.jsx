@@ -5,6 +5,7 @@ import {
   ChevronUp,
   CheckCircle2,
   Award,
+  Lock,
 } from "lucide-react";
 import SubbabItem from "./SubbabItem";
 
@@ -19,6 +20,7 @@ const ChapterCard = ({
   pretestLoading,
   selectedGrade,
   handleSubtopicAction,
+  onLockedClick,
 }) => {
   const chapterKey = chapter._id || chapter.id;
   const isExpanded =
@@ -91,7 +93,7 @@ const ChapterCard = ({
               {progressPercentage}%
             </span>
           </div>
-          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div className={`w-full h-2 ${chapter.locked ? "bg-slate-200" : "bg-slate-100"} rounded-full overflow-hidden`}>
             <div
               className="h-full bg-primary rounded-full transition-all duration-500"
               style={{ width: `${progressPercentage}%` }}
@@ -106,7 +108,15 @@ const ChapterCard = ({
           </div>
 
           <div>
-            {!isPretestCompleted ? (
+            {!isPretestCompleted && chapter.locked ? (
+              <button
+                onClick={() => onLockedClick?.(chapter)}
+                className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 text-xs font-bold px-5 py-2.5 rounded-full shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-sm"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Lihat Paket</span>
+              </button>
+            ) : !isPretestCompleted ? (
               <button
                 onClick={() => setPretestConfirmChapter(chapter)}
                 className="min-h-9 sm:min-h-10 bg-primary hover:bg-primary-dark text-white text-[11px] font-semibold sm:text-xs sm:font-bold px-3 sm:px-5 py-1.5 sm:py-2 rounded-2xl sm:rounded-full shadow-xs flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer hover:shadow-sm"

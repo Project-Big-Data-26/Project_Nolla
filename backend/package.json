@@ -12,13 +12,16 @@
     "test:quiz": "node tests/quiz-api.test.js",
     "test:unit": "node --test test/*.test.js",
     "report:items": "node scripts/itemAnalysisReport.js",
-    "migrate:revoked-ttl": "node scripts/migrateRevokedTokenTtl.js"
+    "migrate:revoked-ttl": "node scripts/migrateRevokedTokenTtl.js",
+    "grant:premium": "node scripts/grantPremium.js",
+    "reset:trial": "node scripts/resetTrial.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.11.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

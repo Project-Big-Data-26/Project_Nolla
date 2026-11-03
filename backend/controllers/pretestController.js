@@ -16,6 +16,12 @@ const {
 } = require("../utils/transaction");
 const PretestDibatalkan = require("../models/PretestDibatalkan");
 const {
+  PREMIUM_REQUIRED_MESSAGE,
+  getEntitlement,
+  isBabLocked,
+  planLimitHitEvent,
+} = require("../services/entitlement");
+const {
   contextFromRequest,
   recordApplicationError,
   recordServerEvents,
@@ -505,7 +511,7 @@ const getPretestStatus = async (req, res) => {
       });
     }
 
-    const bab = await Bab.findById(babId).select("_id name").lean();
+    const bab = await Bab.findById(babId).select("_id name kelas_id").lean();
 
     if (!bab) {
       return res.status(404).json({
@@ -522,6 +528,13 @@ const getPretestStatus = async (req, res) => {
       .select("_id bab_id started_at completed_at score")
       .lean();
 
+    // Status tetap 200 agar hasil milik sendiri bisa dibuka; penolakan ada di start.
+    const locked = await isBabLocked(await getEntitlement(req.user.id), bab);
+    const lockFields = {
+      locked,
+      lock_reason: locked ? "premium_required" : null,
+    };
+
     if (!pretest) {
       return res.status(200).json({
         statusCode: 200,
@@ -531,6 +544,7 @@ const getPretestStatus = async (req, res) => {
           bab_id: babId,
           has_pretest: false,
           status: "not_started",
+          ...lockFields,
         },
       });
     }
@@ -546,6 +560,7 @@ const getPretestStatus = async (req, res) => {
         has_pretest: true,
         status,
         pretest_id: pretest._id,
+        ...lockFields,
       },
     });
   } catch (error) {
@@ -598,6 +613,25 @@ const startPretest = async (req, res) => {
           bab_id: bab_id,
           status: existingPretest.completed_at ? "completed" : "in_progress",
         },
+      });
+    }
+
+    // Dicek setelah attempt lama: pretest yang dimulai saat trial tetap bisa dilanjutkan.
+    const entitlement = await getEntitlement(req.user.id);
+    if (await isBabLocked(entitlement, bab)) {
+      await recordServerEvents(contextFromRequest(req), [
+        planLimitHitEvent({
+          reason: "locked_bab",
+          surface: "pretest_start",
+          entitlement,
+          babId: bab._id,
+        }),
+      ]);
+      return res.status(403).json({
+        statusCode: 403,
+        success: false,
+        code: "PREMIUM_REQUIRED",
+        message: PREMIUM_REQUIRED_MESSAGE,
       });
     }
 

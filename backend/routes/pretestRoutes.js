@@ -64,6 +64,14 @@ const router = express.Router();
  *                       type: string
  *                       description: Tidak dikirim jika pretest belum pernah dibuat
  *                       example: 66a400000000000000000001
+ *                     locked:
+ *                       type: boolean
+ *                       description: Bab terkunci untuk paket free; status tetap 200 agar hasil milik sendiri bisa dibuka
+ *                       example: false
+ *                     lock_reason:
+ *                       type: string
+ *                       nullable: true
+ *                       enum: [premium_required, null]
  *             examples:
  *               belumDimulai:
  *                 summary: Pretest belum pernah dibuat
@@ -221,6 +229,10 @@ router.get("/status/:babId", authMiddleware, getPretestStatus);
  *         description: bab_id tidak valid atau bab belum memiliki soal
  *       401:
  *         description: Access token tidak valid atau tidak tersedia
+ *       403:
+ *         description: >
+ *           code PREMIUM_REQUIRED — bab terkunci untuk paket free. Pretest yang sudah
+ *           berjalan tetap dilaporkan 409 agar bisa dilanjutkan.
  *       404:
  *         description: Bab tidak ditemukan
  *       409:

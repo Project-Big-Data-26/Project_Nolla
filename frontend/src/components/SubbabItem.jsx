@@ -1,7 +1,9 @@
 import React from "react";
-import { ChevronRight, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ChevronRight, CheckCircle2, AlertTriangle, Lock } from "lucide-react";
+import { remainingQuizSessions } from "../api/subscription";
 
 const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
+  const remainingQuiz = remainingQuizSessions(subbab);
   const renderStatusAndAction = (status) => {
     switch (status) {
       case "completed":
@@ -96,6 +98,25 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
           {subbab.current_cognitive_score ?? 1000} ·{" "}
           {subbab.current_cognitive_level ?? "medium"}
         </p>
+
+        {chapter?.locked ? (
+          <p className="flex items-center gap-1 text-[11px] font-semibold text-amber-700">
+            <Lock className="h-3 w-3 shrink-0" />
+            Kuis baru di bab ini khusus Premium
+          </p>
+        ) : (
+          remainingQuiz !== null && (
+            <p
+              className={`text-[11px] font-semibold ${
+                remainingQuiz === 0 ? "text-amber-700" : "text-slate-500"
+              }`}
+            >
+              {remainingQuiz === 0
+                ? "Kuota kuis paket Free untuk subbab ini habis"
+                : `Sisa kuis: ${remainingQuiz} dari ${subbab.quiz_sessions_limit}`}
+            </p>
+          )
+        )}
 
         {subbab.status === "needs_prerequisite" && (
           <p className="text-[11px] text-amber-700 mt-1 flex items-center gap-1 font-medium">

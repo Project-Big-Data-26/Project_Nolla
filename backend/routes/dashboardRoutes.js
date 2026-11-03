@@ -178,11 +178,13 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                       type: boolean
  *                       description: true jika user tidak terikat pada jenjang tertentu
  *                       example: false
+ *                 entitlement:
+ *                   $ref: '#/components/schemas/Entitlement'
  *                 data:
  *                   type: array
  *                   items:
  *                     type: object
- *                     required: [id, name, description, display_order, has_pretest, pretest_score, progress, total_subbab, completed_subbab, subbab]
+ *                     required: [id, name, description, display_order, has_pretest, pretest_score, locked, lock_reason, progress, total_subbab, completed_subbab, subbab]
  *                     properties:
  *                       id:
  *                         type: string
@@ -205,6 +207,14 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                         nullable: true
  *                         description: Skor pretest tersimpan dari 0 sampai 100; null jika belum tersedia
  *                         example: 85
+ *                       locked:
+ *                         type: boolean
+ *                         description: true untuk paket free pada bab terakhir tiap kelas; pretest/kuis baru ditolak 403 PREMIUM_REQUIRED
+ *                         example: false
+ *                       lock_reason:
+ *                         type: string
+ *                         nullable: true
+ *                         enum: [premium_required, null]
  *                       progress:
  *                         type: integer
  *                         description: Rata-rata progress seluruh subbab, dari 0 sampai 100
@@ -234,6 +244,15 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                             display_order:
  *                               type: integer
  *                               example: 1
+ *                             quiz_sessions_used:
+ *                               type: integer
+ *                               description: Jumlah sesi kuis yang pernah dimulai di subbab ini (termasuk yang belum selesai)
+ *                               example: 1
+ *                             quiz_sessions_limit:
+ *                               type: integer
+ *                               nullable: true
+ *                               description: 3 untuk paket free, null (tanpa batas) untuk premium
+ *                               example: 3
  *                             progress:
  *                               type: integer
  *                               description: Progress subbab berdasarkan cognitive score; score 600 = 0% dan score 1600 = 100%
