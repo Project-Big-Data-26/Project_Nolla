@@ -76,24 +76,24 @@ const TopicModals = ({
 
       {/* MODAL 2: HASIL PRETEST */}
       {activePretestResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/50 backdrop-blur-xs animate-in fade-in sm:p-4">
+          <div className="relative max-h-[calc(100dvh-1rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:rounded-3xl sm:p-6">
             <button
               onClick={() => setActivePretestResult(null)}
-              className="absolute right-4 top-4 p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+              className="absolute right-3 top-3 rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer sm:right-4 sm:top-4"
             >
-              <X className="w-5 h-5" />
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
 
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
-                <Award className="w-5 h-5" />
+            <div className="mb-4 flex min-w-0 items-center gap-2.5 pr-8 sm:mb-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 sm:h-10 sm:w-10 sm:rounded-2xl">
+                <Award className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
+              <div className="min-w-0">
+                <h3 className="break-words text-sm font-semibold leading-snug text-slate-900 sm:text-base sm:font-bold">
                   Hasil Diagnostic Pretest
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="break-words text-[11px] text-slate-500 sm:text-xs">
                   BAB: {activePretestResult.chapterName}
                 </p>
               </div>
@@ -110,20 +110,20 @@ const TopicModals = ({
               const calculatedScore = activePretestResult.result?.score || 0;
 
               return (
-                <div className="grid grid-cols-3 gap-2.5 mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
+                <div className="mb-4 grid grid-cols-3 gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-center sm:mb-5 sm:gap-2.5 sm:rounded-2xl sm:p-3.5">
                   <div>
-                    <p className="text-[11px] text-slate-500 font-medium">
+                    <p className="text-[10px] font-medium text-slate-500 sm:text-[11px]">
                       Skor Pretest
                     </p>
-                    <p className="text-xl font-extrabold text-primary mt-0.5">
+                    <p className="mt-0.5 text-lg font-bold text-primary sm:text-xl sm:font-extrabold">
                       {calculatedScore}%
                     </p>
                   </div>
                   <div>
-                    <p className="text-[11px] text-slate-500 font-medium">
+                    <p className="text-[10px] font-medium text-slate-500 sm:text-[11px]">
                       Benar / Salah
                     </p>
-                    <p className="text-sm font-bold text-slate-800 mt-1">
+                    <p className="mt-1 text-[13px] font-semibold text-slate-800 sm:text-sm sm:font-bold">
                       <span className="text-emerald-600 font-bold">
                         {correct}
                       </span>{" "}
@@ -131,10 +131,10 @@ const TopicModals = ({
                     </p>
                   </div>
                   <div>
-                    <p className="text-[11px] text-slate-500 font-medium">
+                    <p className="text-[10px] font-medium text-slate-500 sm:text-[11px]">
                       Durasi
                     </p>
-                    <p className="text-xs font-bold text-slate-800 mt-1.5">
+                    <p className="mt-1 text-[11px] font-semibold text-slate-800 sm:mt-1.5 sm:text-xs sm:font-bold">
                       {activePretestResult.result?.duration || "-"}
                     </p>
                   </div>
@@ -150,8 +150,8 @@ const TopicModals = ({
                 [];
 
               return (
-                <div className="mb-5">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">
+                <div className="mb-4 sm:mb-5">
+                  <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-800 sm:mb-2.5 sm:text-xs sm:font-bold">
                     Breakdown Prasyarat
                   </h4>
                   <div className="space-y-2">
@@ -165,13 +165,13 @@ const TopicModals = ({
                         return (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-2.5 bg-slate-50/80 rounded-xl border border-slate-200 text-xs"
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/80 p-2 sm:p-2.5 sm:text-xs"
                           >
-                            <span className="font-semibold text-slate-700">
+                            <span className="min-w-0 flex-1 break-words text-xs font-medium text-slate-700 sm:font-semibold">
                               {item.name || item.subtopic || item.title}
                             </span>
                             <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                              className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold ${
                                 isMet
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                   : "bg-rose-50 text-rose-700 border border-rose-200"
@@ -194,8 +194,8 @@ const TopicModals = ({
 
             {/* BREAKDOWN PEMAHAMAN PER SUBBAB (Memakai UI baru, Data asli) */}
             {activePretestResult.result?.breakdown && (
-              <div className="mb-5">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">
+              <div className="mb-4 sm:mb-5">
+                <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-800 sm:mb-2.5 sm:text-xs sm:font-bold">
                   Breakdown Pemahaman per Subbab
                 </h4>
                 <div className="space-y-2">
@@ -236,13 +236,13 @@ const TopicModals = ({
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-between p-2.5 bg-slate-50/80 rounded-xl border border-slate-200 text-xs"
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/80 p-2 sm:p-2.5 sm:text-xs"
                       >
-                        <span className="font-semibold text-slate-700">
+                        <span className="min-w-0 flex-1 break-words text-xs font-medium text-slate-700 sm:font-semibold">
                           {item.subtopic || item.name}
                         </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-600 text-[11px] font-medium">
+                        <div className="flex shrink-0 items-center gap-2">
+                          <span className="text-[10px] font-medium text-slate-600 sm:text-[11px]">
                             <span className="font-bold text-slate-800">
                               {elo}
                             </span>
@@ -261,8 +261,8 @@ const TopicModals = ({
             )}
 
             {activePretestResult.result?.recommendation && (
-              <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-2xl mb-5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-primary mb-1">
+              <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 p-3 sm:mb-5 sm:rounded-2xl sm:p-3.5">
+                <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-primary sm:font-bold">
                   <Sparkles className="w-3.5 h-3.5" />
                   Rekomendasi Pembelajaran
                 </div>
@@ -274,7 +274,7 @@ const TopicModals = ({
 
             <button
               onClick={() => setActivePretestResult(null)}
-              className="w-full py-2.5 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover transition-colors cursor-pointer"
+              className="min-h-9 w-full rounded-2xl bg-primary py-2 text-[11px] font-semibold text-white transition-colors hover:bg-primary-hover cursor-pointer sm:min-h-10 sm:rounded-xl sm:py-2.5 sm:text-xs sm:font-bold"
             >
               Tutup Ringkasan
             </button>

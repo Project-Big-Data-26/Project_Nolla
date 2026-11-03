@@ -28,30 +28,30 @@ const TopHeader = () => {
   return (
     <section
       id="top-header-section"
-      className="w-full relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#eaf3fe] via-[#edf5fe] to-[#e5eefc] border-b border-[#d6e5fb] pt-3 sm:pt-5 md:pt-7 pb-0 mb-6 shadow-2xs"
+      className="relative w-full overflow-hidden rounded-2xl border-b border-[#d6e5fb] bg-gradient-to-r from-[#eaf3fe] via-[#edf5fe] to-[#e5eefc] px-4 pt-3 pb-1 mb-4 shadow-2xs sm:rounded-3xl sm:px-0 sm:pt-5 sm:pb-0 sm:mb-6 md:pt-7"
     >
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 md:px-10 w-full flex flex-row items-end justify-between gap-2 sm:gap-6 relative z-10">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-row items-start justify-between gap-2 sm:items-end sm:gap-6 sm:px-8 md:px-10">
         {/* BAGIAN 1: TEKS HEADER (Rata kiri presisi dengan ruang vertikal yang lega) */}
-        <div className="flex-1 min-w-0 pb-3 sm:pb-8 md:pb-10">
+        <div className="min-w-0 flex-1 pb-3 sm:pb-8 md:pb-10">
           {/* Font sedang: Good {Morning/dll} */}
-          <div className="text-[10px] sm:text-sm font-semibold text-slate-700 flex items-center gap-1.5 mb-1">
+          <div className="text-[11px] sm:text-sm font-semibold text-slate-700 flex items-center gap-1.5 mb-1">
             <span>{greeting}</span>
           </div>
 
           {/* Font besar: Nama pengguna */}
-          <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-[#1d63ed] tracking-tight leading-tight my-1">
+          <h1 className="break-words text-[15px] font-bold sm:text-3xl sm:font-extrabold lg:text-4xl text-[#1d63ed] tracking-tight leading-tight my-1">
             {formattedName}
           </h1>
 
           {/* Font kecil: Subtitle */}
-          <p className="text-[10px] sm:text-sm text-slate-500 font-medium mt-1">
+          <p className="text-[11px] sm:text-sm text-slate-500 font-medium mt-1">
             Pantau Progresmu, Raih Potensi Terbaikmu.
           </p>
         </div>
 
         {/* BAGIAN 2: ILUSTRASI SVG (Proporsional tinggi mengikuti banner & menempel di dasar garis) */}
-        <div className="shrink-0 self-end flex items-end justify-center md:justify-end md:pr-6 lg:pr-10 -mb-px">
-          <div className="relative w-36 sm:w-64 md:w-72 h-16 sm:h-24 md:h-28 flex items-end justify-center">
+        <div className="hidden shrink-0 self-end items-end justify-center sm:flex md:justify-end md:pr-6 lg:pr-10 -mb-px">
+          <div className="relative w-28 sm:w-64 md:w-72 h-12 sm:h-24 md:h-28 flex items-end justify-center">
             {/* SVG Ilustrasi Buku, Pot Tanaman, dan Awan Biru */}
             <TopHeaderIllustration />
           </div>

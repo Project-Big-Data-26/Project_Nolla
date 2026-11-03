@@ -58,10 +58,10 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
   );
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xs transition-all hover:border-slate-300 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:p-5">
+    <div className="flex flex-col gap-2.5 rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-3 shadow-2xs transition-all hover:border-slate-300 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:p-5">
       <div className="flex min-w-0 flex-col gap-2.5 sm:flex-1">
         <div className="flex flex-wrap items-center gap-1.5 sm:hidden">
-          <span className="text-[11px] font-bold text-slate-400">
+          <span className="text-[11px] font-medium text-slate-400">
             Subbab {subbab.display_order || 1}
           </span>
           <span className="rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
@@ -83,7 +83,7 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
           {badge}
         </div>
 
-        <h4 className="text-sm font-bold leading-snug text-slate-900 sm:hidden">
+        <h4 className="text-[13px] font-semibold leading-snug text-slate-900 sm:hidden">
           {subbab.name}
         </h4>
         {subbab.description && (

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import Navbar from "../../../components/Navbar";
 import TopHeader from "../../../components/TopHeader";
 import TopicSearchBar from "../../../components/SearchBar";
@@ -525,7 +526,7 @@ const Topics = () => {
     <div className="flex min-h-screen bg-neutral-bg">
       <Navbar activePage="Topik" />
       <div className="min-w-0 flex-1">
-        <main className="mx-auto max-w-6xl px-5 py-8 pb-24 sm:px-8 lg:px-10 md:pb-8">
+        <main className="mx-auto max-w-6xl px-4 py-5 pb-24 sm:px-8 sm:py-8 lg:px-10 md:pb-8">
           <TopHeader />
           <TopicSearchBar
             searchQuery={searchQuery}
@@ -545,11 +546,12 @@ const Topics = () => {
           )}
 
           {isLoading ? (
-            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">
-              Memuat daftar kelas dan BAB...
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-4 text-center text-xs text-slate-500 sm:rounded-2xl sm:px-5 sm:py-8 sm:text-sm">
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+              <span>Memuat daftar kelas dan BAB...</span>
             </div>
           ) : filteredChapters.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-white px-4 py-12 text-center">
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center sm:rounded-3xl sm:py-12">
               <h3 className="mb-1 text-sm font-bold text-slate-800">
                 Tidak ada BAB yang cocok
               </h3>
@@ -567,7 +569,7 @@ const Topics = () => {
               </button>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-3.5 sm:space-y-5">
               {filteredChapters.map((chapter) => (
                 <ChapterCard
                   key={chapter._id}

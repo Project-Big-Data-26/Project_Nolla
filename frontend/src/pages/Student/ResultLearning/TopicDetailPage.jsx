@@ -3,21 +3,21 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import SearchBar from "../../../components/SearchBar";
 import TopHeaderIllustration from "../../../components/TopHeaderIllustration";
 import Navbar from "../../../components/Navbar";
-import { CheckCircle2, Clock3, Target } from "lucide-react";
+import { CheckCircle2, Clock3, Loader2, Target } from "lucide-react";
 import API from "../../../api/axios";
 
 const progressFilters = ["Semua", "Selesai", "Sedang Dipelajari"];
 
 function LearningSummaryHeader({ summary }) {
   return (
-    <section className="mb-7" aria-label="Ringkasan hasil belajar">
-      <div className="relative w-full overflow-hidden rounded-3xl border-b border-[#d6e5fb] bg-gradient-to-r from-[#eaf3fe] via-[#edf5fe] to-[#e5eefc] px-4 pb-4 pt-2 shadow-2xs sm:px-6 sm:pb-6 sm:pt-3">
-        <div className="relative flex min-h-16 items-center justify-between gap-2 px-1 pb-2 sm:min-h-24 sm:gap-3 sm:px-2 sm:pb-5">
+    <section className="mb-5 sm:mb-7" aria-label="Ringkasan hasil belajar">
+      <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl border-b border-[#d6e5fb] bg-gradient-to-r from-[#eaf3fe] via-[#edf5fe] to-[#e5eefc] px-3.5 pb-3 pt-1.5 shadow-2xs sm:px-6 sm:pb-6 sm:pt-3">
+        <div className="relative flex min-h-14 items-center justify-between gap-2 px-1 pb-1.5 sm:min-h-24 sm:gap-3 sm:px-2 sm:pb-5">
           <div>
-            <h1 className="mt-1 text-lg font-extrabold leading-tight tracking-tight text-[#1d63ed] sm:text-3xl">
+            <h1 className="mt-1 text-[15px] font-bold leading-tight tracking-tight text-[#1d63ed] sm:text-3xl sm:font-extrabold">
               Hasil Pembelajaran
             </h1>
-            <p className="mt-1 max-w-xl text-[10px] leading-snug text-slate-600 sm:mt-2 sm:text-sm sm:leading-relaxed">
+            <p className="mt-1 max-w-xl text-[11px] leading-snug text-slate-600 sm:mt-2 sm:text-sm sm:leading-relaxed">
               Pantau Perjalanan Belajarmu, Raih Targetmu Selangkah demi
               Selangkah!
             </p>
@@ -28,36 +28,36 @@ function LearningSummaryHeader({ summary }) {
           </div>
         </div>
 
-        <div className="relative grid grid-cols-2 gap-2 border-t border-[#d6e5fb] pt-3 sm:gap-4 sm:px-2 sm:pt-5">
-          <article className="flex min-w-0 items-center justify-between gap-1.5 rounded-2xl border border-[#d6e5fb] bg-white p-2.5 shadow-2xs sm:gap-3 sm:p-4">
+        <div className="relative grid grid-cols-1 gap-1.5 border-t border-[#d6e5fb] pt-2.5 sm:grid-cols-2 sm:gap-4 sm:px-2 sm:pt-5">
+          <article className="flex min-w-0 items-center justify-between gap-1 rounded-xl border border-[#d6e5fb] bg-white p-2 shadow-2xs sm:gap-3 sm:rounded-2xl sm:p-4">
             <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 sm:h-8 sm:w-8">
                 <CheckCircle2 className="h-4 w-4" />
               </span>
-              <p className="text-[10px] font-medium leading-tight text-slate-600 sm:text-sm sm:leading-snug">
+              <p className="text-[11px] font-medium leading-tight text-slate-600 sm:text-sm sm:leading-snug">
                 BAB Selesai Dipelajari
               </p>
             </div>
             <p className="shrink-0 text-lg font-bold leading-none text-slate-900 sm:text-2xl">
               {summary.completed_bab}{" "}
-              <span className="text-[10px] font-semibold text-slate-500 sm:text-xs">
+              <span className="text-[11px] font-semibold text-slate-500 sm:text-xs">
                 BAB
               </span>
             </p>
           </article>
 
-          <article className="flex min-w-0 items-center justify-between gap-1.5 rounded-2xl border border-[#d6e5fb] bg-white p-2.5 shadow-2xs sm:gap-3 sm:p-4">
+          <article className="flex min-w-0 items-center justify-between gap-1 rounded-xl border border-[#d6e5fb] bg-white p-2 shadow-2xs sm:gap-3 sm:rounded-2xl sm:p-4">
             <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1d63ed] sm:h-8 sm:w-8">
                 <Clock3 className="h-4 w-4" />
               </span>
-              <p className="text-[10px] font-medium leading-tight text-slate-600 sm:text-sm sm:leading-snug">
+              <p className="text-[11px] font-medium leading-tight text-slate-600 sm:text-sm sm:leading-snug">
                 BAB Sedang Dipelajari
               </p>
             </div>
             <p className="shrink-0 text-lg font-bold leading-none text-slate-900 sm:text-2xl">
               {summary.in_progress_bab}{" "}
-              <span className="text-[10px] font-semibold text-slate-500 sm:text-xs">
+              <span className="text-[11px] font-semibold text-slate-500 sm:text-xs">
                 BAB
               </span>
             </p>
@@ -70,26 +70,26 @@ function LearningSummaryHeader({ summary }) {
 
 function BabCard({ bab }) {
   return (
-    <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition-all duration-300 hover:border-slate-300 hover:shadow-sm">
-      <div className="p-5 sm:p-6">
-        <div className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+    <article className="overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-xs transition-all duration-300 hover:border-slate-300 hover:shadow-sm">
+      <div className="p-3.5 sm:p-6">
+        <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-slate-400 sm:font-bold">
           BAB {bab.display_order || 1}
         </div>
 
-        <h3 className="mb-1 text-lg font-bold leading-snug tracking-tight text-slate-900 sm:text-xl">
+        <h3 className="mb-1 break-words text-sm font-semibold leading-snug tracking-tight text-slate-900 sm:text-xl sm:font-bold">
           {bab.name}
         </h3>
 
-        <p className="mb-4 text-xs leading-relaxed text-slate-500 sm:text-sm">
+        <p className="mb-3 break-words text-xs leading-relaxed text-slate-500 sm:mb-4 sm:text-sm">
           {bab.description}
         </p>
 
-        <div className="mb-5">
+        <div className="mb-3 sm:mb-5">
           <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-slate-700">
             <span>
               {bab.started_subbab} dari {bab.total_subbab} subbab dimulai
             </span>
-            <span className="text-[11px] font-medium text-slate-400">
+            <span className="text-xs font-medium text-slate-400 sm:text-[11px]">
               {bab.progress}%
             </span>
           </div>
@@ -102,11 +102,11 @@ function BabCard({ bab }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-          <div className="text-[11px] font-medium text-slate-400">
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 border-t border-slate-100 pt-2.5 sm:pt-3">
+          <div className="text-xs font-normal text-slate-400 sm:text-[11px] sm:font-medium">
             {bab.class_reference || "Kurikulum Nasional"}
           </div>
-          <div className="text-[11px] font-medium text-slate-400">
+          <div className="text-xs font-normal text-slate-400 sm:text-[11px] sm:font-medium">
             {bab.completed_subbab} dari {bab.total_subbab} subbab selesai
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function TopikDetail() {
       <Navbar activePage="Topik" />
 
       <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-6xl px-5 py-8 pb-24 sm:px-8 lg:px-10 md:pb-8">
+        <div className="mx-auto max-w-6xl px-4 py-5 pb-24 sm:px-8 sm:py-8 lg:px-10 md:pb-8">
           <LearningSummaryHeader summary={summary} />
 
           {/* Panggil SearchBar dengan props lengkap */}
@@ -231,19 +231,20 @@ export default function TopikDetail() {
             </div>
           )}
 
-          <section className="mt-10">
+          <section className="mt-6 sm:mt-10">
             {isLoading ? (
-              <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">
-                Memuat hasil pembelajaran...
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-4 text-center text-xs text-slate-500 sm:rounded-2xl sm:px-5 sm:py-8 sm:text-sm">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+                <span>Memuat hasil pembelajaran...</span>
               </div>
             ) : filteredBab.length === 0 ? (
-              <div className="text-center py-12 px-4 bg-white rounded-2xl border border-slate-200">
+              <div className="text-center py-8 px-4 bg-white rounded-2xl border border-slate-200 sm:py-12">
                 <p className="text-sm font-semibold text-slate-700">
                   Tidak ada bab yang cocok dengan pencarian/filter.
                 </p>
               </div>
             ) : (
-              <div className="grid gap-5 lg:grid-cols-2">
+              <div className="grid gap-3.5 sm:gap-5 lg:grid-cols-2">
                 {filteredBab.map((bab) => (
                   <BabCard key={bab.id} bab={bab} />
                 ))}
@@ -251,18 +252,18 @@ export default function TopikDetail() {
             )}
           </section>
 
-          <section className="mt-8 rounded-2xl border border-blue-100 bg-blue-50 p-5">
+          <section className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-3.5 sm:mt-8 sm:p-5">
             <div className="flex gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600">
-                <Target className="h-5 w-5" />
+              <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 sm:flex sm:h-10 sm:w-10">
+                <Target className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
 
               <div>
-                <h3 className="font-semibold text-slate-900">
+                <h3 className="text-sm font-semibold text-slate-900 sm:text-base">
                   Terus tingkatkan kemampuanmu
                 </h3>
 
-                <p className="mt-1 text-sm leading-6 text-slate-600">
+                <p className="mt-1 text-xs leading-relaxed text-slate-600 sm:text-sm sm:leading-6">
                   Selesaikan setiap bab untuk mendapatkan poin dan meningkatkan
                   pemahaman matematika kamu.
                 </p>
