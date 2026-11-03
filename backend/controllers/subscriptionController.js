@@ -1,4 +1,5 @@
 const Langganan = require("../models/Langganan");
+const { getPlanCatalog, isPremiumFeatureEnabled } = require("../config/premiumPlans");
 const { TRIAL_DURATION_MS, getEntitlement } = require("../services/entitlement");
 const {
   contextFromRequest,
@@ -26,8 +27,25 @@ const getMySubscription = async (req, res) => {
   }
 };
 
+// Katalog sudah divalidasi saat start; harga hanya dihitung di server.
+const getPlans = (req, res) =>
+  res.status(200).json({
+    statusCode: 200,
+    success: true,
+    message: "Katalog paket Premium berhasil diambil.",
+    data: {
+      currency: "IDR",
+      // Payment gateway belum tersedia; paket hanya bisa ditampilkan.
+      purchasable: false,
+      plans: isPremiumFeatureEnabled() ? getPlanCatalog() : [],
+    },
+  });
+
 const startTrial = async (req, res) => {
   try {
+    if (!isPremiumFeatureEnabled()) {
+      return sendError(res, 409, "FEATURE_DISABLED", "Fitur paket sedang nonaktif.");
+    }
     const userId = req.user.id;
     const now = new Date();
     const entitlement = await getEntitlement(userId, now);
@@ -85,4 +103,4 @@ const startTrial = async (req, res) => {
   }
 };
 
-module.exports = { getMySubscription, startTrial };
+module.exports = { getMySubscription, getPlans, startTrial };

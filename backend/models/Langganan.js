@@ -11,6 +11,12 @@ const langgananSchema = new mongoose.Schema(
       required: true,
     },
     plan: { type: String, enum: ["premium"], default: "premium" },
+    // Tipe paket Premium (config/premiumPlans.js); null untuk trial atau manual per hari.
+    package: {
+      type: String,
+      enum: ["weekly", "monthly", "yearly", null],
+      default: null,
+    },
     source: {
       type: String,
       enum: ["trial", "manual", "payment"],

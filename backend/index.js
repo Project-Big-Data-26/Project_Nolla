@@ -4,6 +4,19 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
+// Saklar & harga Premium dari env: konfigurasi salah menghentikan server sebelum melayani request.
+const { initPlanCatalog, isPremiumFeatureEnabled } = require("./config/premiumPlans");
+try {
+  if (!isPremiumFeatureEnabled()) {
+    console.warn("⚠️ Fitur paket nonaktif (PREMIUM_FEATURE_ENABLED=false): semua bab terbuka, kuis tanpa batas.");
+  } else if (initPlanCatalog().length === 0) {
+    console.warn("⚠️ Harga Premium belum dikonfigurasi (PREMIUM_*_PRICE kosong); katalog paket kosong.");
+  }
+} catch (error) {
+  console.error(`❌ Konfigurasi harga Premium tidak valid:\n${error.message}`);
+  process.exit(1);
+}
+
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 

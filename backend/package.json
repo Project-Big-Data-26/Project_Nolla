@@ -13,7 +13,8 @@
     "test:unit": "node --test test/*.test.js",
     "report:items": "node scripts/itemAnalysisReport.js",
     "migrate:revoked-ttl": "node scripts/migrateRevokedTokenTtl.js",
-    "grant:premium": "node scripts/grantPremium.js"
+    "grant:premium": "node scripts/grantPremium.js",
+    "reset:trial": "node scripts/resetTrial.js"
   },
   "keywords": [],
   "author": "",

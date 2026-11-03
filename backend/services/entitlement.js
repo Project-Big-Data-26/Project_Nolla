@@ -1,5 +1,6 @@
 const Bab = require("../models/Bab");
 const Langganan = require("../models/Langganan");
+const { isPremiumFeatureEnabled } = require("../config/premiumPlans");
 
 const FREE_QUIZ_SESSIONS_PER_SUBBAB = 3;
 const TRIAL_DURATION_MS = 72 * 60 * 60 * 1000;
@@ -15,10 +16,15 @@ const resolveEntitlement = (periods, now = new Date()) => {
   const active = periods.filter((period) => isActivePeriod(period, now));
   const trial = periods.find((period) => period.source === "trial") ?? null;
   const isPremium = active.length > 0;
+  // Tipe paket dari periode aktif non-trial yang berakhir paling akhir.
+  const [latestPaid] = active
+    .filter((period) => period.source !== "trial")
+    .sort((a, b) => new Date(b.ends_at) - new Date(a.ends_at));
 
   return {
     plan: isPremium ? "premium" : "free",
     is_trial: isPremium && active.every((period) => period.source === "trial"),
+    package: latestPaid?.package ?? null,
     active_until: isPremium
       ? new Date(Math.max(...active.map((period) => new Date(period.ends_at))))
       : null,
@@ -34,12 +40,30 @@ const resolveEntitlement = (periods, now = new Date()) => {
   };
 };
 
-const getEntitlement = async (userId, now = new Date()) => {
+// Status dari data tersimpan, tanpa memandang saklar (dipakai script admin).
+const getStoredEntitlement = async (userId, now = new Date()) => {
   const periods = await Langganan.find({ user_id: userId })
-    .select("source starts_at ends_at cancelled_at")
+    .select("source package starts_at ends_at cancelled_at")
     .lean();
   return resolveEntitlement(periods, now);
 };
+
+// Saklar mati = perilaku sebelum fitur paket: semua terbuka, tanpa trial/kuota.
+const FEATURE_DISABLED_ENTITLEMENT = Object.freeze({
+  plan: "premium",
+  is_trial: false,
+  package: null,
+  active_until: null,
+  trial: { available: false, started_at: null, ends_at: null },
+  limits: { quiz_sessions_per_subbab: null },
+  feature_enabled: false,
+});
+
+// Dipakai semua guard (dashboard, pretest, kuis) dan endpoint paket.
+const getEntitlement = async (userId, now = new Date()) =>
+  isPremiumFeatureEnabled()
+    ? { ...(await getStoredEntitlement(userId, now)), feature_enabled: true }
+    : FEATURE_DISABLED_ENTITLEMENT;
 
 // Bab terkunci untuk free: display_order terbesar di tiap kelas (semua bila seri).
 // Bab tanpa display_order numerik diabaikan agar kelas tanpa urutan tidak terkunci seluruhnya.
@@ -99,6 +123,7 @@ module.exports = {
   TRIAL_DURATION_MS,
   getEntitlement,
   getLockedBabIds,
+  getStoredEntitlement,
   isBabLocked,
   pickLockedBabIds,
   planLimitHitEvent,

@@ -22,6 +22,7 @@ test("user without periods is free with trial available", () => {
   assert.deepEqual(resolveEntitlement([], NOW), {
     plan: "free",
     is_trial: false,
+    package: null,
     active_until: null,
     trial: { available: true, started_at: null, ends_at: null },
     limits: { quiz_sessions_per_subbab: FREE_QUIZ_SESSIONS_PER_SUBBAB },
@@ -73,6 +74,24 @@ test("manual premium overlapping a trial is not labelled trial", () => {
   assert.equal(result.plan, "premium");
   assert.equal(result.is_trial, false);
   assert.deepEqual(result.active_until, hours(720));
+});
+
+test("package comes from the latest active non-trial period", () => {
+  assert.equal(resolveEntitlement([period("trial", -1, 71)], NOW).package, null);
+  assert.equal(
+    resolveEntitlement(
+      [
+        period("trial", -1, 71),
+        period("manual", -2, 100, { package: "weekly" }),
+        period("payment", -1, 700, { package: "monthly" }),
+        period("payment", -400, -10, { package: "yearly" }),
+      ],
+      NOW,
+    ).package,
+    "monthly",
+  );
+  assert.equal(resolveEntitlement([period("manual", -2, 100)], NOW).package, null);
+  assert.equal(resolveEntitlement([period("manual", -200, -2, { package: "yearly" })], NOW).package, null);
 });
 
 test("locks the highest display_order bab in each kelas", () => {
