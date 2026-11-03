@@ -321,7 +321,6 @@ const LandingPage = () => {
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
-
       {/* -------------------- NAVBAR (Floating & Blurred on Scroll) -------------------- */}
       <nav
         className={`sticky top-0 z-[95] transition-all duration-300 rounded-b-2xl sm:rounded-b-3xl ${
@@ -438,7 +437,6 @@ const LandingPage = () => {
           </button>
         </div>
       </nav>
-
       {/* -------------------- MOBILE DRAWER SIDEBAR & BACKDROP -------------------- */}
       {/* Backdrop di sisi kanan: klik area bukan putih untuk menutup sidebar */}
       <div
@@ -450,7 +448,6 @@ const LandingPage = () => {
         onClick={() => setMobileMenuOpen(false)}
         aria-hidden="true"
       />
-
       {/* Panel Drawer dari samping kiri - Sesuai referensi Nurul Fikri */}
       <div
         className={`fixed top-0 bottom-0 left-0 w-[min(82%,320px)] h-full bg-white z-[100] shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-out lg:hidden ${
@@ -564,7 +561,6 @@ const LandingPage = () => {
           )}
         </div>
       </div>
-
       {/* -------------------- HERO SECTION -------------------- */}
       <header
         onMouseMove={handleHeroMouseMove}
@@ -668,7 +664,6 @@ const LandingPage = () => {
           }}
         />
       </header>
-
       {/* -------------------- STATS BAR -------------------- */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 sm:-mt-12 relative z-20">
         <FadeInSection variant="scale-up">
@@ -711,7 +706,6 @@ const LandingPage = () => {
           </div>
         </FadeInSection>
       </div>
-
       {/* -------------------- SECTION 1: MASALAH -------------------- */}
       <section id="masalah" className="py-20 lg:py-24 relative overflow-hidden">
         {/* Math Decorative Accents */}
@@ -788,7 +782,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* -------------------- SECTION 2: CARA KERJA -------------------- */}
       <section
         id="cara"
@@ -876,7 +869,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* -------------------- SECTION 3: JENJANG -------------------- */}
       <section id="jenjang" className="py-20 lg:py-24 relative overflow-hidden">
         {/* Floating Math Decor - DKV Balanced */}
@@ -1006,7 +998,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* -------------------- SECTION 4: KEUNGGULAN -------------------- */}
       <section
         id="fitur"
@@ -1088,9 +1079,9 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* -------------------- SECTION 5: TESTIMONI (HORIZONTAL TICKER) - DI-HIDE SEMENTARA -------------------- */}
-      {/* Catatan: Section ini disembunyikan dari tampilan layar (hidden) tanpa menghapus kodenya */}
+      {/* -------------------- SECTION 5: TESTIMONI (HORIZONTAL TICKER) - DI-HIDE
+      SEMENTARA --------------------
+      Catatan: Section ini disembunyikan dari tampilan layar (hidden) tanpa menghapus kodenya */}
       <section
         id="testimoni"
         className="hidden pt-16 sm:pt-20 lg:pt-20 pb-10 sm:pb-12 lg:pb-14 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-white"
@@ -1294,7 +1285,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* -------------------- SECTION 7: CTA SECTION -------------------- */}
       <section
         id="cta"
@@ -1366,7 +1356,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* -------------------- FOOTER -------------------- */}
       <footer className="bg-[#1b1f3b] text-white/80 pt-10 sm:pt-14 pb-0 text-sm border-t border-[#2b3fd6]/40">
         <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10">
