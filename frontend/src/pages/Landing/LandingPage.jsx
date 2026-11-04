@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Minus, Menu, X } from "lucide-react";
+import { Plus, Minus, Menu, X, Mail, Phone } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { fetchPlans, formatDiscount, formatRupiah, startPlanCheckout } from "../../api/subscription";
+import { openSnapCheckout } from "../../api/midtransSnap";
 import sdIcon from "../../assets/icon/SD.png";
 import smpIcon from "../../assets/icon/SMP.png";
 import smaIcon from "../../assets/icon/SMA.png";
@@ -81,6 +83,56 @@ const LandingPage = () => {
   const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [planCatalog, setPlanCatalog] = useState({ status: "loading", data: null });
+  const [checkoutPlan, setCheckoutPlan] = useState(null);
+  const [checkoutError, setCheckoutError] = useState("");
+  const [checkoutNotice, setCheckoutNotice] = useState("");
+
+  const handlePlanCheckout = async (planCode) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    setCheckoutPlan(planCode);
+    setCheckoutError("");
+    setCheckoutNotice("");
+    try {
+      const checkout = await startPlanCheckout(planCode);
+      await openSnapCheckout(checkout, {
+        onSuccess: () => {
+          setCheckoutPlan(null);
+          setCheckoutNotice("Pembayaran diterima. Status Premium akan diperbarui setelah verifikasi Midtrans.");
+        },
+        onPending: () => {
+          setCheckoutPlan(null);
+          setCheckoutNotice("Pembayaran menunggu konfirmasi. Status akan diperbarui otomatis setelah Midtrans mengirim notifikasi.");
+        },
+        onError: () => {
+          setCheckoutPlan(null);
+          setCheckoutError("Pembayaran belum berhasil. Silakan coba lagi.");
+        },
+        onClose: () => setCheckoutPlan(null),
+      });
+    } catch (error) {
+      setCheckoutError(error.response?.data?.message || "Checkout gagal dibuat. Silakan coba lagi.");
+      setCheckoutPlan(null);
+    }
+  };
+
+  useEffect(() => {
+    let isCurrent = true;
+    fetchPlans()
+      .then((data) => {
+        if (isCurrent) setPlanCatalog({ status: "ready", data });
+      })
+      .catch(() => {
+        if (isCurrent) setPlanCatalog({ status: "error", data: null });
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   // Landing page tidak memakai scroll horizontal; reset bila viewport berubah.
   useEffect(() => {
@@ -173,29 +225,6 @@ const LandingPage = () => {
     }
   };
 
-  // Testimonial Cursor Notification State (Shows for 3 seconds only)
-  const [showTestimonialHint, setShowTestimonialHint] = useState(false);
-  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
-  const testimonialHintTimer = useRef(null);
-
-  const handleMouseEnterTestimonial = () => {
-    setShowTestimonialHint(true);
-    if (testimonialHintTimer.current) {
-      clearTimeout(testimonialHintTimer.current);
-    }
-    // Automatically hide after 3 seconds
-    testimonialHintTimer.current = setTimeout(() => {
-      setShowTestimonialHint(false);
-    }, 3000);
-  };
-
-  const handleMouseLeaveTestimonial = () => {
-    setShowTestimonialHint(false);
-    if (testimonialHintTimer.current) {
-      clearTimeout(testimonialHintTimer.current);
-    }
-  };
-
   // FAQ Accordion State & Smooth Scroll Refs
   const [openFaq, setOpenFaq] = useState(null);
   const faqItemRefs = useRef([]);
@@ -228,70 +257,6 @@ const LandingPage = () => {
       }, 90);
     }
   };
-
-  // Testimonials Data for Horizontal Ticker
-  const testimonials = [
-    {
-      name: "Rian Pratama",
-      role: "Siswa Kelas 8 SMP",
-      initial: "R",
-      avatarBg: "bg-blue-100 text-blue-700",
-      rating: 5,
-      highlight: "Nilai Ulangan Naik Drastis",
-      text: "Dulu takut matematika dan sering bingung rumus pecahan. Sekarang malah ketagihan ngejar streak tiap pulang sekolah!",
-      tag: "Aljabar & Pecahan",
-    },
-    {
-      name: "Ibu Ratna Dewi",
-      role: "Orang Tua Siswa SD",
-      initial: "I",
-      avatarBg: "bg-amber-100 text-amber-700",
-      rating: 5,
-      highlight: "Anak Mandiri Berlatih",
-      text: "Anak saya sekarang berlatih mandiri tanpa harus disuruh-suruh. Soalnya bertahap jadi dia tidak merasa tertekan.",
-      tag: "SD Kelas 4",
-    },
-    {
-      name: "Pak Hendra S.Pd.",
-      role: "Guru Matematika SMA",
-      initial: "H",
-      avatarBg: "bg-emerald-100 text-emerald-700",
-      rating: 5,
-      highlight: "Rekomendasi Guru",
-      text: "Level soalnya sangat pas dan adaptif. Sangat cocok direkomendasikan sebagai suplemen latihan mandiri murid di kelas saya.",
-      tag: "Pengajar Berpengalaman",
-    },
-    {
-      name: "Alya Zahra",
-      role: "Siswi Kelas 5 SD",
-      initial: "A",
-      avatarBg: "bg-purple-100 text-purple-700",
-      rating: 5,
-      highlight: "Belajar Berasa Main Game",
-      text: "Seru banget ada XP dan streak-nya kayak main game! Sekarang ulangan harian matematika nilaiku selalu di atas 90.",
-      tag: "Operasi Hitung",
-    },
-    {
-      name: "Dimas Arya",
-      role: "Siswa Kelas 12 SMA",
-      initial: "D",
-      avatarBg: "bg-cyan-100 text-cyan-700",
-      rating: 5,
-      highlight: "Siap Tembus UTBK",
-      text: "Persiapan UTBK matematika jadi jauh lebih terarah. Soal adaptifnya ngebantu nemuin kelemahan di topik matriks dan limit.",
-      tag: "Target PTN",
-    },
-    {
-      name: "Bu Maya Siregar",
-      role: "Wali Murid SMP",
-      initial: "M",
-      avatarBg: "bg-rose-100 text-rose-700",
-      rating: 5,
-      highlight: "Progres Terpantau",
-      text: "Sistem grafik kemajuannya transparan sekali. Saya bisa memantau topik mana yang anak saya sudah kuasai dengan mudah.",
-      tag: "Monitoring Siswa",
-    },
-  ];
 
   const faqList = [
     {
@@ -384,6 +349,15 @@ const LandingPage = () => {
                 className="hover:text-[#0284c7] transition-colors cursor-pointer"
               >
                 Keunggulan
+              </a>
+            </li>
+            <li>
+              <a
+                href="#paket"
+                onClick={(e) => scrollToSection(e, "paket")}
+                className="hover:text-[#0284c7] transition-colors cursor-pointer"
+              >
+                Paket
               </a>
             </li>
             <li>
@@ -515,6 +489,13 @@ const LandingPage = () => {
               <span className="text-slate-400 group-hover:text-[#0284c7] font-bold text-sm">
                 &gt;
               </span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => scrollToSection(e, "paket")}
+              className="w-full text-left px-3.5 py-3 rounded-xl hover:bg-slate-50 hover:text-[#0284c7] font-bold text-sm sm:text-base transition-colors flex items-center justify-between cursor-pointer"
+            >
+              <span>Paket Premium</span>
             </button>
             <button
               type="button"
@@ -1079,113 +1060,129 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-      {/* -------------------- SECTION 5: TESTIMONI (HORIZONTAL TICKER) - DI-HIDE
-      SEMENTARA --------------------
-      Catatan: Section ini disembunyikan dari tampilan layar (hidden) tanpa menghapus kodenya */}
-      <section
-        id="testimoni"
-        className="hidden pt-16 sm:pt-20 lg:pt-20 pb-10 sm:pb-12 lg:pb-14 relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-white"
-        onMouseEnter={handleMouseEnterTestimonial}
-        onMouseLeave={handleMouseLeaveTestimonial}
-        onMouseMove={(e) => setCursorPos({ x: e.clientX, y: e.clientY })}
-      >
-        {/* Floating Math Decor - DKV Balanced */}
-        <img
-          src={mathPi}
-          alt=""
-          aria-hidden="true"
-          className="absolute top-6 left-4 sm:left-10 w-10 sm:w-14 md:w-16 h-auto object-contain opacity-25 animate-float-slow pointer-events-none select-none drop-shadow-sm z-0"
-        />
-        <img
-          src={mathLightbulb}
-          alt=""
-          aria-hidden="true"
-          className="absolute top-6 right-4 sm:right-10 w-12 sm:w-16 md:w-18 h-auto object-contain opacity-20 animate-float-reverse pointer-events-none select-none drop-shadow-sm z-0"
-        />
-        <FadeInSection className="max-w-6xl mx-auto px-4 sm:px-6 text-center mb-8 sm:mb-10 relative z-10">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b1f3b] tracking-tight mb-3">
-            Apa kata mereka tentang Nolla?
-          </h2>
-          <p className="text-base text-[#5b6088] max-w-xl mx-auto">
-            Cerita nyata dari ribuan pelajar &amp; pendidik yang mengubah rasa
-            takut matematika menjadi rasa percaya diri.
-          </p>
-        </FadeInSection>
+      {/* -------------------- SECTION 5: PAKET PREMIUM -------------------- */}
+      <section id="paket" className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/70 to-white py-16 sm:py-20 lg:py-24">
+        <img src={mathGeometry} alt="" aria-hidden="true" className="pointer-events-none absolute left-3 top-8 h-auto w-12 opacity-15 sm:left-10 sm:w-16" />
+        <img src={mathCalculus} alt="" aria-hidden="true" className="pointer-events-none absolute bottom-8 right-3 h-auto w-16 opacity-15 sm:right-10 sm:w-24" />
 
-        {/* Horizontal Ticker with Gradient Fade Edges */}
-        <FadeInSection delay={150}>
-          <div className="relative w-full overflow-hidden group py-3">
-            {/* Left & Right Gradient Shadows for seamless entry/exit */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-36 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-36 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6">
+          <FadeInSection className="mb-8 text-center sm:mb-10">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#ff8a1f] sm:text-sm">Pilihan paket</p>
+            <h2 className="mb-3 text-2xl font-bold tracking-tight text-[#1b1f3b] sm:text-3xl lg:text-4xl">Pilih masa Premium yang cocok</h2>
+            <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#5b6088] sm:text-base">
+              Dapatkan lebih banyak kesempatan berlatih dan lanjutkan drill matematika sesuai ritmemu.
+            </p>
+          </FadeInSection>
 
-            {/* Marquee Track */}
-            <div className="flex gap-6 animate-marquee">
-              {[...testimonials, ...testimonials].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="w-[300px] sm:w-[370px] shrink-0 bg-white rounded-3xl p-6 sm:p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#2b3fd6]/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between select-none cursor-default"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-3.5">
-                      <div className="flex gap-1 text-amber-400 text-sm">
-                        {"★".repeat(item.rating)}
-                      </div>
-                      <span className="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                        {item.tag}
-                      </span>
-                    </div>
-                    <h4 className="font-bold text-sm text-[#1b1f3b] mb-2 flex items-center gap-1.5">
-                      <span>✨</span>
-                      <span>{item.highlight}</span>
-                    </h4>
-                    <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed mb-5">
-                      “{item.text}”
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 pt-3.5 border-t border-slate-100">
-                    <div
-                      className={`w-10 h-10 rounded-full ${item.avatarBg} font-bold flex items-center justify-center text-sm shadow-xs shrink-0`}
-                    >
-                      {item.initial}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h5 className="font-bold text-xs sm:text-sm text-[#1b1f3b] truncate">
-                          {item.name}
-                        </h5>
-                        <span
-                          className="text-emerald-500 font-bold text-xs"
-                          title="Terverifikasi"
-                        >
-                          ✓
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-[#5b6088] truncate">
-                        {item.role}
-                      </p>
-                    </div>
-                  </div>
+          {planCatalog.status === "loading" ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 sm:gap-5">
+              {[0, 1, 2].map((item) => (
+                <div key={item} className="h-64 animate-pulse rounded-3xl border border-slate-200 bg-white p-6">
+                  <div className="mb-5 h-4 w-28 rounded bg-slate-100" />
+                  <div className="mb-3 h-8 w-40 rounded bg-slate-100" />
+                  <div className="mb-8 h-4 w-24 rounded bg-slate-100" />
+                  <div className="h-10 rounded-xl bg-slate-100" />
                 </div>
               ))}
             </div>
-          </div>
-        </FadeInSection>
+          ) : planCatalog.status === "error" ? (
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-600">
+              Paket Premium belum dapat dimuat. Silakan coba kembali nanti.
+            </div>
+          ) : planCatalog.data?.plans?.length ? (
+            <>
+              <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3 sm:gap-5">
+                {planCatalog.data.plans.map((plan) => {
+                  const durationLabel =
+                    plan.code === "weekly" ? "1 minggu" :
+                    plan.code === "monthly" ? "1 bulan" :
+                    plan.code === "yearly" ? "1 tahun" :
+                    `${plan.duration_days} hari`;
+                  const discountLabel = formatDiscount(plan.discount);
+                  const isFeatured = plan.code === "yearly" && Boolean(plan.discount);
 
-        {/* Dynamic Cursor Tooltip Notification (Muncul 3 detik saja saat memasuki section) */}
-        {showTestimonialHint && (
-          <div
-            className="pointer-events-none fixed z-50 px-3.5 py-1.5 rounded-full bg-[#1b1f3b]/95 backdrop-blur-md text-white text-xs font-medium shadow-2xl border border-white/20 flex items-center gap-2 select-none transition-opacity duration-300 ease-out whitespace-nowrap animate-in fade-in"
-            style={{
-              left: `${cursorPos.x}px`,
-              top: `${cursorPos.y}px`,
-              transform: "translate(-50%, -140%)",
-            }}
-          >
-            <span className="text-amber-400 text-sm">👆</span>
-            <span>Arahkan kursor ke kartu untuk menjeda</span>
-          </div>
-        )}
+                  return (
+                    <article
+                      key={plan.code}
+                      className={`relative flex h-full flex-col rounded-3xl border bg-white p-5 shadow-sm transition-all sm:p-6 ${isFeatured ? "border-[#ff8a1f] ring-2 ring-[#ff8a1f]/15 md:-translate-y-1 md:shadow-lg" : "border-[#e3e6f8] hover:-translate-y-1 hover:shadow-lg"}`}
+                    >
+                      {isFeatured && (
+                        <span className="absolute -top-3 left-5 rounded-full bg-gradient-to-r from-[#ff8a1f] to-[#ff5d5d] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm sm:left-6">
+                          Hemat lebih banyak
+                        </span>
+                      )}
+
+                      <div className="mb-5">
+                        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                          <h3 className="text-base font-bold text-[#1b1f3b] sm:text-lg">{plan.name}</h3>
+                          {discountLabel && (
+                            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 sm:text-xs">
+                              {discountLabel}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#5b6088] sm:text-sm">Masa aktif {durationLabel}</p>
+                      </div>
+
+                      <div className="mb-5 border-b border-slate-100 pb-5">
+                        {plan.discount && (
+                          <p className="mb-0.5 text-sm text-slate-400 line-through">{formatRupiah(plan.price)}</p>
+                        )}
+                        <p className="text-3xl font-bold tracking-tight text-[#1b1f3b] sm:text-4xl">{formatRupiah(plan.final_price)}</p>
+                        <p className="mt-1 text-xs text-[#5b6088]">untuk {durationLabel}</p>
+                      </div>
+
+                      <ul className="mb-6 flex-1 space-y-3 text-xs leading-relaxed text-slate-600 sm:text-sm">
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden="true" className="mt-1 text-emerald-500">✓</span>
+                          <span>Akses Premium selama {durationLabel}</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span aria-hidden="true" className="mt-1 text-emerald-500">✓</span>
+                          <span>Sesi kuis tanpa batas per subbab</span>
+                        </li>
+                      </ul>
+
+                      {planCatalog.data.purchasable ? (
+                        <button
+                          type="button"
+                          onClick={() => handlePlanCheckout(plan.code)}
+                          disabled={Boolean(checkoutPlan)}
+                          className="inline-flex w-full items-center justify-center rounded-xl bg-[#2563eb] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {checkoutPlan === plan.code
+                            ? "Menyiapkan pembayaran..."
+                            : isAuthenticated
+                              ? "Beli paket"
+                              : "Masuk untuk membeli"}
+                        </button>
+                      ) : (
+                        <button type="button" disabled className="w-full cursor-not-allowed rounded-xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500">
+                          Pembelian segera tersedia
+                        </button>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+              {checkoutError && (
+                <p role="alert" className="mt-4 text-center text-sm text-red-600">{checkoutError}</p>
+              )}
+              {checkoutNotice && (
+                <p role="status" className="mt-4 text-center text-sm text-emerald-700">{checkoutNotice}</p>
+              )}
+              {!planCatalog.data.purchasable && (
+                <p className="mt-5 text-center text-xs text-slate-500 sm:text-sm">
+                  Paket dapat dilihat sekarang; pembelian belum tersedia.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-600">
+              Paket Premium sedang tidak tersedia.
+            </div>
+          )}
+        </div>
       </section>
 
       {/* -------------------- SECTION 6: FAQ -------------------- */}
@@ -1357,16 +1354,14 @@ const LandingPage = () => {
         </div>
       </section>
       {/* -------------------- FOOTER -------------------- */}
-      <footer className="bg-[#1b1f3b] text-white/80 pt-10 sm:pt-14 pb-0 text-sm border-t border-[#2b3fd6]/40">
+      <footer className="border-t border-[#2b3fd6]/40 bg-[#1b1f3b] pt-8 text-sm text-white/80 sm:pt-14">
         <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10">
-          {/* Mobile memakai dua kolom konten; desktop memisahkan brand dari kelompok tautan. */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-8 mb-10 sm:gap-x-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-8 lg:gap-y-0">
-            {/* Brand NOLLA */}
-            <div className="col-span-2 lg:col-span-1">
+          <div className="mb-8 grid grid-cols-2 gap-x-5 gap-y-6 sm:gap-x-8 sm:gap-y-8 lg:mb-10 lg:grid-cols-[minmax(0,1fr)_42rem] lg:gap-x-10">
+            <div className="col-span-2 min-w-0 lg:col-span-1">
               <button
                 type="button"
                 onClick={scrollToTop}
-                className="inline-flex items-center gap-2 mb-4 cursor-pointer hover:opacity-80 transition-opacity border-0 bg-transparent p-0"
+                className="mb-4 inline-flex items-center gap-2 border-0 bg-transparent p-0 transition-opacity hover:opacity-80"
                 title="Kembali ke atas"
               >
                 <img
@@ -1375,21 +1370,61 @@ const LandingPage = () => {
                   aria-hidden="true"
                   className="h-7 w-auto object-contain"
                 />
-                <span className="font-heading text-lg font-semibold translate-y-0.5 text-white">
+                <span className="translate-y-0.5 font-heading text-lg font-semibold text-white">
                   NOLLA
                 </span>
               </button>
-              <p className="text-white/75 text-xs leading-relaxed mb-5 max-w-sm lg:max-w-xs">
-                Skill drill matematika adaptif untuk siswa SD–SMA. Melatih
+              <p className="mb-5 max-w-sm text-xs leading-relaxed text-white/75 lg:max-w-xs">
+                Skill drill matematika adaptif untuk siswa SD&#8211;SMA. Melatih
                 intuisi dan keterampilan berhitung secara bertahap dan
                 menyenangkan.
               </p>
+
+              <ul className="flex items-center gap-3 text-white/75">
+                <li>
+                  <a
+                    href="https://www.instagram.com/nolla.academy/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram NOLLA"
+                    title="Instagram NOLLA"
+                    className="inline-flex items-center gap-2 rounded-lg p-1 text-xs transition-colors hover:text-[#ff8a1f]"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      className="h-5 w-5 shrink-0 fill-current"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                    </svg>
+                    <span>@nolla.academy</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.tiktok.com/@nolla.academy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="TikTok NOLLA"
+                    title="TikTok NOLLA"
+                    className="inline-flex items-center gap-2 rounded-lg p-1 text-xs transition-colors hover:text-[#ff8a1f]"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      className="h-5 w-5 shrink-0 fill-current"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.76 1.42-.03 2.67-.97 3.03-2.34.19-.61.24-1.25.24-1.89l.01-17.43z" />
+                    </svg>
+                    <span>@nolla.academy</span>
+                  </a>
+                </li>
+              </ul>
             </div>
 
-            <div className="col-span-2 grid grid-cols-2 gap-x-6 gap-y-8 sm:gap-x-8 lg:col-span-1 lg:w-[42rem] lg:grid-cols-3 lg:gap-x-8 lg:gap-y-0 lg:justify-self-end">
-              {/* Baris 1 di Mobile: Quick Links (Kiri) */}
-              <div className="col-span-1 min-w-0">
-                <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
+            <div className="col-span-2 grid grid-cols-2 gap-x-5 gap-y-6 sm:gap-x-8 sm:gap-y-8 lg:col-span-1 lg:grid-cols-[0.9fr_1.1fr_1fr_1.7fr] lg:gap-x-7 lg:gap-y-0">
+              <div className="min-w-0">
+                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-white sm:text-sm">
                   QUICK LINKS
                 </h4>
                 <ul className="space-y-2 text-xs text-white/75">
@@ -1397,7 +1432,7 @@ const LandingPage = () => {
                     <a
                       href="#masalah"
                       onClick={(e) => scrollToSection(e, "masalah")}
-                      className="hover:text-[#ff8a1f] transition-colors cursor-pointer"
+                      className="cursor-pointer transition-colors hover:text-[#ff8a1f]"
                     >
                       Kenapa Nolla
                     </a>
@@ -1406,7 +1441,7 @@ const LandingPage = () => {
                     <a
                       href="#cara"
                       onClick={(e) => scrollToSection(e, "cara")}
-                      className="hover:text-[#ff8a1f] transition-colors cursor-pointer"
+                      className="cursor-pointer transition-colors hover:text-[#ff8a1f]"
                     >
                       Cara Kerja
                     </a>
@@ -1415,26 +1450,34 @@ const LandingPage = () => {
                     <a
                       href="#jenjang"
                       onClick={(e) => scrollToSection(e, "jenjang")}
-                      className="hover:text-[#ff8a1f] transition-colors cursor-pointer"
+                      className="cursor-pointer transition-colors hover:text-[#ff8a1f]"
                     >
-                      Jenjang SD–SMA
+                      Jenjang SD&#8211;SMA
                     </a>
                   </li>
                   <li>
                     <a
                       href="#faq"
                       onClick={(e) => scrollToSection(e, "faq")}
-                      className="hover:text-[#ff8a1f] transition-colors cursor-pointer"
+                      className="cursor-pointer transition-colors hover:text-[#ff8a1f]"
                     >
                       FAQ
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#paket"
+                      onClick={(e) => scrollToSection(e, "paket")}
+                      className="cursor-pointer transition-colors hover:text-[#ff8a1f]"
+                    >
+                      Paket Premium
                     </a>
                   </li>
                 </ul>
               </div>
 
-              {/* Baris 1 di Mobile: Resources (Kanan) */}
-              <div className="col-span-1 min-w-0">
-                <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
+              <div className="min-w-0">
+                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-white sm:text-sm">
                   RESOURCES
                 </h4>
                 <ul className="space-y-2 text-xs text-white/75">
@@ -1443,7 +1486,7 @@ const LandingPage = () => {
                       href="https://buku.kemendikdasmen.go.id/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-[#ff8a1f] transition-colors"
+                      className="transition-colors hover:text-[#ff8a1f]"
                     >
                       SIBI (Sistem Informasi Perbukuan Indonesia)
                     </a>
@@ -1451,46 +1494,57 @@ const LandingPage = () => {
                 </ul>
               </div>
 
-              {/* Social media */}
-              <div className="col-span-2 min-w-0 text-center lg:col-span-1 lg:text-left">
-                <h4 className="font-bold text-white mb-3 text-xs sm:text-sm uppercase tracking-wider">
-                  SOCIAL MEDIA
+              <div className="min-w-0">
+                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-white sm:text-sm">
+                  INFORMATION
                 </h4>
-                <ul className="flex flex-row flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-white/75 lg:flex-col lg:items-start lg:gap-3">
+                <ul className="space-y-2 text-xs text-white/75">
                   <li>
-                    <a
-                      href="https://www.instagram.com/nolla.academy/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Instagram NOLLA"
-                      className="inline-flex items-center gap-2 hover:text-[#ff8a1f] transition-colors"
+                    <Link
+                      to="/terms-and-conditions"
+                      className="transition-colors hover:text-[#ff8a1f]"
                     >
-                      <svg
-                        aria-hidden="true"
-                        className="h-4 w-4 shrink-0 fill-current"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                      </svg>
-                      <span>@nolla.academy</span>
-                    </a>
+                      Terms and Conditions
+                    </Link>
                   </li>
                   <li>
-                    <a
-                      href="https://www.tiktok.com/@nolla.academy"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="TikTok NOLLA"
-                      className="inline-flex items-center gap-2 hover:text-[#ff8a1f] transition-colors"
+                    <Link
+                      to="/privacy-policy"
+                      className="transition-colors hover:text-[#ff8a1f]"
                     >
-                      <svg
-                        aria-hidden="true"
-                        className="h-4 w-4 shrink-0 fill-current"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.76 1.42-.03 2.67-.97 3.03-2.34.19-.61.24-1.25.24-1.89l.01-17.43z" />
-                      </svg>
-                      <span>@nolla.academy</span>
+                      Privacy
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="col-span-2 min-w-0 lg:col-span-1">
+                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-white sm:text-sm">
+                  CONTACT
+                </h4>
+                <ul className="grid grid-cols-1 gap-2 text-xs text-white/75 sm:grid-cols-2 lg:grid-cols-1 lg:gap-3">
+                  <li className="inline-flex min-w-0 items-start gap-2">
+                    <Mail
+                      aria-hidden="true"
+                      className="mt-0.5 h-4 w-4 shrink-0"
+                    />
+                    <a
+                      href="mailto:nollaacademy@gmail.com"
+                      className="whitespace-nowrap transition-colors hover:text-[#ff8a1f]"
+                    >
+                      nollaacademy@gmail.com
+                    </a>
+                  </li>
+                  <li className="inline-flex min-w-0 items-start gap-2">
+                    <Phone
+                      aria-hidden="true"
+                      className="mt-0.5 h-4 w-4 shrink-0"
+                    />
+                    <a
+                      href="tel:+6282140394969"
+                      className="whitespace-nowrap transition-colors hover:text-[#ff8a1f]"
+                    >
+                      +62 821-4039-4969
                     </a>
                   </li>
                 </ul>
@@ -1501,7 +1555,7 @@ const LandingPage = () => {
 
         <div className="border-t border-white/20">
           <div className="mx-auto w-full max-w-7xl px-5 py-3 text-center text-xs leading-tight text-white/70 sm:px-8 lg:px-10">
-            © 2026 NOLLA. Hak cipta dilindungi.
+            &#169; 2026 NOLLA. Hak cipta dilindungi.
           </div>
         </div>
       </footer>

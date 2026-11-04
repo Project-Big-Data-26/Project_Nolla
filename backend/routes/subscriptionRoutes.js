@@ -5,6 +5,11 @@ const {
   getPlans,
   startTrial,
 } = require("../controllers/subscriptionController");
+const {
+  createCheckout,
+  getMyPayment,
+  handleMidtransNotification,
+} = require("../controllers/paymentController");
 
 const router = express.Router();
 
@@ -92,11 +97,9 @@ router.get("/me", authMiddleware, getMySubscription);
  *     summary: Katalog paket Premium (harga dari env server)
  *     description: >
  *       Harga dalam Rupiah bulat. Diskon percentage dibulatkan ke rupiah terdekat.
- *       Paket yang PRICE-nya tidak dikonfigurasi tidak ditampilkan. purchasable false
- *       selama payment gateway belum tersedia.
+ *       Paket yang PRICE-nya tidak dikonfigurasi tidak ditampilkan. Endpoint katalog
+ *       bersifat publik agar harga dapat ditampilkan pada landing page.
  *     tags: [Subscription]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Katalog paket
@@ -150,10 +153,8 @@ router.get("/me", authMiddleware, getMySubscription);
  *                           final_price:
  *                             type: integer
  *                             example: 39200
- *       401:
- *         description: Token tidak valid
  */
-router.get("/plans", authMiddleware, getPlans);
+router.get("/plans", getPlans);
 
 /**
  * @swagger
@@ -176,5 +177,10 @@ router.get("/plans", authMiddleware, getPlans);
  *         description: Token tidak valid
  */
 router.post("/trial", authMiddleware, startTrial);
+
+// Webhook Midtrans diverifikasi dengan signature_key, tidak memakai bearer JWT.
+router.post("/payments/midtrans/notification", handleMidtransNotification);
+router.post("/payments/checkout", authMiddleware, createCheckout);
+router.get("/payments/:orderId", authMiddleware, getMyPayment);
 
 module.exports = router;

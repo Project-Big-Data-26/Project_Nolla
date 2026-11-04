@@ -87,18 +87,6 @@ const mongoURI =
   process.env.MONGO_URI ||
   "mongodb://localhost:27017/project_assessment?directConnection=true";
 
-mongoose
-  .connect(mongoURI)
-  .then(async () => {
-    console.log("✅ MongoDB Terhubung!");
-    if (!(await supportsTransactions())) {
-      console.warn(
-        "⚠️ MongoDB standalone: submit kuis/pretest berjalan tanpa transaksi. Gunakan replica set untuk konsistensi penuh.",
-      );
-    }
-  })
-  .catch((err) => console.log("❌ Error MongoDB:", err.message));
-
 // --- BASIC ROUTE ---
 app.get("/", (req, res) => {
   res.send("Server Backend Berjalan Mantap!");
@@ -106,6 +94,32 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server jalan di http://localhost:${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 10000 });
+    console.log("MongoDB terhubung.");
+
+    try {
+      if (!(await supportsTransactions())) {
+        console.warn(
+          "MongoDB standalone: submit kuis/pretest berjalan tanpa transaksi. Gunakan replica set untuk konsistensi penuh.",
+        );
+      }
+    } catch (error) {
+      console.warn("Gagal memeriksa dukungan transaksi MongoDB:", error.message);
+    }
+
+    app.listen(PORT, () => {
+      console.log(`Server jalan di http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error(
+      "Backend tidak dijalankan karena MongoDB gagal terhubung:",
+      error.message,
+    );
+    await mongoose.disconnect().catch(() => {});
+    process.exitCode = 1;
+  }
+};
+
+startServer();
