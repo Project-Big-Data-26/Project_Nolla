@@ -5,7 +5,6 @@ import { useAuth } from "../../context/AuthContext";
 import { fetchEntitlement, fetchPlans, markPremiumActivationNotice, startPlanCheckout, watchPaymentStatus } from "../../api/subscription";
 import { openSnapCheckout } from "../../api/midtransSnap";
 import PremiumPackagesSection from "../../components/PremiumPackagesSection";
-import PlanComparisonSection from "../../components/PlanComparisonSection";
 import PaymentConfirmationModal from "../../components/PaymentConfirmationModal";
 import PaymentSuccessModal from "../../components/PaymentSuccessModal";
 import nollaMain from "../../assets/nolla_main.png";
@@ -182,7 +181,6 @@ const PackagesPage = () => {
           entitlement={entitlement}
           onCheckout={requestPlanConfirmation}
         />
-        <PlanComparisonSection isAuthenticated={isAuthenticated} />
       </main>
 
       <PaymentConfirmationModal
