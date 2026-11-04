@@ -1,49 +1,117 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { fetchPlans, formatDiscount, formatRupiah, startPlanCheckout } from "../api/subscription";
+import { fetchEntitlement, fetchPlans, formatDiscount, formatRupiah, markPremiumActivationNotice, startPlanCheckout, watchPaymentStatus } from "../api/subscription";
 import { openSnapCheckout } from "../api/midtransSnap";
+import PaymentConfirmationModal from "./PaymentConfirmationModal";
+import PaymentSuccessModal from "./PaymentSuccessModal";
 
 /**
  * Daftar paket Premium dari GET /subscription/plans (harga dari env backend).
  * Ditampilkan di konteks konten terkunci; transaksi dibuat oleh backend.
  */
-const PlanCatalog = () => {
+const PlanCatalog = ({ onSubscriptionUpdated, onCloseSuccess }) => {
   const [state, setState] = useState({ status: "loading", data: null });
+  const [entitlement, setEntitlement] = useState(null);
   const [checkoutCode, setCheckoutCode] = useState(null);
+  const [confirmationCode, setConfirmationCode] = useState(null);
+  const [successCode, setSuccessCode] = useState(null);
   const [checkoutError, setCheckoutError] = useState("");
   const [checkoutNotice, setCheckoutNotice] = useState("");
+  const paymentWatchRef = useRef(null);
+  const paymentSuccessHandledRef = useRef(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  const buyPlan = async (code) => {
+  useEffect(() => () => paymentWatchRef.current?.(), []);
+
+  const requestPurchaseConfirmation = (code) => {
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
-    setCheckoutCode(code);
+
     setCheckoutError("");
     setCheckoutNotice("");
+    setConfirmationCode(code);
+  };
+
+  const buyPlan = async () => {
+    const code = confirmationCode;
+    if (!code || checkoutCode) return;
+
+    paymentWatchRef.current?.();
+    paymentWatchRef.current = null;
+    paymentSuccessHandledRef.current = false;
+    setCheckoutCode(code);
     try {
       const checkout = await startPlanCheckout(code);
+      const showPaymentSuccess = () => {
+        if (paymentSuccessHandledRef.current) return;
+        paymentSuccessHandledRef.current = true;
+        paymentWatchRef.current?.();
+        paymentWatchRef.current = null;
+        setCheckoutCode(null);
+        setConfirmationCode(null);
+        setCheckoutNotice("");
+        markPremiumActivationNotice();
+        onSubscriptionUpdated?.();
+        fetchEntitlement().then(setEntitlement).catch(() => {});
+        try {
+          window.snap?.hide?.();
+        } finally {
+          window.setTimeout(() => setSuccessCode(code), 300);
+        }
+      };
+      if (checkout.order_id) {
+        paymentWatchRef.current = watchPaymentStatus(checkout.order_id, {
+          onPaid: showPaymentSuccess,
+          onTerminal: () => {
+            paymentWatchRef.current = null;
+            setCheckoutCode(null);
+            setConfirmationCode(null);
+            setCheckoutNotice("");
+            setCheckoutError("Transaksi belum berhasil. Silakan pilih paket dan coba lagi.");
+          },
+          onTimeout: () => {
+            paymentWatchRef.current = null;
+            setCheckoutCode(null);
+            setConfirmationCode(null);
+            setCheckoutNotice("Konfirmasi pembayaran belum diterima. Status akan diperbarui jika notifikasi Midtrans masuk.");
+          },
+        });
+      }
       await openSnapCheckout(checkout, {
-        onSuccess: () => {
-          setCheckoutCode(null);
-          setCheckoutNotice("Pembayaran diterima. Status Premium akan diperbarui setelah verifikasi Midtrans.");
-        },
         onPending: () => {
-          setCheckoutCode(null);
+          if (paymentSuccessHandledRef.current) return;
+          setConfirmationCode(null);
           setCheckoutNotice("Pembayaran menunggu konfirmasi. Status akan diperbarui otomatis setelah Midtrans mengirim notifikasi.");
         },
+        onSuccess: () => {
+          if (paymentSuccessHandledRef.current) return;
+          setConfirmationCode(null);
+          setCheckoutNotice("Pembayaran diterima. Menunggu konfirmasi transaksi dari Midtrans...");
+          window.snap?.hide?.();
+        },
         onError: () => {
+          if (paymentSuccessHandledRef.current) return;
+          paymentWatchRef.current?.();
+          paymentWatchRef.current = null;
           setCheckoutCode(null);
+          setConfirmationCode(null);
           setCheckoutError("Pembayaran belum berhasil. Silakan coba lagi.");
         },
-        onClose: () => setCheckoutCode(null),
+        onClose: () => {
+          setConfirmationCode(null);
+        },
       });
+      setConfirmationCode(null);
     } catch (error) {
+      paymentWatchRef.current?.();
+      paymentWatchRef.current = null;
       setCheckoutError(error.response?.data?.message || "Checkout gagal dibuat. Silakan coba lagi.");
       setCheckoutCode(null);
+      setConfirmationCode(null);
     }
   };
 
@@ -61,6 +129,22 @@ const PlanCatalog = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let isCurrent = true;
+    if (!isAuthenticated) {
+      setEntitlement(null);
+      return () => { isCurrent = false; };
+    }
+    fetchEntitlement()
+      .then((value) => {
+        if (isCurrent) setEntitlement(value);
+      })
+      .catch(() => {
+        if (isCurrent) setEntitlement(null);
+      });
+    return () => { isCurrent = false; };
+  }, [isAuthenticated]);
+
   if (state.status === "loading") {
     return <p className="text-xs text-slate-400">Memuat daftar paket...</p>;
   }
@@ -69,7 +153,10 @@ const PlanCatalog = () => {
   }
 
   const plans = state.data?.plans || [];
+  const activePackage = entitlement?.package;
   if (plans.length === 0) return null;
+  const confirmationPlan = plans.find((plan) => plan.code === confirmationCode) ?? null;
+  const successPlan = plans.find((plan) => plan.code === successCode) ?? null;
 
   // Container query: kartu baris ringkas di wadah sempit (ponsel, panel soal),
   // 3 kolom berdampingan bila wadah cukup lebar (modal di tablet/desktop).
@@ -109,11 +196,11 @@ const PlanCatalog = () => {
                   {state.data.purchasable && (
                     <button
                       type="button"
-                      onClick={() => buyPlan(plan.code)}
-                      disabled={Boolean(checkoutCode)}
-                      className="shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition hover:brightness-95 disabled:cursor-wait disabled:opacity-60"
+                      onClick={() => requestPurchaseConfirmation(plan.code)}
+                      disabled={Boolean(checkoutCode) || Boolean(activePackage)}
+                      className="shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {isLoading ? "Memproses..." : isAuthenticated ? "Beli paket" : "Masuk untuk membeli"}
+                      {activePackage ? "Paket sedang aktif" : isLoading ? checkoutNotice ? "Menunggu konfirmasi..." : "Memproses..." : isAuthenticated ? "Beli paket" : "Masuk untuk membeli"}
                     </button>
                   )}
                 </div>
@@ -127,8 +214,33 @@ const PlanCatalog = () => {
           Pembelian paket segera tersedia.
         </p>
       )}
+      {activePackage && (
+        <p role="status" className="mt-3 text-xs text-emerald-700">
+          Paket Premium {activePackage} Anda masih aktif hingga {entitlement.active_until ? new Date(entitlement.active_until).toLocaleDateString("id-ID") : "masa aktif berakhir"}. Pembelian paket baru dinonaktifkan selama periode ini.
+        </p>
+      )}
       {checkoutError && <p role="alert" className="mt-3 text-xs text-red-600">{checkoutError}</p>}
       {checkoutNotice && <p role="status" className="mt-3 text-xs text-emerald-700">{checkoutNotice}</p>}
+      <PaymentConfirmationModal
+        plan={confirmationPlan}
+        loading={Boolean(checkoutCode)}
+        onCancel={() => {
+          if (!checkoutCode) setConfirmationCode(null);
+        }}
+        onConfirm={buyPlan}
+      />
+      <PaymentSuccessModal
+        plan={successPlan}
+        onClose={() => {
+          setSuccessCode(null);
+          onCloseSuccess?.();
+        }}
+        onGoToTopics={() => {
+          setSuccessCode(null);
+          onCloseSuccess?.();
+          navigate("/topik");
+        }}
+      />
     </div>
   );
 };

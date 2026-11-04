@@ -8,7 +8,6 @@ import ChapterCard from "../../../components/ChapterCard";
 import TopicModals from "../../../components/TopicModals";
 import Modal from "../../../components/Modal";
 import PlanBanner from "../../../components/PlanBanner";
-import PlanCatalog from "../../../components/PlanCatalog";
 import TrialCallout from "../../../components/TrialCallout";
 import crownIcon from "../../../assets/crown-icon.webp";
 import API from "../../../api/axios";
@@ -46,11 +45,20 @@ const getAuthConfig = () => ({
   },
 });
 
+const normalizeClassLabel = (value) =>
+  String(value || "")
+    .replace(/\s+(?:SD|SMA)\b/gi, "")
+    .replace(/\s*\(Umum\)/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const normalizeBab = (bab, classInfo) => ({
   ...bab,
   _id: bab.id,
   diagnosticStatus: bab.has_pretest ? "completed" : "not_completed",
-  classRange: classInfo?.name || "Kurikulum Nasional",
+  classRange: normalizeClassLabel(
+    bab.class_reference || classInfo?.name || "Kurikulum Nasional",
+  ),
   subbab: (bab.subbab || []).map((subbab) => ({
     ...subbab,
     _id: subbab.id,
@@ -186,6 +194,10 @@ const Topics = () => {
   const [isTrialConfirm, setIsTrialConfirm] = useState(false);
   const closeLockedModal = () => {
     setLockedChapter(null);
+    setIsTrialConfirm(false);
+  };
+  const openLockedChapter = (chapter) => {
+    setLockedChapter(chapter);
     setIsTrialConfirm(false);
   };
   const [isLoading, setIsLoading] = useState(true);
@@ -623,7 +635,7 @@ const Topics = () => {
                   pretestLoading={pretestLoadingId === chapter._id}
                   selectedGrade={selectedGrade}
                   handleSubtopicAction={handleSubtopicAction}
-                  onLockedClick={setLockedChapter}
+                  onLockedClick={openLockedChapter}
                 />
               ))}
             </div>
@@ -647,7 +659,7 @@ const Topics = () => {
       {lockedChapter && (
         <Modal
           onClose={closeLockedModal}
-          maxWidth="max-w-3xl"
+          maxWidth={isTrialConfirm ? "max-w-3xl" : "max-w-xl"}
           scrollable
         >
           {!isTrialConfirm && (
@@ -661,27 +673,36 @@ const Topics = () => {
                     height="32"
                     className="h-8 w-8 shrink-0 object-contain"
                   />
-                  <h3 className="text-lg font-bold text-slate-900">Paket</h3>
+                  <h3 className="text-lg font-bold text-slate-900">Bab terkunci</h3>
                 </div>
                 <p className="text-sm leading-relaxed text-slate-500">
-                  {lockedChapter.name} terkunci di paket Free. Buka semua bab
-                  dan kuis tanpa batas dengan Premium.
+                  {lockedChapter.name} hanya tersedia dengan Premium. Paket Premium membuka semua bab dan memberi akses kuis tanpa batas.
                 </p>
               </div>
-              <PlanCatalog />
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5">
+                <p className="mb-2 text-sm font-semibold text-slate-800">Dengan Premium:</p>
+                <ul className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
+                  <li><span className="mr-2 text-primary">✓</span>Semua bab dan subbab terbuka</li>
+                  <li><span className="mr-2 text-primary">✓</span>Kuis tanpa batas</li>
+                </ul>
+              </div>
             </>
           )}
-          <div
-            className={
-              isTrialConfirm
-                ? ""
-                : "mt-5 flex justify-end border-t border-slate-100 pt-4"
-            }
-          >
+          <div className={isTrialConfirm ? "" : "mt-5 grid w-full grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"}>
+            {!isTrialConfirm && (
+              <button
+                type="button"
+                onClick={() => navigate("/paket")}
+                className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white transition hover:brightness-95"
+              >
+                Lihat paket Premium
+              </button>
+            )}
             <TrialCallout
               entitlement={entitlement}
               onActivated={handleTrialActivated}
               onConfirmChange={setIsTrialConfirm}
+              appearance="secondary"
             />
           </div>
         </Modal>

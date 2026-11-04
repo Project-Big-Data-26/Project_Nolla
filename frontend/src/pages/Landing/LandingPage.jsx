@@ -2,11 +2,23 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Minus, Menu, X, Mail, Phone } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { fetchPlans, formatDiscount, formatRupiah, startPlanCheckout } from "../../api/subscription";
+import { fetchEntitlement, fetchPlans, markPremiumActivationNotice, startPlanCheckout, watchPaymentStatus } from "../../api/subscription";
 import { openSnapCheckout } from "../../api/midtransSnap";
+import PremiumPackagesSection from "../../components/PremiumPackagesSection";
+import PaymentConfirmationModal from "../../components/PaymentConfirmationModal";
+import PaymentSuccessModal from "../../components/PaymentSuccessModal";
 import sdIcon from "../../assets/icon/SD.png";
 import smpIcon from "../../assets/icon/SMP.png";
 import smaIcon from "../../assets/icon/SMA.png";
+import mindsetIcon from "../../assets/icon/brain.png";
+import searchIcon from "../../assets/icon/search.png";
+import targetIcon from "../../assets/icon/target.png";
+import oneIcon from "../../assets/icon/one.png";
+import twoIcon from "../../assets/icon/two.png";
+import threeIcon from "../../assets/icon/three.png";
+import adaptiveIcon from "../../assets/icon/gauge.png";
+import shuffleIcon from "../../assets/icon/shuffle-arrows.png";
+import validatedAiIcon from "../../assets/icon/brain (1).png";
 import backgroundBack from "../../assets/background_back.png";
 import siswaHero from "../../assets/siswa_hero.png";
 import siswaMenunjuk from "../../assets/siswa_menunjuk.png";
@@ -83,41 +95,124 @@ const LandingPage = () => {
   const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [planCatalog, setPlanCatalog] = useState({ status: "loading", data: null });
+  const [planCatalog, setPlanCatalog] = useState({
+    status: "loading",
+    data: null,
+  });
+  const [entitlement, setEntitlement] = useState(null);
   const [checkoutPlan, setCheckoutPlan] = useState(null);
+  const [confirmationPlanCode, setConfirmationPlanCode] = useState(null);
+  const [successPlanCode, setSuccessPlanCode] = useState(null);
   const [checkoutError, setCheckoutError] = useState("");
   const [checkoutNotice, setCheckoutNotice] = useState("");
+  const paymentWatchRef = useRef(null);
+  const paymentSuccessHandledRef = useRef(false);
 
-  const handlePlanCheckout = async (planCode) => {
+  useEffect(() => () => paymentWatchRef.current?.(), []);
+
+  const requestPlanConfirmation = (planCode) => {
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
-    setCheckoutPlan(planCode);
+
     setCheckoutError("");
     setCheckoutNotice("");
+    setConfirmationPlanCode(planCode);
+  };
+
+  const handlePlanCheckout = async () => {
+    const planCode = confirmationPlanCode;
+    if (!planCode || checkoutPlan) return;
+
+    paymentWatchRef.current?.();
+    paymentWatchRef.current = null;
+    paymentSuccessHandledRef.current = false;
+    setCheckoutPlan(planCode);
     try {
       const checkout = await startPlanCheckout(planCode);
+      const showPaymentSuccess = () => {
+        if (paymentSuccessHandledRef.current) return;
+        paymentSuccessHandledRef.current = true;
+        paymentWatchRef.current?.();
+        paymentWatchRef.current = null;
+        setCheckoutPlan(null);
+        setConfirmationPlanCode(null);
+        setCheckoutNotice("");
+        markPremiumActivationNotice();
+        fetchEntitlement().then(setEntitlement).catch(() => {});
+        try {
+          window.snap?.hide?.();
+        } finally {
+          window.setTimeout(() => setSuccessPlanCode(planCode), 300);
+        }
+      };
+      if (checkout.order_id) {
+        paymentWatchRef.current = watchPaymentStatus(checkout.order_id, {
+          onPaid: showPaymentSuccess,
+          onTerminal: () => {
+            paymentWatchRef.current = null;
+            setCheckoutPlan(null);
+            setConfirmationPlanCode(null);
+            setCheckoutNotice("");
+            setCheckoutError("Transaksi belum berhasil. Silakan pilih paket dan coba lagi.");
+          },
+          onTimeout: () => {
+            paymentWatchRef.current = null;
+            setCheckoutPlan(null);
+            setConfirmationPlanCode(null);
+            setCheckoutNotice(
+              "Konfirmasi pembayaran belum diterima. Status akan diperbarui jika notifikasi Midtrans masuk.",
+            );
+          },
+        });
+      }
       await openSnapCheckout(checkout, {
-        onSuccess: () => {
-          setCheckoutPlan(null);
-          setCheckoutNotice("Pembayaran diterima. Status Premium akan diperbarui setelah verifikasi Midtrans.");
-        },
         onPending: () => {
-          setCheckoutPlan(null);
-          setCheckoutNotice("Pembayaran menunggu konfirmasi. Status akan diperbarui otomatis setelah Midtrans mengirim notifikasi.");
+          if (paymentSuccessHandledRef.current) return;
+          setConfirmationPlanCode(null);
+          setCheckoutNotice(
+            "Pembayaran menunggu konfirmasi. Status akan diperbarui otomatis setelah Midtrans mengirim notifikasi.",
+          );
+        },
+        onSuccess: () => {
+          if (paymentSuccessHandledRef.current) return;
+          setConfirmationPlanCode(null);
+          setCheckoutNotice(
+            "Pembayaran diterima. Menunggu konfirmasi transaksi dari Midtrans...",
+          );
+          window.snap?.hide?.();
         },
         onError: () => {
+          paymentWatchRef.current?.();
+          paymentWatchRef.current = null;
           setCheckoutPlan(null);
+          setConfirmationPlanCode(null);
           setCheckoutError("Pembayaran belum berhasil. Silakan coba lagi.");
         },
-        onClose: () => setCheckoutPlan(null),
+        onClose: () => {
+          setConfirmationPlanCode(null);
+        },
       });
+      setConfirmationPlanCode(null);
     } catch (error) {
-      setCheckoutError(error.response?.data?.message || "Checkout gagal dibuat. Silakan coba lagi.");
+      paymentWatchRef.current?.();
+      paymentWatchRef.current = null;
+      setCheckoutError(
+        error.response?.data?.message ||
+          "Checkout gagal dibuat. Silakan coba lagi.",
+      );
       setCheckoutPlan(null);
+      setConfirmationPlanCode(null);
     }
   };
+
+  const confirmationPlan = planCatalog.data?.plans?.find(
+    (plan) => plan.code === confirmationPlanCode,
+  ) ?? null;
+  const successPlan = planCatalog.data?.plans?.find(
+    (plan) => plan.code === successPlanCode,
+  ) ?? null;
 
   useEffect(() => {
     let isCurrent = true;
@@ -133,6 +228,18 @@ const LandingPage = () => {
       isCurrent = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+    if (!isAuthenticated) {
+      setEntitlement(null);
+      return () => { isCurrent = false; };
+    }
+    fetchEntitlement()
+      .then((value) => { if (isCurrent) setEntitlement(value); })
+      .catch(() => { if (isCurrent) setEntitlement(null); });
+    return () => { isCurrent = false; };
+  }, [isAuthenticated]);
 
   // Landing page tidak memakai scroll horizontal; reset bila viewport berubah.
   useEffect(() => {
@@ -715,8 +822,8 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 text-center">
             <FadeInSection delay={0}>
               <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-amber-300/70 hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center text-center cursor-default h-full">
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
-                  😨
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mb-5 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
+                  <img src={mindsetIcon} alt="" aria-hidden="true" className="w-8 h-8 object-contain" />
                 </div>
                 <h3 className="text-xl font-bold text-[#1b1f3b] mb-2 group-hover:text-amber-600 transition-colors">
                   Mindset takut
@@ -730,8 +837,8 @@ const LandingPage = () => {
 
             <FadeInSection delay={120}>
               <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-blue-300/70 hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center text-center cursor-default h-full">
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
-                  🔍
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mb-5 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
+                  <img src={searchIcon} alt="" aria-hidden="true" className="w-8 h-8 object-contain" />
                 </div>
                 <h3 className="text-xl font-bold text-[#1b1f3b] mb-2 group-hover:text-blue-600 transition-colors">
                   Soal susah dicari
@@ -748,8 +855,8 @@ const LandingPage = () => {
               className="sm:col-span-2 sm:mx-auto sm:w-[calc((100%-2rem)/2)] lg:col-span-1 lg:mx-0 lg:w-full"
             >
               <div className="bg-white rounded-2xl p-7 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-emerald-300/70 hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center text-center cursor-default h-full">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
-                  🎯
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-5 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
+                  <img src={targetIcon} alt="" aria-hidden="true" className="w-8 h-8 object-contain" />
                 </div>
                 <h3 className="text-xl font-bold text-[#1b1f3b] mb-2 group-hover:text-emerald-600 transition-colors">
                   Nolla hadir
@@ -798,8 +905,8 @@ const LandingPage = () => {
             <FadeInSection delay={0}>
               <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center group cursor-default h-full">
                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#2b3fd6]/0 to-transparent group-hover:via-[#2b3fd6] transition-all duration-500" />
-                <div className="w-12 h-12 rounded-xl bg-[#2b3fd6]/10 text-[#2b3fd6] flex items-center justify-center font-black text-xl mb-6 group-hover:scale-110 transition-transform">
-                  1️⃣
+                <div className="w-12 h-12 rounded-xl bg-[#2b3fd6]/10 text-[#2b3fd6] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <img src={oneIcon} alt="" aria-hidden="true" className="w-7 h-7 object-contain" />
                 </div>
                 <h3 className="text-xl font-bold text-[#1b1f3b] mb-3 group-hover:text-[#2b3fd6] transition-colors">
                   Pilih jenjang &amp; topik
@@ -814,8 +921,8 @@ const LandingPage = () => {
             <FadeInSection delay={120}>
               <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-[#ff8a1f]/40 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center group cursor-default h-full">
                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#ff8a1f]/0 to-transparent group-hover:via-[#ff8a1f] transition-all duration-500" />
-                <div className="w-12 h-12 rounded-xl bg-[#ff8a1f]/15 text-[#ff8a1f] flex items-center justify-center font-black text-xl mb-6 group-hover:scale-110 transition-transform">
-                  2️⃣
+                <div className="w-12 h-12 rounded-xl bg-[#ff8a1f]/15 text-[#ff8a1f] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <img src={twoIcon} alt="" aria-hidden="true" className="w-7 h-7 object-contain" />
                 </div>
                 <h3 className="text-xl font-bold text-[#1b1f3b] mb-3 group-hover:text-[#ff8a1f] transition-colors">
                   Drill soal adaptif
@@ -834,8 +941,8 @@ const LandingPage = () => {
             >
               <div className="bg-white rounded-2xl p-8 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-emerald-500/40 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center group cursor-default h-full">
                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-500/0 to-transparent group-hover:via-emerald-500 transition-all duration-500" />
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center font-black text-xl mb-6 group-hover:scale-110 transition-transform">
-                  3️⃣
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <img src={threeIcon} alt="" aria-hidden="true" className="w-7 h-7 object-contain" />
                 </div>
                 <h3 className="text-xl font-bold text-[#1b1f3b] mb-3 group-hover:text-emerald-600 transition-colors">
                   Tingkatkan Level Belajar
@@ -1012,8 +1119,8 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <FadeInSection delay={0}>
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
-                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
-                  🎚️
+                <div className="h-12 mb-4 group-hover:scale-115 transition-transform duration-300">
+                  <img src={adaptiveIcon} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
                 </div>
                 <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">
                   Adaptif
@@ -1027,8 +1134,8 @@ const LandingPage = () => {
 
             <FadeInSection delay={100}>
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
-                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
-                  ♾️
+                <div className="h-12 mb-4 group-hover:scale-115 transition-transform duration-300">
+                  <img src={shuffleIcon} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
                 </div>
                 <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">
                   Soal tak berulang
@@ -1045,8 +1152,8 @@ const LandingPage = () => {
               className="sm:col-span-2 sm:justify-self-center sm:w-[calc((100%-1.5rem)/2)] lg:col-span-1 lg:w-full"
             >
               <div className="bg-white rounded-2xl p-6 border border-[#e3e6f8] shadow-sm hover:shadow-xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center group cursor-default h-full">
-                <div className="text-3xl mb-4 group-hover:scale-115 transition-transform duration-300">
-                  🧠
+                <div className="h-12 mb-4 group-hover:scale-115 transition-transform duration-300">
+                  <img src={validatedAiIcon} alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
                 </div>
                 <h3 className="text-lg font-bold text-[#1b1f3b] mb-1.5 group-hover:text-primary transition-colors">
                   Soal tervalidasi AI
@@ -1060,130 +1167,31 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-      {/* -------------------- SECTION 5: PAKET PREMIUM -------------------- */}
-      <section id="paket" className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/70 to-white py-16 sm:py-20 lg:py-24">
-        <img src={mathGeometry} alt="" aria-hidden="true" className="pointer-events-none absolute left-3 top-8 h-auto w-12 opacity-15 sm:left-10 sm:w-16" />
-        <img src={mathCalculus} alt="" aria-hidden="true" className="pointer-events-none absolute bottom-8 right-3 h-auto w-16 opacity-15 sm:right-10 sm:w-24" />
-
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <FadeInSection className="mb-8 text-center sm:mb-10">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#ff8a1f] sm:text-sm">Pilihan paket</p>
-            <h2 className="mb-3 text-2xl font-bold tracking-tight text-[#1b1f3b] sm:text-3xl lg:text-4xl">Pilih masa Premium yang cocok</h2>
-            <p className="mx-auto max-w-2xl text-sm leading-relaxed text-[#5b6088] sm:text-base">
-              Dapatkan lebih banyak kesempatan berlatih dan lanjutkan drill matematika sesuai ritmemu.
-            </p>
-          </FadeInSection>
-
-          {planCatalog.status === "loading" ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 sm:gap-5">
-              {[0, 1, 2].map((item) => (
-                <div key={item} className="h-64 animate-pulse rounded-3xl border border-slate-200 bg-white p-6">
-                  <div className="mb-5 h-4 w-28 rounded bg-slate-100" />
-                  <div className="mb-3 h-8 w-40 rounded bg-slate-100" />
-                  <div className="mb-8 h-4 w-24 rounded bg-slate-100" />
-                  <div className="h-10 rounded-xl bg-slate-100" />
-                </div>
-              ))}
-            </div>
-          ) : planCatalog.status === "error" ? (
-            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-600">
-              Paket Premium belum dapat dimuat. Silakan coba kembali nanti.
-            </div>
-          ) : planCatalog.data?.plans?.length ? (
-            <>
-              <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3 sm:gap-5">
-                {planCatalog.data.plans.map((plan) => {
-                  const durationLabel =
-                    plan.code === "weekly" ? "1 minggu" :
-                    plan.code === "monthly" ? "1 bulan" :
-                    plan.code === "yearly" ? "1 tahun" :
-                    `${plan.duration_days} hari`;
-                  const discountLabel = formatDiscount(plan.discount);
-                  const isFeatured = plan.code === "yearly" && Boolean(plan.discount);
-
-                  return (
-                    <article
-                      key={plan.code}
-                      className={`relative flex h-full flex-col rounded-3xl border bg-white p-5 shadow-sm transition-all sm:p-6 ${isFeatured ? "border-[#ff8a1f] ring-2 ring-[#ff8a1f]/15 md:-translate-y-1 md:shadow-lg" : "border-[#e3e6f8] hover:-translate-y-1 hover:shadow-lg"}`}
-                    >
-                      {isFeatured && (
-                        <span className="absolute -top-3 left-5 rounded-full bg-gradient-to-r from-[#ff8a1f] to-[#ff5d5d] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm sm:left-6">
-                          Hemat lebih banyak
-                        </span>
-                      )}
-
-                      <div className="mb-5">
-                        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                          <h3 className="text-base font-bold text-[#1b1f3b] sm:text-lg">{plan.name}</h3>
-                          {discountLabel && (
-                            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 sm:text-xs">
-                              {discountLabel}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-[#5b6088] sm:text-sm">Masa aktif {durationLabel}</p>
-                      </div>
-
-                      <div className="mb-5 border-b border-slate-100 pb-5">
-                        {plan.discount && (
-                          <p className="mb-0.5 text-sm text-slate-400 line-through">{formatRupiah(plan.price)}</p>
-                        )}
-                        <p className="text-3xl font-bold tracking-tight text-[#1b1f3b] sm:text-4xl">{formatRupiah(plan.final_price)}</p>
-                        <p className="mt-1 text-xs text-[#5b6088]">untuk {durationLabel}</p>
-                      </div>
-
-                      <ul className="mb-6 flex-1 space-y-3 text-xs leading-relaxed text-slate-600 sm:text-sm">
-                        <li className="flex items-start gap-2">
-                          <span aria-hidden="true" className="mt-1 text-emerald-500">✓</span>
-                          <span>Akses Premium selama {durationLabel}</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span aria-hidden="true" className="mt-1 text-emerald-500">✓</span>
-                          <span>Sesi kuis tanpa batas per subbab</span>
-                        </li>
-                      </ul>
-
-                      {planCatalog.data.purchasable ? (
-                        <button
-                          type="button"
-                          onClick={() => handlePlanCheckout(plan.code)}
-                          disabled={Boolean(checkoutPlan)}
-                          className="inline-flex w-full items-center justify-center rounded-xl bg-[#2563eb] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
-                        >
-                          {checkoutPlan === plan.code
-                            ? "Menyiapkan pembayaran..."
-                            : isAuthenticated
-                              ? "Beli paket"
-                              : "Masuk untuk membeli"}
-                        </button>
-                      ) : (
-                        <button type="button" disabled className="w-full cursor-not-allowed rounded-xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500">
-                          Pembelian segera tersedia
-                        </button>
-                      )}
-                    </article>
-                  );
-                })}
-              </div>
-              {checkoutError && (
-                <p role="alert" className="mt-4 text-center text-sm text-red-600">{checkoutError}</p>
-              )}
-              {checkoutNotice && (
-                <p role="status" className="mt-4 text-center text-sm text-emerald-700">{checkoutNotice}</p>
-              )}
-              {!planCatalog.data.purchasable && (
-                <p className="mt-5 text-center text-xs text-slate-500 sm:text-sm">
-                  Paket dapat dilihat sekarang; pembelian belum tersedia.
-                </p>
-              )}
-            </>
-          ) : (
-            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-600">
-              Paket Premium sedang tidak tersedia.
-            </div>
-          )}
-        </div>
-      </section>
+      <PremiumPackagesSection
+        planCatalog={planCatalog}
+        checkoutPlan={checkoutPlan}
+        checkoutError={checkoutError}
+        checkoutNotice={checkoutNotice}
+        isAuthenticated={isAuthenticated}
+        entitlement={entitlement}
+        onCheckout={requestPlanConfirmation}
+      />
+      <PaymentConfirmationModal
+        plan={confirmationPlan}
+        loading={Boolean(checkoutPlan)}
+        onCancel={() => {
+          if (!checkoutPlan) setConfirmationPlanCode(null);
+        }}
+        onConfirm={handlePlanCheckout}
+      />
+      <PaymentSuccessModal
+        plan={successPlan}
+        onClose={() => setSuccessPlanCode(null)}
+        onGoToTopics={() => {
+          setSuccessPlanCode(null);
+          navigate("/topik");
+        }}
+      />
 
       {/* -------------------- SECTION 6: FAQ -------------------- */}
       <section
@@ -1457,20 +1465,20 @@ const LandingPage = () => {
                   </li>
                   <li>
                     <a
+                      href="#paket"
+                      onClick={(e) => scrollToSection(e, "paket")}
+                      className="cursor-pointer transition-colors hover:text-[#ff8a1f]"
+                    >
+                      Paket
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="#faq"
                       onClick={(e) => scrollToSection(e, "faq")}
                       className="cursor-pointer transition-colors hover:text-[#ff8a1f]"
                     >
                       FAQ
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#paket"
-                      onClick={(e) => scrollToSection(e, "paket")}
-                      className="cursor-pointer transition-colors hover:text-[#ff8a1f]"
-                    >
-                      Paket Premium
                     </a>
                   </li>
                 </ul>

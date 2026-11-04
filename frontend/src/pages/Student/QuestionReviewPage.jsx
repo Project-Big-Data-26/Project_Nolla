@@ -25,12 +25,20 @@ const inlineMarkdownComponents = {
   p: ({ children }) => <span>{children}</span>,
 };
 const markdownComponents = {
-  p: ({ children }) => <p className="my-1 first:mt-0 last:mb-0 sm:my-2">{children}</p>,
+  p: ({ children }) => (
+    <p className="my-1 first:mt-0 last:mb-0 sm:my-2">{children}</p>
+  ),
   h1: ({ children }) => <h1 className="my-2 text-lg font-bold">{children}</h1>,
-  h2: ({ children }) => <h2 className="my-2 text-base font-bold">{children}</h2>,
+  h2: ({ children }) => (
+    <h2 className="my-2 text-base font-bold">{children}</h2>
+  ),
   h3: ({ children }) => <h3 className="my-2 text-sm font-bold">{children}</h3>,
-  ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>,
-  ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>,
+  ul: ({ children }) => (
+    <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>
+  ),
   table: ({ children }) => (
     <div className="my-3 overflow-x-auto">
       <table className="w-full border-collapse text-left">{children}</table>
@@ -265,7 +273,7 @@ const QuestionReviewPage = () => {
       .catch((error) => {
         if (isCurrent) {
           setReviewError(
-            error.response?.data?.message || "Review pretest gagal dimuat.",
+            error.response?.data?.message || "Review soal gagal dimuat.",
           );
         }
       })
@@ -285,8 +293,8 @@ const QuestionReviewPage = () => {
 
     return (reviewData.questions || []).map((item) => ({
       id: item.question.id,
-      level: item.question.stage || "Pretest",
-      topic: reviewData.name || "Pretest",
+      level: item.question.stage || "soal",
+      topic: reviewData.name || "soal",
       question: item.question.text,
       images: item.question.images || [],
       options: item.question.options.map((option) => ({
@@ -318,7 +326,8 @@ const QuestionReviewPage = () => {
 
     const navigationRect = navigation.getBoundingClientRect();
     const buttonRect = activeButton.getBoundingClientRect();
-    const buttonLeft = buttonRect.left - navigationRect.left + navigation.scrollLeft;
+    const buttonLeft =
+      buttonRect.left - navigationRect.left + navigation.scrollLeft;
     const buttonRight = buttonLeft + buttonRect.width;
     let nextScrollLeft = navigation.scrollLeft;
 
@@ -364,7 +373,7 @@ const QuestionReviewPage = () => {
 
         <main className="flex flex-1 items-center justify-center p-6">
           <p className="text-sm font-semibold text-slate-600">
-            Memuat review pretest...
+            Memuat review soal...
           </p>
         </main>
       </div>
@@ -565,7 +574,10 @@ const QuestionReviewPage = () => {
           </div>
 
           {/* DYNAMIC CONTENT AREA */}
-          <div ref={questionContentRef} className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-3 md:pb-0">
+          <div
+            ref={questionContentRef}
+            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-3 md:pb-0"
+          >
             {hasImage ? (
               /* ================= CONDITIONAL 1: ADA GAMBAR ================= */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 h-full items-stretch">

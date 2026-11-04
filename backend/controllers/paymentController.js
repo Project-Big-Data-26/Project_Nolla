@@ -3,6 +3,7 @@ const Langganan = require("../models/Langganan");
 const Payment = require("../models/Payment");
 const User = require("../models/User");
 const { getPlanByCode, isPremiumFeatureEnabled } = require("../config/premiumPlans");
+const { getStoredEntitlement } = require("../services/entitlement");
 
 const sendError = (res, statusCode, code, message) =>
   res.status(statusCode).json({ statusCode, success: false, code, message });
@@ -32,6 +33,17 @@ const createCheckout = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("name email").lean();
     if (!user) return sendError(res, 404, "USER_NOT_FOUND", "Akun tidak ditemukan.");
+
+    const entitlement = await getStoredEntitlement(user._id);
+    if (entitlement.package) {
+      return res.status(409).json({
+        statusCode: 409,
+        success: false,
+        code: "PACKAGE_ALREADY_ACTIVE",
+        message: "Paket Premium Anda masih aktif. Pembelian paket baru tersedia setelah masa aktif berakhir.",
+        data: { package: entitlement.package, active_until: entitlement.active_until },
+      });
+    }
 
     const safeUserId = String(user._id).slice(-10);
     const orderId = `nolla-${safeUserId}-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`;
@@ -126,11 +138,41 @@ const createCheckout = async (req, res) => {
 
 const getMyPayment = async (req, res) => {
   try {
-    const payment = await Payment.findOne({ order_id: req.params.orderId, user_id: req.user.id })
-      .select("order_id package amount currency status created_at paid_at")
-      .lean();
+    let payment = await Payment.findOne({ order_id: req.params.orderId, user_id: req.user.id });
     if (!payment) return sendError(res, 404, "PAYMENT_NOT_FOUND", "Transaksi tidak ditemukan.");
-    return res.status(200).json({ statusCode: 200, success: true, data: payment });
+
+    // Recover settled payments when Midtrans webhook delivery is delayed/rejected.
+    if (payment.status === "pending") {
+      try {
+        const status = await getMidtransTransactionStatus(payment.order_id);
+        const merchantId = String(process.env.MIDTRANS_MERCHANT_ID || "").trim();
+        if (statusApiConfirmsPayment(status, payment, merchantId)) {
+          await applyPaidPayment({
+            ...payment.toObject(),
+            paid_at: status.settlement_time ? new Date(status.settlement_time) : new Date(),
+            midtrans_transaction_id: status.transaction_id,
+            payment_type: status.payment_type,
+          });
+          payment = await Payment.findById(payment._id);
+        }
+      } catch (statusError) {
+        console.warn("Midtrans status reconciliation deferred:", statusError.message);
+      }
+    }
+
+    return res.status(200).json({
+      statusCode: 200,
+      success: true,
+      data: {
+        order_id: payment.order_id,
+        package: payment.package,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status,
+        created_at: payment.created_at,
+        paid_at: payment.paid_at,
+      },
+    });
   } catch (error) {
     console.error("Get payment status error:", error.message);
     return sendError(res, 500, "INTERNAL_ERROR", "Gagal mengambil status pembayaran.");
@@ -146,6 +188,37 @@ const notificationMatches = (notification, serverKey) => {
   if (!/^[a-f\d]{128}$/i.test(supplied)) return false;
   return crypto.timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
 };
+
+const getMidtransTransactionStatus = async (orderId) => {
+  const isProduction = String(process.env.MIDTRANS_IS_PRODUCTION || "")
+    .trim()
+    .toLowerCase() === "true";
+  const baseUrl = isProduction
+    ? "https://api.midtrans.com"
+    : "https://api.sandbox.midtrans.com";
+  const serverKey = String(process.env.MIDTRANS_SERVER_KEY || "").trim();
+  if (!serverKey) throw new Error("Midtrans Server Key belum dikonfigurasi.");
+
+  const response = await fetch(`${baseUrl}/v2/${encodeURIComponent(orderId)}/status`, {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Basic ${Buffer.from(`${serverKey}:`).toString("base64")}`,
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(`Midtrans Get Status API HTTP ${response.status}.`);
+  return body;
+};
+
+const statusApiConfirmsPayment = (status, payment, merchantId) =>
+  status?.order_id === payment.order_id &&
+  Number(status.gross_amount) === payment.amount &&
+  (!status.currency || String(status.currency).toUpperCase() === "IDR") &&
+  (!status.merchant_id || status.merchant_id === merchantId) &&
+  String(status.status_code) === "200" &&
+  ["settlement", "capture"].includes(String(status.transaction_status).toLowerCase()) &&
+  String(status.fraud_status || "accept").toLowerCase() === "accept";
 
 const applyPaidPayment = async (payment) => {
   const now = new Date();
@@ -189,17 +262,18 @@ const applyPaidPayment = async (payment) => {
 
 const handleMidtransNotification = async (req, res) => {
   const notification = req.body || {};
-  const serverKey = process.env.MIDTRANS_SERVER_KEY;
-  if (!serverKey || !notificationMatches(notification, serverKey)) {
-    return sendError(res, 401, "INVALID_SIGNATURE", "Signature notifikasi tidak valid.");
-  }
-  if (notification.merchant_id !== String(process.env.MIDTRANS_MERCHANT_ID || "").trim()) {
+  const serverKey = String(process.env.MIDTRANS_SERVER_KEY || "").trim();
+  const merchantId = String(process.env.MIDTRANS_MERCHANT_ID || "").trim();
+  if (notification.merchant_id !== merchantId) {
     return sendError(res, 401, "INVALID_MERCHANT", "Merchant ID notifikasi tidak cocok.");
   }
 
   try {
-    const payment = await Payment.findOne({ order_id: notification.order_id });
+    let payment = await Payment.findOne({ order_id: notification.order_id });
     if (!payment) {
+      if (!serverKey || !notificationMatches(notification, serverKey)) {
+        return sendError(res, 401, "INVALID_SIGNATURE", "Signature notifikasi tidak valid.");
+      }
       // Midtrans retries 4xx responses. Signed test notifications or events for
       // orders outside this app have no local payment to update, so acknowledge
       // receipt with 200 and do not grant entitlement.
@@ -208,12 +282,27 @@ const handleMidtransNotification = async (req, res) => {
       });
       return res.status(200).json({ success: true, received: true, ignored: "unknown_order" });
     }
-    if (Number(notification.gross_amount) !== payment.amount || notification.currency !== "IDR") {
+    let trustedNotification = notification;
+    if (!serverKey || !notificationMatches(notification, serverKey)) {
+      // Authenticate the transaction independently with Midtrans before
+      // accepting a webhook whose signature does not match the configured key.
+      const status = await getMidtransTransactionStatus(payment.order_id);
+      if (!statusApiConfirmsPayment(status, payment, merchantId)) {
+        return sendError(res, 401, "INVALID_SIGNATURE", "Signature notifikasi tidak valid.");
+      }
+      trustedNotification = status;
+      console.warn("Midtrans notification verified by Get Status API:", {
+        order_id: payment.order_id,
+      });
+    }
+
+    const currency = trustedNotification.currency || notification.currency;
+    if (Number(trustedNotification.gross_amount) !== payment.amount || String(currency || "").toUpperCase() !== "IDR") {
       return sendError(res, 400, "PAYMENT_AMOUNT_MISMATCH", "Nilai transaksi tidak cocok.");
     }
 
-    const status = String(notification.transaction_status || "").toLowerCase();
-    const fraudStatus = String(notification.fraud_status || "accept").toLowerCase();
+    const status = String(trustedNotification.transaction_status || "").toLowerCase();
+    const fraudStatus = String(trustedNotification.fraud_status || "accept").toLowerCase();
     if (
       String(notification.status_code) === "200" &&
       (status === "settlement" || status === "capture") &&
@@ -221,9 +310,9 @@ const handleMidtransNotification = async (req, res) => {
     ) {
       await applyPaidPayment({
         ...payment.toObject(),
-        paid_at: notification.settlement_time ? new Date(notification.settlement_time) : new Date(),
-        midtrans_transaction_id: notification.transaction_id,
-        payment_type: notification.payment_type,
+        paid_at: trustedNotification.settlement_time ? new Date(trustedNotification.settlement_time) : new Date(),
+        midtrans_transaction_id: trustedNotification.transaction_id,
+        payment_type: trustedNotification.payment_type,
       });
       return res.status(200).json({ success: true });
     }
@@ -239,8 +328,8 @@ const handleMidtransNotification = async (req, res) => {
     }[status];
     if (nextStatus && (payment.status !== "paid" || nextStatus === "refunded")) {
       payment.status = nextStatus;
-      payment.midtrans_transaction_id = notification.transaction_id || payment.midtrans_transaction_id;
-      payment.payment_type = notification.payment_type || payment.payment_type;
+      payment.midtrans_transaction_id = trustedNotification.transaction_id || payment.midtrans_transaction_id;
+      payment.payment_type = trustedNotification.payment_type || payment.payment_type;
       payment.last_notification_at = new Date();
       await payment.save();
     }

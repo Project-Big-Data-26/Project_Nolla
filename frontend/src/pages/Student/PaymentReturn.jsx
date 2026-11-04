@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { fetchPayment, formatRupiah } from "../../api/subscription";
+import PaymentSuccessModal from "../../components/PaymentSuccessModal";
 
 const PaymentReturn = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("order_id");
   const [state, setState] = useState({ status: "loading", payment: null });
@@ -21,7 +23,7 @@ const PaymentReturn = () => {
         const payment = await fetchPayment(orderId);
         if (!current) return;
         setState({ status: "ready", payment });
-        if (payment.status === "pending" && attempts < 8) {
+        if (payment.status === "pending" && attempts < 30) {
           attempts += 1;
           timer = window.setTimeout(loadPayment, 2000);
         }
@@ -39,16 +41,37 @@ const PaymentReturn = () => {
 
   const status = state.payment?.status;
   const paid = status === "paid";
+
+  if (paid) {
+    const packageNames = {
+      weekly: "Premium Mingguan",
+      monthly: "Premium Bulanan",
+      yearly: "Premium Tahunan",
+    };
+    const successPlan = {
+      name: packageNames[state.payment.package] || "Paket Premium",
+    };
+
+    return (
+      <>
+        <div className="min-h-screen bg-slate-50" />
+        <PaymentSuccessModal
+          plan={successPlan}
+          onClose={() => navigate("/paket", { replace: true })}
+          onGoToTopics={() => navigate("/topik", { replace: true })}
+        />
+      </>
+    );
+  }
+
   const waiting = state.status === "loading" || status === "pending";
-  const title = paid
-    ? "Pembayaran berhasil"
-    : waiting
-      ? "Menunggu konfirmasi pembayaran"
-      : status === "expired"
-        ? "Pembayaran kedaluwarsa"
-        : status === "cancelled" || status === "failed"
-          ? "Pembayaran belum berhasil"
-          : "Status pembayaran tidak tersedia";
+  const title = waiting
+    ? "Menunggu konfirmasi pembayaran"
+    : status === "expired"
+      ? "Pembayaran kedaluwarsa"
+      : status === "cancelled" || status === "failed"
+        ? "Pembayaran belum berhasil"
+        : "Status pembayaran tidak tersedia";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
@@ -61,17 +84,15 @@ const PaymentReturn = () => {
           </div>
         )}
         <p className="mt-4 text-sm leading-relaxed text-slate-600">
-          {paid
-            ? "Premium sudah aktif di akunmu."
-            : waiting
-              ? "Kami sedang menunggu notifikasi resmi dari Midtrans. Halaman ini akan memperbarui status otomatis."
-              : state.status === "error"
-                ? "Transaksi tidak dapat ditemukan di akun ini. Coba muat ulang atau hubungi dukungan."
-                : "Kamu dapat kembali ke daftar paket dan mencoba lagi."}
+          {waiting
+            ? "Kami sedang menunggu notifikasi resmi dari Midtrans. Halaman ini akan memperbarui status otomatis."
+            : state.status === "error"
+              ? "Transaksi tidak dapat ditemukan di akun ini. Coba muat ulang atau hubungi dukungan."
+              : "Kamu dapat kembali ke daftar paket dan mencoba lagi."}
         </p>
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <Link to="/topik" className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">
-            {paid ? "Mulai belajar" : "Kembali ke topik"}
+            Kembali ke topik
           </Link>
           {!paid && <Link to="/#paket" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-200">Lihat paket</Link>}
         </div>
