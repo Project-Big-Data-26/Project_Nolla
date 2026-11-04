@@ -17,6 +17,16 @@ try {
   process.exit(1);
 }
 
+// APP_ENV: development (default) | staging | production. Nilai salah menghentikan server.
+const { getAppEnv } = require("./config/appEnv");
+let appEnv;
+try {
+  appEnv = getAppEnv();
+} catch (error) {
+  console.error(`❌ Konfigurasi APP_ENV tidak valid:\n${error.message}`);
+  process.exit(1);
+}
+
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
@@ -50,6 +60,11 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/learning-results", learningResultsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/subscription", subscriptionRoutes);
+// Pintu cek soal: hanya ada di staging; environment lain menjawab 404.
+if (appEnv === "staging") {
+  app.use("/api/staging", require("./routes/staging/soalCheckRoutes"));
+  console.warn("⚠️ APP_ENV=staging: pintu cek soal /api/staging aktif tanpa login.");
+}
 
 // --- SWAGGER SETUP ---
 const swaggerOptions = {
