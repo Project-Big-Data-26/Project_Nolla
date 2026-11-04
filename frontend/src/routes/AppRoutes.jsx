@@ -10,6 +10,7 @@ import VerifyEmail from "../pages/Auth/VerifyEmail";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
 import LandingPage from "../pages/Landing/LandingPage";
+import LegalInfoPage from "../pages/Landing/LegalInfoPage";
 import GoogleAuthCallback from "../pages/Auth/GoogleAuthCallback";
 
 // ========================================
@@ -29,6 +30,7 @@ import QuestionPage from "../pages/Student/QuestionPage";
 import QuestionReviewPage from "../pages/Student/QuestionReviewPage";
 
 import Settings from "../pages/Student/Settings"; // Ditambahkan kembali Settings
+import PaymentReturn from "../pages/Student/PaymentReturn";
 
 const AppRoutes = () => {
   return (
@@ -36,6 +38,8 @@ const AppRoutes = () => {
       {/* Public landing page at the site root. Keep /nolla as a legacy alias. */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/nolla" element={<Navigate to="/" replace />} />
+      <Route path="/terms-and-conditions" element={<LegalInfoPage documentType="terms" />} />
+      <Route path="/privacy-policy" element={<LegalInfoPage documentType="privacy" />} />
 
       {/* ========================================
           AUTH ROUTES
@@ -59,6 +63,7 @@ const AppRoutes = () => {
       ======================================== */}
 
       <Route element={<ProtectedRoute />}>
+        <Route path="/payment/return" element={<PaymentReturn />} />
         <Route path="/personalization" element={<PersonalizationWizard />} />
         <Route path="/hasil-pembelajaran" element={<TopikDetail />} />
         <Route path="/topik" element={<Topics />} />

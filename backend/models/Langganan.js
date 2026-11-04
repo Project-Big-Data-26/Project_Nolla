@@ -22,6 +22,9 @@ const langgananSchema = new mongoose.Schema(
       enum: ["trial", "manual", "payment"],
       required: true,
     },
+    // ID transaksi Midtrans yang membuat periode ini; unik agar webhook berulang
+    // tidak menggandakan masa Premium.
+    payment_order_id: { type: String, default: null },
     starts_at: { type: Date, required: true },
     ends_at: {
       type: Date,
@@ -40,6 +43,10 @@ const langgananSchema = new mongoose.Schema(
 );
 
 langgananSchema.index({ user_id: 1, ends_at: -1 });
+langgananSchema.index(
+  { payment_order_id: 1 },
+  { unique: true, partialFilterExpression: { payment_order_id: { $type: "string" } } },
+);
 // Trial hanya sekali per akun, juga saat request aktivasi paralel.
 langgananSchema.index(
   { user_id: 1 },

@@ -24,6 +24,12 @@ export const fetchEntitlement = async () =>
 export const fetchPlans = async () =>
   (await API.get("/subscription/plans")).data.data;
 
+export const startPlanCheckout = async (packageCode) =>
+  (await API.post("/subscription/payments/checkout", { package: packageCode })).data.data;
+
+export const fetchPayment = async (orderId) =>
+  (await API.get(`/subscription/payments/${encodeURIComponent(orderId)}`)).data.data;
+
 const rupiahFormatter = new Intl.NumberFormat("id-ID", {
   style: "currency",
   currency: "IDR",

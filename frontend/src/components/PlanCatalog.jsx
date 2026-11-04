@@ -1,15 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { fetchPlans, formatDiscount, formatRupiah } from "../api/subscription";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { fetchPlans, formatDiscount, formatRupiah, startPlanCheckout } from "../api/subscription";
+import { openSnapCheckout } from "../api/midtransSnap";
 
 /**
  * Daftar paket Premium dari GET /subscription/plans (harga dari env backend).
- * Hanya ditampilkan di konteks konten terkunci. Selama payment gateway belum
- * ada (purchasable=false), hanya catatan "segera tersedia".
+ * Ditampilkan di konteks konten terkunci; transaksi dibuat oleh backend.
  */
 const PlanCatalog = () => {
   const [state, setState] = useState({ status: "loading", data: null });
-  // Pilihan hanya tampilan; dipakai checkout saat payment gateway tersedia.
-  const [selectedCode, setSelectedCode] = useState(null);
+  const [checkoutCode, setCheckoutCode] = useState(null);
+  const [checkoutError, setCheckoutError] = useState("");
+  const [checkoutNotice, setCheckoutNotice] = useState("");
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const buyPlan = async (code) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    setCheckoutCode(code);
+    setCheckoutError("");
+    setCheckoutNotice("");
+    try {
+      const checkout = await startPlanCheckout(code);
+      await openSnapCheckout(checkout, {
+        onSuccess: () => {
+          setCheckoutCode(null);
+          setCheckoutNotice("Pembayaran diterima. Status Premium akan diperbarui setelah verifikasi Midtrans.");
+        },
+        onPending: () => {
+          setCheckoutCode(null);
+          setCheckoutNotice("Pembayaran menunggu konfirmasi. Status akan diperbarui otomatis setelah Midtrans mengirim notifikasi.");
+        },
+        onError: () => {
+          setCheckoutCode(null);
+          setCheckoutError("Pembayaran belum berhasil. Silakan coba lagi.");
+        },
+        onClose: () => setCheckoutCode(null),
+      });
+    } catch (error) {
+      setCheckoutError(error.response?.data?.message || "Checkout gagal dibuat. Silakan coba lagi.");
+      setCheckoutCode(null);
+    }
+  };
 
   useEffect(() => {
     let isCurrent = true;
@@ -42,19 +78,10 @@ const PlanCatalog = () => {
       <ul className="grid grid-cols-1 gap-2 @xl:grid-cols-3 @xl:gap-3">
         {plans.map((plan) => {
           const discountLabel = formatDiscount(plan.discount);
-          const isSelected = plan.code === selectedCode;
+          const isLoading = plan.code === checkoutCode;
           return (
             <li key={plan.code}>
-              <button
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => setSelectedCode(plan.code)}
-                className={`flex h-full w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition-all hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-[0.99] @xl:flex-col @xl:items-start @xl:justify-between @xl:gap-4 @xl:p-5 ${
-                  isSelected
-                    ? "border-primary bg-primary/5 ring-1 ring-primary"
-                    : "border-slate-200 bg-white hover:border-slate-300"
-                }`}
-              >
+              <div className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition-colors hover:border-slate-300 @xl:gap-4 @xl:p-5">
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 @xl:text-base">
                     {plan.name}
@@ -68,7 +95,8 @@ const PlanCatalog = () => {
                     </span>
                   )}
                 </div>
-                <div className="shrink-0 text-right @xl:text-left">
+                <div className="flex shrink-0 items-end justify-between gap-3 @xl:items-start @xl:flex-col">
+                  <div className="text-right @xl:text-left">
                   {plan.discount && (
                     <p className="text-xs text-slate-400 line-through">
                       {formatRupiah(plan.price)}
@@ -77,8 +105,19 @@ const PlanCatalog = () => {
                   <p className="text-base font-bold text-slate-900 tabular-nums @xl:text-xl">
                     {formatRupiah(plan.final_price)}
                   </p>
+                  </div>
+                  {state.data.purchasable && (
+                    <button
+                      type="button"
+                      onClick={() => buyPlan(plan.code)}
+                      disabled={Boolean(checkoutCode)}
+                      className="shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition hover:brightness-95 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      {isLoading ? "Memproses..." : isAuthenticated ? "Beli paket" : "Masuk untuk membeli"}
+                    </button>
+                  )}
                 </div>
-              </button>
+              </div>
             </li>
           );
         })}
@@ -88,6 +127,8 @@ const PlanCatalog = () => {
           Pembelian paket segera tersedia.
         </p>
       )}
+      {checkoutError && <p role="alert" className="mt-3 text-xs text-red-600">{checkoutError}</p>}
+      {checkoutNotice && <p role="status" className="mt-3 text-xs text-emerald-700">{checkoutNotice}</p>}
     </div>
   );
 };

@@ -35,8 +35,9 @@ const getPlans = (req, res) =>
     message: "Katalog paket Premium berhasil diambil.",
     data: {
       currency: "IDR",
-      // Payment gateway belum tersedia; paket hanya bisa ditampilkan.
-      purchasable: false,
+      purchasable: Boolean(
+        process.env.MIDTRANS_SERVER_KEY && process.env.MIDTRANS_MERCHANT_ID,
+      ) && isPremiumFeatureEnabled(),
       plans: isPremiumFeatureEnabled() ? getPlanCatalog() : [],
     },
   });

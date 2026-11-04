@@ -14,6 +14,7 @@
     "report:items": "node scripts/itemAnalysisReport.js",
     "migrate:revoked-ttl": "node scripts/migrateRevokedTokenTtl.js",
     "grant:premium": "node scripts/grantPremium.js",
+    "db:ensure-payments": "node scripts/ensurePaymentsCollection.js",
     "reset:trial": "node scripts/resetTrial.js"
   },
   "keywords": [],
