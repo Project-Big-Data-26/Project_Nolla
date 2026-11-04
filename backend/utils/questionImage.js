@@ -1,6 +1,7 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const { toCloudinaryUrl } = require("./cloudinaryImage");
 
 const IMAGE_DIRECTORY = path.resolve(__dirname, "../public/soal");
 const IMAGE_EXTENSIONS = new Set([
@@ -59,16 +60,26 @@ const getQuestionImageToken = (fileName) => {
     .slice(0, 32);
 };
 
-const toPublicImageUrls = (fileNames, req) => {
+const toPublicImageUrls = (fileNames, req, env = process.env) => {
   if (!Array.isArray(fileNames)) return [];
 
   const baseUrl = (
-    process.env.IMAGE_BASE_URL || `${req.protocol}://${req.get("host")}`
+    env.IMAGE_BASE_URL || `${req.protocol}://${req.get("host")}`
   ).replace(/\/+$/, "");
 
   return fileNames.flatMap((fileName) => {
     if (typeof fileName !== "string") return [];
     if (/^https?:\/\//i.test(fileName)) return [fileName];
+
+    const cloudinaryUrl = toCloudinaryUrl(
+      env.CLOUDINARY_CLOUD_NAME,
+      fileName,
+      {
+        folder: env.CLOUDINARY_FOLDER,
+        deliveryBase: env.CLOUDINARY_DELIVERY_URL,
+      },
+    );
+    if (cloudinaryUrl) return [cloudinaryUrl];
     if (!isImageFileName(fileName)) return [];
 
     return [`${baseUrl}/image/${getQuestionImageToken(fileName)}`];
@@ -95,5 +106,6 @@ module.exports = {
   IMAGE_DIRECTORY,
   findQuestionImageByToken,
   getQuestionImageToken,
+  toCloudinaryUrl,
   toPublicImageUrls,
 };

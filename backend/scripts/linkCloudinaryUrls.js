@@ -15,35 +15,9 @@ require("dotenv").config({ quiet: true });
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
+const { toCloudinaryUrl, toPublicId } = require("../utils/cloudinaryImage");
 
 const REPORT_DIRECTORY = path.resolve(__dirname, "../reports");
-const FOLDER = (process.env.CLOUDINARY_FOLDER || "nolla/soal").replace(/^\/+|\/+$/g, "");
-const DELIVERY_BASE = (process.env.CLOUDINARY_DELIVERY_URL || "https://res.cloudinary.com").replace(/\/+$/, "");
-const IMAGE_EXTENSIONS = new Set([".avif", ".gif", ".jpeg", ".jpg", ".png", ".webp"]);
-
-// "images/a.png" | "/images/a.png" | "soal/images/a.png" | "nolla/soal/images/a.png" -> { publicId, ext }
-const toPublicId = (value) => {
-  if (typeof value !== "string") return null;
-  const cleaned = value
-    .trim()
-    .replace(/\\/g, "/")
-    .replace(/^\/+/, "")
-    .replace(/^(public\/)?soal\//, "");
-  const ext = path.posix.extname(cleaned).toLowerCase();
-  if (!IMAGE_EXTENSIONS.has(ext)) return null;
-  const withoutExt = cleaned.slice(0, -ext.length);
-  if (!withoutExt || withoutExt.split("/").some((part) => !part || part === "." || part === "..")) {
-    return null;
-  }
-  const publicId = withoutExt.startsWith(`${FOLDER}/`) ? withoutExt : `${FOLDER}/${withoutExt}`;
-  return { publicId, ext };
-};
-
-const toCloudinaryUrl = (cloudName, value) => {
-  const parsed = toPublicId(value);
-  if (!parsed) return null;
-  return `${DELIVERY_BASE}/${cloudName}/image/upload/${encodeURI(parsed.publicId)}${parsed.ext}`;
-};
 
 const urlExists = async (url) => {
   try {
