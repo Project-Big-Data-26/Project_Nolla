@@ -77,7 +77,7 @@ const sourceUrlFor = (value, cloudName) => {
 const uploadBuffer = (cloudinary, buffer, publicId) =>
   new Promise((resolve, reject) => {
     const upload = cloudinary.uploader.upload_stream(
-      { public_id: publicId, overwrite: false, resource_type: "image" },
+      { public_id: publicId, overwrite: true, resource_type: "image" },
       (error, result) => {
         if (error) reject(error);
         else resolve(result);
@@ -85,6 +85,27 @@ const uploadBuffer = (cloudinary, buffer, publicId) =>
     );
     upload.end(buffer);
   });
+
+const checkSourceUrls = async (urls, concurrency = 8) => {
+  const queue = [...urls];
+  const available = new Set();
+  const missing = new Set();
+  const worker = async () => {
+    while (queue.length) {
+      const url = queue.shift();
+      const response = await fetch(url, {
+        method: "HEAD",
+        signal: AbortSignal.timeout(20000),
+      });
+      if (response.status === 200) available.add(url);
+      else missing.add(url);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, queue.length) || 1 }, worker),
+  );
+  return { available, missing };
+};
 
 const main = async () => {
   const { apply, db } = parseArgs(process.argv.slice(2));
@@ -107,7 +128,7 @@ const main = async () => {
   const soalList = await Soal.find({ "image_url.0": { $exists: true } })
     .select("image_url")
     .lean();
-  const plan = [];
+  const candidates = [];
   const urls = new Set();
   const sourceUrlByStoredValue = new Map();
 
@@ -121,11 +142,18 @@ const main = async () => {
     if (!converted.length) continue;
 
     converted.forEach(({ sourceUrl }) => urls.add(sourceUrl));
-    plan.push({ _id: soal._id, original: soal.image_url });
+    candidates.push({ _id: soal._id, original: soal.image_url });
   }
 
+  console.log(`Alamat Cloudinary yang diperiksa: ${urls.size}`);
+  const { available, missing } = await checkSourceUrls(urls);
+  const plan = candidates.filter(({ original }) =>
+    original.some((value) => available.has(sourceUrlByStoredValue.get(value))),
+  );
+
   console.log(`Soal yang diperiksa: ${soalList.length}`);
-  console.log(`URL Cloudinary JPG/PNG/AVIF yang akan dikonversi: ${urls.size}`);
+  console.log(`Aset yang tersedia untuk dikonversi: ${available.size}`);
+  console.log(`Aset tidak ditemukan, dilewati: ${missing.size}`);
   console.log(`Dokumen soal terkait: ${plan.length}`);
 
   if (!apply) {
@@ -155,7 +183,7 @@ const main = async () => {
   console.log(`Backup nilai lama: ${backupPath}`);
 
   const newUrlByOldUrl = new Map();
-  for (const oldUrl of urls) {
+  for (const oldUrl of available) {
     const { publicId } = parseCloudinaryImageUrl(oldUrl, cloudName);
     const response = await fetch(oldUrl);
     if (!response.ok) {
