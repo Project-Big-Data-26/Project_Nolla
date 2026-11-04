@@ -9,14 +9,4 @@ export default defineConfig({
     globals: true,
     setupFiles: "./src/test/setup.js",
   },
-  server: {
-    host: "0.0.0.0",
-    allowedHosts: ["willfully-fretted-waltz.ngrok-free.dev"],
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-      },
-    },
-  },
 });
