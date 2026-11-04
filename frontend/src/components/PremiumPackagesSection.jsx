@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { formatDiscount, formatRupiah } from "../api/subscription";
-import mathGeometry from "../assets/komponenTambahan3.png";
-import mathCalculus from "../assets/komponenTambahan6.png";
+import mathGeometry from "../assets/komponenTambahan3.webp";
+import mathCalculus from "../assets/komponenTambahan6.webp";
 
 const FadeInSection = ({ children, className = "", delay = 0 }) => {
   const [isVisible, setIsVisible] = useState(false);

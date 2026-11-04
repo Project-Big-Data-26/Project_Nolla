@@ -26,7 +26,7 @@ import {
   Crown,
   BadgeCheck,
 } from "lucide-react";
-import defaultAvatar from "../../../assets/avatar/avatar-deafult.png";
+import defaultAvatar from "../../../assets/avatar/avatar-deafult.webp";
 import avatar1 from "../../../assets/avatar/avatar1.svg";
 import avatar2 from "../../../assets/avatar/avatar2.svg";
 import avatar3 from "../../../assets/avatar/avatar3.svg";
