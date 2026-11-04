@@ -236,7 +236,7 @@ const StagingQuestionPageContent = () => {
   );
 
   const questionText = (
-    <div className="min-w-0 whitespace-pre-wrap text-justify text-[13px] font-medium leading-[1.55] text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
+    <div className="min-w-0 text-justify text-[13px] font-medium leading-[1.55] text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
       <MarkdownBlock content={question.text} />
     </div>
   );
