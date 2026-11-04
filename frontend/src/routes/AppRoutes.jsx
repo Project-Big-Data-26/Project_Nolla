@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom"; // Ditambahkan Navigate
 import ProtectedRoute from "./ProtectedRoute";
 import GuestRoute from "./GuestRoute";
@@ -32,6 +32,22 @@ import QuestionReviewPage from "../pages/Student/QuestionReviewPage";
 import Settings from "../pages/Student/Settings"; // Ditambahkan kembali Settings
 import PaymentReturn from "../pages/Student/PaymentReturn";
 
+// Flag build (FE-09): pintu cek soal staging hanya ikut di-build bila
+// VITE_ENABLE_STAGING_CHECK=true. Nilai diganti Vite saat build, sehingga bila false
+// import di bawah terbuang dan kode halaman staging tidak masuk bundle production.
+const STAGING_CHECK_ENABLED = import.meta.env.VITE_ENABLE_STAGING_CHECK === "true";
+
+const StagingCheckRoute = STAGING_CHECK_ENABLED
+  ? lazy(() =>
+      import("../pages/Staging/StagingSoalBrowser").then((module) => ({
+        default: module.StagingCheckRoute,
+      })),
+    )
+  : null;
+const StagingQuestionReviewPage = STAGING_CHECK_ENABLED
+  ? lazy(() => import("../pages/Staging/StagingQuestionReviewPage"))
+  : null;
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -57,6 +73,29 @@ const AppRoutes = () => {
 
       {/* Jangan dimasukkan ke ProtectedRoute: user belum login saat callback tiba. */}
       <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
+
+      {/* Pintu cek soal (FE-09): tanpa login; hanya ada bila build memakai
+          VITE_ENABLE_STAGING_CHECK=true, dan data hanya ada bila backend APP_ENV=staging. */}
+      {STAGING_CHECK_ENABLED && (
+        <>
+          <Route
+            path="/staging/cek-soal"
+            element={
+              <Suspense fallback={null}>
+                <StagingCheckRoute />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/staging/cek-soal/review"
+            element={
+              <Suspense fallback={null}>
+                <StagingQuestionReviewPage />
+              </Suspense>
+            }
+          />
+        </>
+      )}
 
       {/* ========================================
           PROTECTED STUDENT ROUTES
