@@ -55,5 +55,9 @@
     "tailwindcss": "^4.3.3",
     "vite": "^8.3.0",
     "vitest": "^4.1.11"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "1.2.9",
+    "@rolldown/binding-linux-x64-musl": "1.2.9"
   }
 }
