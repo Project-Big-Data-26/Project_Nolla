@@ -1,7 +1,11 @@
+// Mengonversi gambar soal lokal ke WebP sebelum upload dan menyimpan URL hasilnya ke MongoDB.
+// Simulasi (default): npm run migrate:images:cloudinary
+// Terapkan: npm run migrate:images:cloudinary -- --apply --db <nama_db>
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
+const sharp = require("sharp");
 
 const IMAGE_DIRECTORY = path.resolve(__dirname, "../public/soal");
 const REPORT_DIRECTORY = path.resolve(__dirname, "../reports");
@@ -50,18 +54,50 @@ const createResolver = (files) => {
 const publicIdFor = (relativePath) =>
   `${CLOUDINARY_FOLDER}/${relativePath.replace(/\.[^./]+$/, "")}`;
 
-const parseFlags = (argv) => ({ apply: argv.includes("--apply") });
+const uploadWebp = (cloudinary, filePath, publicId) =>
+  new Promise((resolve, reject) => {
+    const upload = cloudinary.uploader.upload_stream(
+      { public_id: publicId, overwrite: true, resource_type: "image" },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      },
+    );
+
+    sharp(filePath, { animated: true })
+      .rotate()
+      .webp({ quality: 82, effort: 5, animated: true })
+      .toBuffer()
+      .then((buffer) => upload.end(buffer))
+      .catch(reject);
+  });
+
+const parseFlags = (argv) => {
+  const dbIndex = argv.indexOf("--db");
+  return {
+    apply: argv.includes("--apply"),
+    db: dbIndex === -1 ? null : argv[dbIndex + 1] || null,
+  };
+};
 
 const main = async () => {
-  const { apply } = parseFlags(process.argv.slice(2));
+  const { apply, db } = parseFlags(process.argv.slice(2));
   if (!process.env.MONGO_URI) throw new Error("MONGO_URI belum diisi.");
 
+  await mongoose.connect(process.env.MONGO_URI);
+  const dbName = mongoose.connection.name;
   const files = listImageFiles(IMAGE_DIRECTORY);
   const resolve = createResolver(files);
   console.log(`Mode: ${apply ? "APPLY (mengubah data)" : "SIMULASI (tidak mengubah apa pun)"}`);
+  console.log(`Database: ${dbName}`);
   console.log(`File gambar di disk: ${files.length}`);
 
-  await mongoose.connect(process.env.MONGO_URI);
+  if (apply && db !== dbName) {
+    throw new Error(
+      `--apply harus disertai --db ${dbName} (nama database yang tersambung). Nilai --db sekarang: ${db ?? "(kosong)"}.`,
+    );
+  }
+
   const Soal = require("../models/Soal");
   const soalList = await Soal.find({ "image_url.0": { $exists: true } })
     .select("image_url")
@@ -125,11 +161,11 @@ const main = async () => {
   const urlByFile = new Map();
   let done = 0;
   for (const file of needed) {
-    const result = await cloudinary.uploader.upload(path.join(IMAGE_DIRECTORY, file), {
-      public_id: publicIdFor(file),
-      overwrite: true,
-      resource_type: "image",
-    });
+    const result = await uploadWebp(
+      cloudinary,
+      path.join(IMAGE_DIRECTORY, file),
+      publicIdFor(file),
+    );
     urlByFile.set(file, result.secure_url);
     done += 1;
     if (done % 10 === 0 || done === needed.size) console.log(`Upload ${done}/${needed.size}`);

@@ -3,9 +3,9 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
 
-import sdIcon from "../../assets/icon/SD.png";
-import smpIcon from "../../assets/icon/SMP.png";
-import smaIcon from "../../assets/icon/SMA.png";
+import sdIcon from "../../assets/icon/SD.webp";
+import smpIcon from "../../assets/icon/SMP.webp";
+import smaIcon from "../../assets/icon/SMA.webp";
 import { API_BASE_URL } from "../../api/baseUrl";
 
 const educationOptions = [

@@ -20,9 +20,9 @@ test("legacy image paths map to the matching Cloudinary asset without changing M
       { CLOUDINARY_CLOUD_NAME: "nolla-math" },
     ),
     [
-      "https://res.cloudinary.com/nolla-math/image/upload/f_auto,q_auto/nolla/soal/images/a.png",
-      "https://res.cloudinary.com/nolla-math/image/upload/f_auto,q_auto/nolla/soal/images/b%202.jpg",
-      "https://res.cloudinary.com/nolla-math/image/upload/f_auto,q_auto/nolla/soal/images/c.webp",
+      "https://res.cloudinary.com/nolla-math/image/upload/f_webp,q_auto/nolla/soal/images/a.webp",
+      "https://res.cloudinary.com/nolla-math/image/upload/f_webp,q_auto/nolla/soal/images/b%202.webp",
+      "https://res.cloudinary.com/nolla-math/image/upload/f_webp,q_auto/nolla/soal/images/c.webp",
       "https://res.cloudinary.com/other/image/upload/custom/image.png",
     ],
   );

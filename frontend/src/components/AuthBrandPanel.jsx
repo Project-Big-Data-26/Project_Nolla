@@ -1,5 +1,5 @@
 import React from "react";
-import whiteOrangeLogo from "../assets/white_orange.png";
+import whiteOrangeLogo from "../assets/white_orange.webp";
 
 /**
  * Kolom kanan halaman Auth: banner primary dengan mockup jendela browser +
