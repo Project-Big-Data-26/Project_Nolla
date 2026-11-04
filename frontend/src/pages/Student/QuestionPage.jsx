@@ -1542,7 +1542,7 @@ const QuestionPage = () => {
                     ====================================== */}
                 <div className="flex flex-col gap-2.5 sm:gap-4">
                   <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-3.5 sm:p-5">
-                    <div className="min-w-0 whitespace-pre-wrap text-justify text-[13px] font-medium leading-[1.55] text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
+                    <div className="min-w-0 text-justify text-[13px] font-medium leading-[1.55] text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
                       {/* ==================================
                           QUESTION TEXT + LATEX
                           ================================== */}
@@ -1597,7 +1597,7 @@ const QuestionPage = () => {
                     QUESTION WITHOUT IMAGE
                     ==================================== */}
                 <div className="shrink-0 rounded-2xl border border-slate-100 bg-white p-3.5 sm:p-5">
-                  <div className="min-w-0 whitespace-pre-wrap text-justify text-[13px] font-medium leading-[1.55] text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
+                  <div className="min-w-0 text-justify text-[13px] font-medium leading-[1.55] text-slate-800 sm:text-left sm:text-sm sm:font-semibold md:text-base">
                     {/* ==================================
                         QUESTION TEXT + LATEX
                         ================================== */}

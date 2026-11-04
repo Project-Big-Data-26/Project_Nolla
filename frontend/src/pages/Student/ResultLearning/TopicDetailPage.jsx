@@ -104,10 +104,7 @@ function BabCard({ bab }) {
 
         <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 border-t border-slate-100 pt-2.5 sm:pt-3">
           <div className="text-xs font-normal text-slate-400 sm:text-[11px] sm:font-medium">
-            {bab.class_reference || "Kurikulum Nasional"}
-          </div>
-          <div className="text-xs font-normal text-slate-400 sm:text-[11px] sm:font-medium">
-            {bab.completed_subbab} dari {bab.total_subbab} subbab selesai
+            {(bab.class_reference || "Kurikulum Nasional").replace(/\s+(?:SD|SMA)\b/gi, "")}
           </div>
         </div>
       </div>

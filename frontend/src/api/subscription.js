@@ -2,6 +2,25 @@ import API from "./axios";
 
 // Kontrak backend: docs/perbaikan-frontend.md (FE-08).
 const PLAN_ERROR_CODES = new Set(["PREMIUM_REQUIRED", "QUIZ_LIMIT_REACHED"]);
+const PREMIUM_ACTIVATION_NOTICE_KEY = "nolla:premium-activation-notice";
+
+export const markPremiumActivationNotice = () => {
+  try {
+    window.sessionStorage.setItem(PREMIUM_ACTIVATION_NOTICE_KEY, "1");
+  } catch {
+    // Payment success flow must not depend on browser storage availability.
+  }
+};
+
+export const consumePremiumActivationNotice = () => {
+  try {
+    const shouldShow = window.sessionStorage.getItem(PREMIUM_ACTIVATION_NOTICE_KEY) === "1";
+    if (shouldShow) window.sessionStorage.removeItem(PREMIUM_ACTIVATION_NOTICE_KEY);
+    return shouldShow;
+  } catch {
+    return false;
+  }
+};
 
 // 403 karena paket (bukan 403 lama "pretest belum selesai" yang tanpa code).
 export const getPlanBlock = (error) => {
@@ -29,6 +48,63 @@ export const startPlanCheckout = async (packageCode) =>
 
 export const fetchPayment = async (orderId) =>
   (await API.get(`/subscription/payments/${encodeURIComponent(orderId)}`)).data.data;
+
+// Pantau transaksi tertunda agar UI berpindah sendiri ketika webhook Midtrans
+// sudah memperbarui status pembayaran di backend.
+export const watchPaymentStatus = (
+  orderId,
+  {
+    onPaid,
+    onTerminal,
+    onTimeout,
+    intervalMs = 2000,
+    fastIntervalMs = 500,
+    fastAttempts = 12,
+    maxAttempts = 90,
+  },
+) => {
+  let stopped = false;
+  let attempts = 0;
+  let timer;
+
+  const stop = () => {
+    stopped = true;
+    window.clearTimeout(timer);
+  };
+
+  const poll = async () => {
+    if (stopped) return;
+    attempts += 1;
+    try {
+      const payment = await fetchPayment(orderId);
+      if (stopped) return;
+      if (payment.status === "paid") {
+        stop();
+        onPaid?.(payment);
+        return;
+      }
+      if (["failed", "expired", "cancelled", "refunded"].includes(payment.status)) {
+        stop();
+        onTerminal?.(payment);
+        return;
+      }
+    } catch {
+      // Lanjutkan polling jika endpoint sementara tidak dapat dijangkau.
+    }
+
+    if (stopped) return;
+    if (attempts >= maxAttempts) {
+      stop();
+      onTimeout?.();
+      return;
+    }
+    const nextInterval = attempts <= fastAttempts ? fastIntervalMs : intervalMs;
+    timer = window.setTimeout(poll, nextInterval);
+  };
+
+  void poll();
+  return stop;
+};
 
 const rupiahFormatter = new Intl.NumberFormat("id-ID", {
   style: "currency",

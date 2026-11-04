@@ -10,6 +10,7 @@ import VerifyEmail from "../pages/Auth/VerifyEmail";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
 import LandingPage from "../pages/Landing/LandingPage";
+import PackagesPage from "../pages/Landing/PackagesPage";
 import LegalInfoPage from "../pages/Landing/LegalInfoPage";
 import GoogleAuthCallback from "../pages/Auth/GoogleAuthCallback";
 
@@ -37,6 +38,7 @@ const AppRoutes = () => {
     <Routes>
       {/* Public landing page at the site root. Keep /nolla as a legacy alias. */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/paket" element={<PackagesPage />} />
       <Route path="/nolla" element={<Navigate to="/" replace />} />
       <Route path="/terms-and-conditions" element={<LegalInfoPage documentType="terms" />} />
       <Route path="/privacy-policy" element={<LegalInfoPage documentType="privacy" />} />

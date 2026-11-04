@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { formatTimeLeft } from "../api/subscription";
+import { consumePremiumActivationNotice, formatTimeLeft } from "../api/subscription";
 import crownIcon from "../assets/crown-icon.webp";
 
 const formatDate = (value) =>
@@ -23,6 +23,7 @@ const PACKAGE_LABELS = {
  */
 const PlanBanner = ({ entitlement, onExpired }) => {
   const [now, setNow] = useState(() => Date.now());
+  const [showActivationNotice, setShowActivationNotice] = useState(false);
   const expiredNotifiedRef = useRef(null);
 
   useEffect(() => {
@@ -35,6 +36,14 @@ const PlanBanner = ({ entitlement, onExpired }) => {
   const timeLeft = isPremium && activeUntil ? formatTimeLeft(activeUntil, now) : null;
 
   useEffect(() => {
+    if (!isPremium || entitlement?.is_trial || !activeUntil) return undefined;
+    if (!consumePremiumActivationNotice()) return undefined;
+    setShowActivationNotice(true);
+    const timeout = window.setTimeout(() => setShowActivationNotice(false), 7000);
+    return () => window.clearTimeout(timeout);
+  }, [isPremium, entitlement?.is_trial, activeUntil]);
+
+  useEffect(() => {
     if (!isPremium || !activeUntil || timeLeft) return;
     if (expiredNotifiedRef.current === activeUntil) return;
     expiredNotifiedRef.current = activeUntil;
@@ -42,7 +51,7 @@ const PlanBanner = ({ entitlement, onExpired }) => {
   }, [isPremium, activeUntil, timeLeft, onExpired]);
 
   // Fitur paket nonaktif: semua user "premium" tanpa batas, banner tidak relevan.
-  if (!isPremium || entitlement.feature_enabled === false) return null;
+  if (!isPremium || entitlement.feature_enabled === false || !showActivationNotice) return null;
 
   return (
     <div className="mb-5 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3">

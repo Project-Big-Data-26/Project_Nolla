@@ -86,7 +86,7 @@ const getBab = async (req, res) => {
     }
 
     const kelasData = await Kelas.find(kelasQuery)
-      .select("_id nomor_kelas jenjang_id")
+      .select("_id name nomor_kelas jenjang_id")
       .sort({ nomor_kelas: 1 })
       .lean();
 
@@ -111,6 +111,9 @@ const getBab = async (req, res) => {
     }
 
     const kelasIds = kelasData.map((item) => item._id);
+    const classNameById = new Map(
+      kelasData.map((item) => [item._id.toString(), item.name]),
+    );
     const kelasOrder = new Map(
       kelasData.map((item, index) => [item._id.toString(), index]),
     );
@@ -261,6 +264,7 @@ const getBab = async (req, res) => {
       if (!hasPretest) {
         return {
           id: bab._id,
+          class_reference: classNameById.get(bab.kelas_id.toString()) || null,
           name: bab.name,
           description: bab.description,
           display_order: bab.display_order,
@@ -303,6 +307,7 @@ const getBab = async (req, res) => {
 
       return {
         id: bab._id,
+        class_reference: classNameById.get(bab.kelas_id.toString()) || null,
         name: bab.name,
         description: bab.description,
         display_order: bab.display_order,

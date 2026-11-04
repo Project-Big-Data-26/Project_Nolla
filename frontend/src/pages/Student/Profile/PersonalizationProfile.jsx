@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, Toaster } from "sonner";
 import API from "../../../api/axios";
+import { fetchEntitlement, formatTimeLeft } from "../../../api/subscription";
 import { useAuth } from "../../../context/AuthContext";
 import Navbar from "../../../components/Navbar";
 import SectionCard from "../../../components/SectionCard";
@@ -22,6 +23,8 @@ import {
   Loader2,
   Pencil,
   RefreshCw,
+  Crown,
+  BadgeCheck,
 } from "lucide-react";
 import defaultAvatar from "../../../assets/avatar/avatar-deafult.png";
 import avatar1 from "../../../assets/avatar/avatar1.svg";
@@ -85,6 +88,23 @@ const badges = [
   { title: "Pemecah Masalah", description: "Menyelesaikan 10 soal" },
 ];
 
+const packageLabels = {
+  weekly: "Premium Mingguan",
+  monthly: "Premium Bulanan",
+  yearly: "Premium Tahunan",
+};
+
+const formatSubscriptionDate = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
 export default function PersonalizationProfile() {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -92,6 +112,10 @@ export default function PersonalizationProfile() {
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
   const [profileReloadKey, setProfileReloadKey] = useState(0);
+  const [subscription, setSubscription] = useState(null);
+  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(true);
+  const [subscriptionError, setSubscriptionError] = useState("");
+  const [subscriptionReloadKey, setSubscriptionReloadKey] = useState(0);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
@@ -129,6 +153,30 @@ export default function PersonalizationProfile() {
   }, [profileReloadKey]);
 
   useEffect(() => {
+    let isActive = true;
+    const loadSubscription = async () => {
+      setIsSubscriptionLoading(true);
+      setSubscriptionError("");
+      try {
+        const entitlement = await fetchEntitlement();
+        if (isActive) setSubscription(entitlement);
+      } catch (error) {
+        if (isActive) {
+          setSubscriptionError(
+            error.response?.data?.message || "Status paket gagal dimuat.",
+          );
+        }
+      } finally {
+        if (isActive) setIsSubscriptionLoading(false);
+      }
+    };
+    loadSubscription();
+    return () => {
+      isActive = false;
+    };
+  }, [subscriptionReloadKey]);
+
+  useEffect(() => {
     const toastMessage = sessionStorage.getItem("profileRedirectToastMessage");
     if (!toastMessage) return;
 
@@ -162,6 +210,18 @@ export default function PersonalizationProfile() {
         ? profile.avatar
         : defaultAvatar)
     : defaultAvatar;
+  const hasPremiumAccess = subscription?.plan === "premium";
+  const isTrialSubscription = hasPremiumAccess && subscription?.is_trial;
+  const subscriptionTitle = subscription?.feature_enabled === false
+    ? "Akses Premium terbuka"
+    : isTrialSubscription
+      ? "Trial Premium"
+      : hasPremiumAccess
+        ? packageLabels[subscription?.package] || "Premium"
+        : "Paket Free";
+  const quizLimitLabel = subscription?.limits?.quiz_sessions_per_subbab == null
+    ? "Tanpa batas"
+    : `${subscription.limits.quiz_sessions_per_subbab} sesi per subbab`;
 
   return (
     <div className="flex min-h-screen bg-neutral-bg font-sans text-neutral-text">
@@ -289,6 +349,69 @@ export default function PersonalizationProfile() {
                 </div>
               </div>
             )}
+          </SectionCard>
+
+          <SectionCard as="section" aria-labelledby="account-package-title" padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
+            <div className="flex flex-col gap-4 border-b border-neutral-border pb-4 sm:flex-row sm:items-center sm:justify-between sm:pb-5">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${hasPremiumAccess ? "bg-blue-50 text-primary" : "bg-slate-100 text-slate-600"}`}>
+                  <Crown aria-hidden="true" className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 id="account-package-title" className="text-sm font-bold text-neutral-text sm:text-base">Paket Akun</h2>
+                  <p className="mt-0.5 text-xs text-neutral-muted">Status paket yang terhubung ke akun ini</p>
+                </div>
+              </div>
+              {!isSubscriptionLoading && !subscriptionError && subscription?.feature_enabled !== false && (
+                <Link to="/paket" className="inline-flex min-h-9 items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-hover sm:min-h-10 sm:text-sm">
+                  {hasPremiumAccess ? "Lihat paket" : "Pilih paket Premium"}
+                </Link>
+              )}
+            </div>
+
+            {isSubscriptionLoading ? (
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-slate-50 p-4 text-sm text-neutral-muted" role="status">
+                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                Memuat status paket...
+              </div>
+            ) : subscriptionError ? (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">
+                <p>{subscriptionError}</p>
+                <button type="button" onClick={() => setSubscriptionReloadKey((key) => key + 1)} className="mt-2 inline-flex items-center gap-1.5 font-semibold hover:underline">
+                  <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
+                  Muat ulang status paket
+                </button>
+              </div>
+            ) : subscription ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.6fr)]">
+                <div className={`rounded-xl border p-4 ${hasPremiumAccess ? "border-blue-200 bg-blue-50/60" : "border-slate-200 bg-slate-50/70"}`}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-bold text-neutral-text sm:text-base">{subscriptionTitle}</p>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${hasPremiumAccess ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"}`}>
+                      {hasPremiumAccess && <BadgeCheck aria-hidden="true" className="h-3.5 w-3.5" />}
+                      Aktif
+                    </span>
+                  </div>
+                  {subscription.feature_enabled === false ? (
+                    <p className="mt-2 text-xs leading-relaxed text-neutral-muted">Fitur paket sedang dinonaktifkan; akses bab dan kuis terbuka untuk semua akun.</p>
+                  ) : isTrialSubscription ? (
+                    <p className="mt-2 text-xs leading-relaxed text-neutral-muted">Trial berakhir pada {formatSubscriptionDate(subscription.trial?.ends_at)}.</p>
+                  ) : hasPremiumAccess ? (
+                    <p className="mt-2 text-xs leading-relaxed text-neutral-muted">Paket aktif sampai {formatSubscriptionDate(subscription.active_until)}.</p>
+                  ) : (
+                    <p className="mt-2 text-xs leading-relaxed text-neutral-muted">Akun Free dapat mengerjakan kuis hingga {quizLimitLabel}.</p>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <p className="text-xs font-medium text-neutral-muted">Kuota kuis per subbab</p>
+                  <p className="mt-1 text-sm font-bold text-neutral-text">{quizLimitLabel}</p>
+                  {hasPremiumAccess && subscription.active_until && (
+                    <p className="mt-1 text-xs text-neutral-muted">Sisa {formatTimeLeft(subscription.active_until) || "masa aktif berakhir"}</p>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </SectionCard>
 
           {/* CARD 2: SETTING (Tombol Ganti Password) */}

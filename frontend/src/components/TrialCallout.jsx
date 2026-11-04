@@ -11,7 +11,7 @@ import { activateTrial } from "../api/subscription";
  * - trial sudah dipakai: info saja (pembayaran belum tersedia)
  * - premium / entitlement belum ada: tidak dirender
  */
-const TrialCallout = ({ entitlement, onActivated, onConfirmChange }) => {
+const TrialCallout = ({ entitlement, onActivated, onConfirmChange, appearance = "primary" }) => {
   const [isConfirming, setIsConfirming] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
@@ -35,11 +35,14 @@ const TrialCallout = ({ entitlement, onActivated, onConfirmChange }) => {
   };
 
   if (!isConfirming) {
+    const buttonAppearance = appearance === "secondary"
+      ? "w-full bg-[#ff8a1f] text-white shadow-xs hover:bg-[#e87512]"
+      : "bg-primary text-white shadow-xs hover:bg-primary-hover";
     return (
       <button
         type="button"
         onClick={() => changeConfirming(true)}
-        className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs transition-colors hover:bg-primary-hover cursor-pointer"
+        className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition-colors ${buttonAppearance}`}
       >
         Coba Premium 3 Hari Gratis
       </button>
