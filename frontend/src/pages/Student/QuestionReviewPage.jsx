@@ -530,7 +530,7 @@ const QuestionReviewPage = () => {
             <div
               ref={questionNumberNavRef}
               aria-label="Navigasi nomor soal review"
-              className="no-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-smooth px-1 py-0.5 sm:gap-2"
+              className="no-scrollbar flex min-w-0 flex-1 items-center justify-start gap-1.5 overflow-x-auto scroll-smooth px-1 py-0.5 sm:gap-2"
             >
               {questionsToReview.map((q, idx) => {
                 const isCorrect = reviewData
