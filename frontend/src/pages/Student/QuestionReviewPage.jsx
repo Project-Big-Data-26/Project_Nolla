@@ -15,7 +15,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import katex from "katex-v016";
 
-import smaIcon from "../../assets/icon/SMA.png";
+import smaIcon from "../../assets/icon/SMA.webp";
 
 import "katex-v016/dist/katex.min.css";
 

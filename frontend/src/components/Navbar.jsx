@@ -4,7 +4,7 @@ import { LayoutDashboard, BookOpen, User, LogOut, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import LogoutConfirmModal from "./LogoutConfirmModal";
-import nollaMain from "../assets/nolla_main.png";
+import nollaMain from "../assets/nolla_main.webp";
 import avatar1 from "../assets/avatar/avatar1.svg";
 import avatar2 from "../assets/avatar/avatar2.svg";
 import avatar3 from "../assets/avatar/avatar3.svg";

@@ -7,8 +7,8 @@ import { openSnapCheckout } from "../../api/midtransSnap";
 import PremiumPackagesSection from "../../components/PremiumPackagesSection";
 import PaymentConfirmationModal from "../../components/PaymentConfirmationModal";
 import PaymentSuccessModal from "../../components/PaymentSuccessModal";
-import nollaMain from "../../assets/nolla_main.png";
-import whiteOrangeLogo from "../../assets/white_orange.png";
+import nollaMain from "../../assets/nolla_main.webp";
+import whiteOrangeLogo from "../../assets/white_orange.webp";
 
 const PackagesPage = () => {
   const navigate = useNavigate();
