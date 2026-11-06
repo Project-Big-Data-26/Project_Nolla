@@ -61,7 +61,7 @@ const toCloudinaryUrl = (
     .map((segment) => encodeURIComponent(segment))
     .join("/");
 
-  return `${base}/${cloudName}/image/upload/f_auto,q_auto/${encodedPublicId}${parsed.ext}`;
+  return `${base}/${cloudName}/image/upload/f_webp,q_auto/${encodedPublicId}.webp`;
 };
 
 module.exports = { toCloudinaryUrl, toPublicId };

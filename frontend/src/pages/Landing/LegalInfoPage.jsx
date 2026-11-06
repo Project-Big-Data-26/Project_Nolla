@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
-import nollaMain from "../../assets/nolla_main.png";
+import nollaMain from "../../assets/nolla_main.webp";
 
 const legalDocuments = {
   terms: {

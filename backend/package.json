@@ -11,6 +11,9 @@
     "test:pretest": "node tests/pretest-api.test.js",
     "test:quiz": "node tests/quiz-api.test.js",
     "test:unit": "node --test test/*.test.js",
+    "images:webp": "node scripts/convertImagesToWebp.js",
+    "migrate:images:cloudinary": "node scripts/migrateImagesToCloudinary.js",
+    "migrate:cloudinary:webp": "node scripts/convertCloudinaryImagesToWebp.js",
     "report:items": "node scripts/itemAnalysisReport.js",
     "migrate:revoked-ttl": "node scripts/migrateRevokedTokenTtl.js",
     "grant:premium": "node scripts/grantPremium.js",
@@ -38,6 +41,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "sharp": "^0.35.5"
   }
 }
