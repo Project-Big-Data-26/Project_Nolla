@@ -7,6 +7,10 @@ const Pretest = require("../models/MengerjakanPretest");
 const PertanyaanPretest = require("../models/MenjawabSoalPretest");
 const UserProficiency = require("../models/MendapatkanDifficulty");
 const BabPrasyarat = require("../models/MemilikiPrasyarat");
+const {
+  checkPretestAvailability,
+  getPretestDifficulty: getDifficultyBand,
+} = require("../services/pretestAvailability");
 const { toPublicImageUrls } = require("../utils/questionImage");
 const { parseAnswerTiming } = require("../utils/timing");
 const {
@@ -74,34 +78,6 @@ const decimalToNumber = (value) => {
   return Number(value);
 };
 
-const getQuestionSetForBab = async (babId) => {
-  const subbabList = await Subbab.find({ bab_id: babId })
-    .select("_id bab_id")
-    .lean();
-
-  const subbabIds = subbabList.map((subbab) => subbab._id);
-
-  const questions = await Pertanyaan.find({
-    subbab_id: { $in: subbabIds },
-  })
-    .sort({ subbab_id: 1, created_at: 1, _id: 1 })
-    .lean();
-
-  return { subbabIds, questions };
-};
-
-const getDifficultyFromScore = (cognitiveScore) => {
-  const score = Number(cognitiveScore ?? 0);
-
-  if (Number.isNaN(score)) return "easy";
-  if (score >= 1400) return "hard";
-  if (score >= 1000) return "medium";
-  return "easy";
-};
-
-const getDifficultyBand = (question) =>
-  getDifficultyFromScore(question?.cognitive_score ?? 0);
-
 const getSubbabDifficultyFromPerformance = (correct, total) => {
   const correctCount = Number(correct ?? 0);
   const totalCount = Number(total ?? 0);
@@ -148,59 +124,16 @@ const pickRandomQuestion = (questions) => {
   return questions[randomIndex];
 };
 
-const getPrerequisiteQuestionPool = async (babId) => {
-  const prerequisiteRelations = await BabPrasyarat.find({ bab_id: babId })
-    .select("relasi_bab_id")
-    .sort({ relasi_bab_id: 1 })
-    .lean();
-
-  const prerequisiteQuestions = [];
-
-  for (const relation of prerequisiteRelations) {
-    const lastSubbab = await Subbab.findOne({
-      bab_id: relation.relasi_bab_id,
-    })
-      .select("_id display_order")
-      .sort({ display_order: -1, _id: 1 })
-      .lean();
-
-    if (!lastSubbab) continue;
-
-    const question = await Pertanyaan.findOne({
-      subbab_id: lastSubbab._id,
-      cognitive_score: { $gte: 1200 },
-    })
-      .sort({ cognitive_score: -1, created_at: 1, _id: 1 })
-      .lean();
-
-    if (question) prerequisiteQuestions.push(question);
-  }
-
-  return prerequisiteQuestions;
-};
+const getPretestQuestionPool = async (babId) =>
+  (await checkPretestAvailability(babId)).pool;
 
 const getExpectedQuestionBudget = async (babId) => {
-  const prerequisiteQuestions = await getPrerequisiteQuestionPool(babId);
-  const prerequisiteQuestionLimit = prerequisiteQuestions.length;
-  const subbabList = await Subbab.find({ bab_id: babId }).select("_id").lean();
+  const pool = await getPretestQuestionPool(babId);
 
   return {
-    prerequisiteQuestionLimit,
-    subbabCount: subbabList.length,
-    totalQuestions: prerequisiteQuestionLimit + subbabList.length * 2,
-  };
-};
-
-const getPretestQuestionPool = async (babId) => {
-  const { questions: babQuestions } = await getQuestionSetForBab(babId);
-  const prerequisiteQuestions = await getPrerequisiteQuestionPool(babId);
-  const expectedBudget = await getExpectedQuestionBudget(babId);
-
-  return {
-    babQuestions,
-    prerequisiteQuestions,
-    questions: [...prerequisiteQuestions, ...babQuestions],
-    totalQuestions: expectedBudget.totalQuestions,
+    prerequisiteQuestionLimit: pool.prerequisiteQuestionLimit,
+    subbabCount: pool.subbabCount,
+    totalQuestions: pool.totalQuestions,
   };
 };
 
@@ -214,18 +147,20 @@ const selectQuestionByDifficulty = (questions, difficulty) => {
   return matching;
 };
 
-const getPretestQuestionState = async (pretest) => {
+const getPretestQuestionState = async (pretest, options = {}) => {
   const {
     babQuestions,
     questions: allQuestions,
     prerequisiteQuestions,
+    subbabIds,
     totalQuestions: expectedTotalQuestions,
-  } = await getPretestQuestionPool(pretest.bab_id.toString());
+  } = options.pool ?? await getPretestQuestionPool(pretest.bab_id.toString());
 
-  const answeredRecords = await PertanyaanPretest.find({
+  const answeredRecords = options.answeredRecords ?? await PertanyaanPretest.find({
     pretest_id: pretest._id,
   })
     .populate("soal_id")
+    .sort({ sequence: 1, _id: 1 })
     .lean();
 
   const answeredIds = new Set(
@@ -249,11 +184,7 @@ const getPretestQuestionState = async (pretest) => {
       remainingPrerequisiteQuestions,
       "hard",
     );
-    const nextQuestion = pickDeterministicQuestion(
-      hardPrerequisiteQuestions.length
-        ? hardPrerequisiteQuestions
-        : remainingPrerequisiteQuestions,
-    );
+    const nextQuestion = pickDeterministicQuestion(hardPrerequisiteQuestions);
 
     return {
       totalQuestions: expectedTotalQuestions,
@@ -286,13 +217,7 @@ const getPretestQuestionState = async (pretest) => {
     subbabProgress.set(subbabId, progress);
   }
 
-  const subbabOrder = [
-    ...new Set(
-      babQuestions
-        .filter((question) => question.subbab_id)
-        .map((question) => question.subbab_id.toString()),
-    ),
-  ];
+  const subbabOrder = subbabIds.map(String);
 
   for (const subbabId of subbabOrder) {
     const questionsInSubbab = babQuestions.filter(
@@ -322,11 +247,7 @@ const getPretestQuestionState = async (pretest) => {
       questionsInSubbab,
       targetDifficulty,
     );
-    const nextQuestion = pickRandomQuestion(
-      questionsAtTargetDifficulty.length
-        ? questionsAtTargetDifficulty
-        : questionsInSubbab,
-    );
+    const nextQuestion = pickRandomQuestion(questionsAtTargetDifficulty);
 
     if (nextQuestion) {
       return {
@@ -635,19 +556,25 @@ const startPretest = async (req, res) => {
       });
     }
 
-    const {
-      questions: pretestQuestionPool,
-      totalQuestions: expectedTotalQuestions,
-    } = await getPretestQuestionPool(bab_id);
+    const { pool, ...availability } = await checkPretestAvailability(bab_id);
+    const expectedTotalQuestions = pool.totalQuestions;
 
-    if (!pretestQuestionPool.length) {
+    if (!availability.can_start) {
       return res.status(400).json({
         statusCode: 400,
         success: false,
-        message:
-          "Bab ini belum memiliki soal yang dapat digunakan sebagai pretest.",
+        code: "PRETEST_QUESTIONS_INCOMPLETE",
+        message: "Soal pretest belum lengkap. Pretest belum dapat dimulai.",
+        data: availability,
       });
     }
+
+    // Gunakan pembacaan pool yang sudah diperiksa; soal pertama dan pointer
+    // ditentukan sebelum writer sesi, tanpa query pool kedua setelah create.
+    const questionState = await getPretestQuestionState({ bab_id }, {
+      pool, answeredRecords: [],
+    });
+    const firstQuestion = serializeQuestion(questionState.nextQuestion, req);
 
     const pretest = await Pretest.create({
       user_id: req.user.id,
@@ -656,20 +583,8 @@ const startPretest = async (req, res) => {
       duration: null,
       started_at: new Date(),
       completed_at: null,
-      current_question_id: null,
+      current_question_id: questionState.nextQuestion._id,
     });
-
-    const questionState = await getPretestQuestionState(pretest);
-    const firstQuestion = questionState.nextQuestion
-      ? serializeQuestion(questionState.nextQuestion, req)
-      : null;
-
-    if (firstQuestion?.question_id) {
-      pretest.current_question_id = new mongoose.Types.ObjectId(
-        firstQuestion.question_id,
-      );
-      await pretest.save();
-    }
 
     await recordServerEvents(contextFromRequest(req), [
       {
