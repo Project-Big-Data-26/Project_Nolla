@@ -610,7 +610,7 @@ const QuestionReviewPage = () => {
                 </div>
 
                 {/* KANAN: OPTION JAWABAN + PEMBAHASAN */}
-                <div className="flex flex-col justify-between gap-3 bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-6 overflow-y-auto">
+                <div className="flex flex-col justify-between gap-3 bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-6">
                   <div className="flex flex-col space-y-2.5 sm:space-y-3 justify-center flex-1">
                     {question.options.map((opt) => {
                       const isCorrectAnswer =
