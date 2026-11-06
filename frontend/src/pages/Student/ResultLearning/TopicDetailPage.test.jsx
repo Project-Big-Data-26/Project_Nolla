@@ -25,7 +25,7 @@ describe("TopicDetailPage", () => {
       data: {
         summary: {
           completed_bab: 1,
-          in_progress_bab: 1,
+          in_progress_bab: 0,
         },
         data: [
           {
@@ -53,7 +53,8 @@ describe("TopicDetailPage", () => {
     expect(await screen.findByText("Peluang")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
     expect(screen.getByText("2 dari 3 subbab dimulai")).toBeInTheDocument();
-    expect(screen.getByText("3 dari 3 subbab selesai")).toBeInTheDocument();
+    expect(screen.getByText("BAB Selesai Dipelajari").closest("article")).toHaveTextContent("1 BAB");
+    expect(screen.getByText("BAB Sedang Dipelajari").closest("article")).toHaveTextContent("0 BAB");
     expect(screen.getByText("Kelas 12")).toBeInTheDocument();
     expect(API.get).toHaveBeenCalledWith("/learning-results");
   });
