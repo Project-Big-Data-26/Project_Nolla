@@ -49,8 +49,9 @@ test("relative MongoDB paths resolve to their existing Cloudinary asset", () => 
 });
 
 test("static source references are rewritten only when the corresponding asset is in the conversion map", () => {
-  const sourceFile = "C:/project/frontend/src/pages/Home.jsx";
-  const assetPath = "C:/project/frontend/src/assets/hero.png";
+  const fixtureRoot = path.resolve("test-project", "frontend", "src");
+  const sourceFile = path.join(fixtureRoot, "pages", "Home.jsx");
+  const assetPath = path.join(fixtureRoot, "assets", "hero.png");
   const source = 'import hero from "../assets/hero.png";\nconst label = "not-an-image.png";';
 
   assert.equal(
@@ -60,7 +61,7 @@ test("static source references are rewritten only when the corresponding asset i
       new Map([
         [
           path.normalize(assetPath),
-          path.normalize("C:/project/frontend/src/assets/hero.webp"),
+          path.join(fixtureRoot, "assets", "hero.webp"),
         ],
       ]),
     ),

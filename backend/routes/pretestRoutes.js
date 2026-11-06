@@ -226,7 +226,79 @@ router.get("/status/:babId", authMiddleware, getPretestStatus);
  *                   cognitive_score: 1400
  *                   stage: prerequisite
  *       400:
- *         description: bab_id tidak valid atau bab belum memiliki soal
+ *         description: >
+ *           bab_id tidak valid atau soal pretest belum lengkap. Kelengkapan diperiksa
+ *           sebelum sesi dibuat: minimal satu hard di subbab terakhir setiap bab
+ *           prasyarat dan satu easy, medium, hard pada setiap subbab bab tujuan.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [statusCode, success, message]
+ *               properties:
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: string
+ *                   description: Dikirim untuk kekurangan soal, tidak untuk input tidak valid
+ *                   example: PRETEST_QUESTIONS_INCOMPLETE
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     can_start:
+ *                       type: boolean
+ *                       example: false
+ *                     total_questions:
+ *                       type: integer
+ *                       description: Target satu soal per prasyarat ditambah dua per subbab
+ *                     missing_requirements:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         required: [stage, bab_id, subbab_id, difficulty, required, available, reason]
+ *                         properties:
+ *                           stage:
+ *                             type: string
+ *                             enum: [prerequisite, subbab]
+ *                           bab_id:
+ *                             type: string
+ *                           subbab_id:
+ *                             type: string
+ *                             nullable: true
+ *                           difficulty:
+ *                             type: string
+ *                             nullable: true
+ *                             enum: [easy, medium, hard, null]
+ *                           required:
+ *                             type: integer
+ *                             description: Minimum satu soal; missing_subbab berarti minimum satu subbab
+ *                           available:
+ *                             type: integer
+ *                           reason:
+ *                             type: string
+ *                             enum: [missing_question, missing_subbab, invalid_prerequisite]
+ *             example:
+ *               statusCode: 400
+ *               success: false
+ *               code: PRETEST_QUESTIONS_INCOMPLETE
+ *               message: Soal pretest belum lengkap. Pretest belum dapat dimulai.
+ *               data:
+ *                 can_start: false
+ *                 total_questions: 5
+ *                 missing_requirements:
+ *                   - stage: subbab
+ *                     bab_id: 66a200000000000000000001
+ *                     subbab_id: 66a300000000000000000001
+ *                     difficulty: hard
+ *                     required: 1
+ *                     available: 0
+ *                     reason: missing_question
  *       401:
  *         description: Access token tidak valid atau tidak tersedia
  *       403:
