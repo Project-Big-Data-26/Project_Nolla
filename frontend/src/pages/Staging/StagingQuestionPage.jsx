@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check, LogOut, X } from "lucide-react";
 import Navbar from "../../components/Navbar";
-import QuestionImage from "../../components/QuestionImage";
+import QuestionImageGallery from "../../components/QuestionImageGallery";
 import StagingSoalCheckPanel from "../../components/StagingSoalCheckPanel";
 import NumberPager from "./NumberPager";
 import {
@@ -344,17 +344,8 @@ const StagingQuestionPageContent = () => {
                     {questionText}
                   </div>
 
-                  <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 sm:p-4">
-                    <div className="flex h-full w-full items-center justify-center gap-3">
-                      {question.images.map((imageUrl) => (
-                        <QuestionImage
-                          key={imageUrl}
-                          src={imageUrl}
-                          alt="Ilustrasi Soal"
-                          className="h-full w-full rounded-xl object-contain"
-                        />
-                      ))}
-                    </div>
+                  <div className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-slate-100 bg-white">
+                    <QuestionImageGallery images={question.images} />
                   </div>
                 </div>
 

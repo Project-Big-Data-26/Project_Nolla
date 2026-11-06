@@ -8,7 +8,7 @@ import Navbar from "../../components/Navbar";
 
 import API from "../../api/axios";
 import { track } from "../../analytics/client";
-import QuestionImage from "../../components/QuestionImage";
+import QuestionImageGallery from "../../components/QuestionImageGallery";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -595,17 +595,8 @@ const QuestionReviewPage = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 flex min-h-0 items-center justify-center flex-1 overflow-hidden">
-                    <div className="flex h-full w-full items-center justify-center gap-3">
-                      {question.images.map((imageUrl) => (
-                        <QuestionImage
-                          key={imageUrl}
-                          src={imageUrl}
-                          alt="Ilustrasi Soal"
-                          className="h-full w-full object-contain rounded-xl"
-                        />
-                      ))}
-                    </div>
+                  <div className="bg-white rounded-2xl border border-slate-100 flex min-h-0 items-center justify-center flex-1">
+                    <QuestionImageGallery images={question.images} />
                   </div>
                 </div>
 
