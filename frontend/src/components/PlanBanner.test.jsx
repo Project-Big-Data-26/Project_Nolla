@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PlanBanner from "./PlanBanner";
+import { markPremiumActivationNotice } from "../api/subscription";
 
 const freePlan = (trialAvailable = true) => ({
   plan: "free",
@@ -11,6 +12,8 @@ const freePlan = (trialAvailable = true) => ({
   trial: { available: trialAvailable, started_at: null, ends_at: null },
   limits: { quiz_sessions_per_subbab: 3 },
 });
+
+beforeEach(() => sessionStorage.clear());
 
 describe("PlanBanner", () => {
   it("tidak merender apa pun untuk free atau tanpa entitlement", () => {
@@ -29,23 +32,46 @@ describe("PlanBanner", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("trial aktif menampilkan sisa waktu", () => {
+  it("trial aktif tidak menampilkan banner permanen", () => {
     const until = new Date(Date.now() + 50 * 3_600_000 + 60_000).toISOString();
-    render(
+    const { container } = render(
       <PlanBanner entitlement={{ ...freePlan(false), plan: "premium", is_trial: true, active_until: until }} />,
     );
-    expect(screen.getByText("Trial Premium aktif")).toBeInTheDocument();
-    expect(screen.getByText(/sisa 2 hari 2 jam/)).toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it("premium menampilkan nama paket dan tanggal berakhir", () => {
+  it("premium tanpa penanda aktivasi tidak menampilkan banner permanen", () => {
     const premium = { ...freePlan(true), plan: "premium", active_until: "2026-12-31T00:00:00Z" };
-    const { rerender } = render(<PlanBanner entitlement={{ ...premium, package: "monthly" }} />);
-    expect(screen.getByText("Premium Bulanan aktif")).toBeInTheDocument();
-    expect(screen.getByText(/hingga 31 Desember 2026/)).toBeInTheDocument();
+    const { container } = render(<PlanBanner entitlement={{ ...premium, package: "monthly" }} />);
+    expect(container).toBeEmptyDOMElement();
+  });
 
-    rerender(<PlanBanner entitlement={{ ...premium, package: null }} />);
-    expect(screen.getByText("Premium aktif")).toBeInTheDocument();
+  it.each([
+    ["monthly", "Premium Bulanan aktif"],
+    [null, "Premium aktif"],
+  ])("aktivasi %s tampil sekali selama tujuh detik", (packageCode, label) => {
+    vi.useFakeTimers();
+    try {
+      const premium = {
+        ...freePlan(true), plan: "premium", package: packageCode,
+        active_until: "2026-12-31T00:00:00Z",
+      };
+      markPremiumActivationNotice();
+      const { container, unmount } = render(<PlanBanner entitlement={premium} />);
+      expect(screen.getByText(label)).toBeInTheDocument();
+      expect(screen.getByText(/hingga 31 Desember 2026/)).toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(6999));
+      expect(screen.getByText(label)).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(1));
+      expect(container).toBeEmptyDOMElement();
+
+      unmount();
+      const reopened = render(<PlanBanner entitlement={premium} />);
+      expect(reopened.container).toBeEmptyDOMElement();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("memanggil onExpired sekali saat masa premium habis", () => {

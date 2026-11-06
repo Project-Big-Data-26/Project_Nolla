@@ -77,6 +77,7 @@ const ChapterCard = ({
 
         <h2 className="text-sm font-semibold text-slate-900 tracking-tight leading-snug mb-1 break-words sm:text-xl sm:font-bold">
           {chapter.name}
+          {chapter.locked && <span className="sr-only">, terkunci</span>}
         </h2>
 
         <p className="text-xs sm:text-sm text-slate-500 leading-snug sm:leading-relaxed mb-2.5 sm:mb-4 break-words">
