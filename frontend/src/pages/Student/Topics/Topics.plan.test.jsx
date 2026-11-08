@@ -5,9 +5,11 @@ import "@testing-library/jest-dom";
 import API from "../../../api/axios";
 import Topics from "./Topics";
 
+const navigate = vi.hoisted(() => vi.fn());
+
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
-  return { ...actual, useNavigate: () => vi.fn() };
+  return { ...actual, useNavigate: () => navigate };
 });
 vi.mock("../../../api/axios", () => ({ default: { get: vi.fn(), post: vi.fn() } }));
 vi.mock("../../../components/Navbar", () => ({ default: () => <div aria-hidden="true" /> }));
@@ -54,21 +56,11 @@ const babList = (plan) => [
   },
 ];
 
-const CATALOG = {
-  currency: "IDR",
-  purchasable: false,
-  plans: [
-    {
-      code: "monthly", name: "Premium Bulanan", duration_days: 30, price: 49000,
-      discount: { type: "percentage", value: 20, amount: 9800 }, final_price: 39200,
-    },
-  ],
-};
-
 let currentPlan;
 
 beforeEach(() => {
   sessionStorage.clear();
+  navigate.mockClear();
   currentPlan = FREE;
   API.get.mockReset();
   API.post.mockReset();
@@ -78,9 +70,6 @@ beforeEach(() => {
     }
     if (path === "/dashboard/bab") {
       return Promise.resolve({ data: { data: babList(currentPlan), entitlement: currentPlan } });
-    }
-    if (path === "/subscription/plans") {
-      return Promise.resolve({ data: { data: CATALOG } });
     }
     return Promise.reject(new Error(`unexpected ${path}`));
   });
@@ -109,12 +98,10 @@ describe("Topics — paket", () => {
     const callsBefore = babCalls();
 
     fireEvent.click(within(lockedCard).getByRole("button", { name: "Lihat Paket" }));
-    expect(screen.getByRole("heading", { name: "Paket" })).toBeInTheDocument();
-    expect(screen.getByText(/Bab Dua terkunci di paket Free/)).toBeInTheDocument();
-    expect(await screen.findByText("Premium Bulanan")).toBeInTheDocument();
-    expect(screen.getByText("Rp39.200")).toBeInTheDocument();
-    expect(screen.getByText("Rp49.000")).toHaveClass("line-through");
-    expect(screen.getByText("Pembelian paket segera tersedia.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Bab terkunci" })).toBeInTheDocument();
+    expect(screen.getByText(/Bab Dua hanya tersedia dengan Premium/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lihat paket Premium" })).toBeInTheDocument();
+    expect(API.get).not.toHaveBeenCalledWith("/subscription/plans");
 
     API.post.mockImplementationOnce(() => {
       currentPlan = TRIAL;
@@ -122,21 +109,32 @@ describe("Topics — paket", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /Coba Premium 3 Hari Gratis/ }));
     // Konfirmasi menggantikan isi modal yang sama.
-    expect(screen.queryByRole("heading", { name: "Paket" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Bab terkunci" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Coba Premium 3 Hari" })).toBeInTheDocument();
     expect(API.post).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /Aktifkan Trial/ })).toBeDisabled();
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByRole("button", { name: /Aktifkan Trial/ }));
 
-    expect(await screen.findByText("Trial Premium aktif")).toBeInTheDocument();
+    await waitFor(() => expect(API.post).toHaveBeenCalledWith("/subscription/trial"));
     await waitFor(() => expect(babCalls()).toBeGreaterThan(callsBefore));
     await waitFor(() =>
       expect(
         within(screen.getByText("Bab Dua").closest("article")).getByRole("button", { name: "Mulai Pretest" }),
       ).toBeInTheDocument(),
     );
-    expect(screen.queryByRole("heading", { name: "Paket" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Coba Premium 3 Hari" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Trial Premium aktif")).not.toBeInTheDocument();
     expect(API.post).toHaveBeenCalledWith("/subscription/trial");
+  });
+
+  it("modal bab terkunci mengarahkan pengguna ke halaman paket", async () => {
+    render(<MemoryRouter><Topics /></MemoryRouter>);
+    const lockedCard = (await screen.findByText("Bab Dua")).closest("article");
+    fireEvent.click(within(lockedCard).getByRole("button", { name: "Lihat Paket" }));
+    fireEvent.click(screen.getByRole("button", { name: "Lihat paket Premium" }));
+    expect(navigate).toHaveBeenCalledWith("/paket");
+    expect(API.post).not.toHaveBeenCalled();
   });
 
   it("respons lama tanpa entitlement tidak menampilkan banner paket", async () => {
