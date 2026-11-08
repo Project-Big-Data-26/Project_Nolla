@@ -1,6 +1,7 @@
 // Mengonversi gambar soal lokal ke WebP sebelum upload dan menyimpan URL hasilnya ke MongoDB.
 // Simulasi (default): npm run migrate:images:cloudinary
 // Terapkan: npm run migrate:images:cloudinary -- --apply --db <nama_db>
+// Lanjutkan upload yang gagal: tambahkan --resume <file_checkpoint.jsonl>
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
@@ -54,6 +55,54 @@ const createResolver = (files) => {
 const publicIdFor = (relativePath) =>
   `${CLOUDINARY_FOLDER}/${relativePath.replace(/\.[^./]+$/, "")}`;
 
+const parseCheckpointContents = (contents) => {
+  const lastNewline = contents.lastIndexOf("\n");
+  if (lastNewline === -1) throw new Error("Checkpoint tidak memiliki metadata yang valid.");
+
+  const completeContents = contents.slice(0, lastNewline + 1);
+  const lines = completeContents.trimEnd().split(/\r?\n/);
+  const metadata = JSON.parse(lines.shift());
+  if (metadata.type !== "metadata" || metadata.version !== 1) {
+    throw new Error("Format checkpoint tidak didukung.");
+  }
+
+  const uploaded = new Map();
+  for (const line of lines) {
+    const entry = JSON.parse(line);
+    if (
+      entry.type !== "uploaded" ||
+      typeof entry.file !== "string" ||
+      typeof entry.url !== "string"
+    ) {
+      throw new Error("Entri upload di checkpoint tidak valid.");
+    }
+    uploaded.set(entry.file, entry.url);
+  }
+
+  return {
+    metadata,
+    uploaded,
+    completeByteLength: Buffer.byteLength(completeContents, "utf8"),
+    hasPartialLine: lastNewline !== contents.length - 1,
+  };
+};
+
+const readCheckpoint = (checkpointPath) => {
+  const contents = fs.readFileSync(checkpointPath, "utf8");
+  const checkpoint = parseCheckpointContents(contents);
+  if (checkpoint.hasPartialLine) {
+    fs.truncateSync(checkpointPath, checkpoint.completeByteLength);
+  }
+  return checkpoint;
+};
+
+const appendCheckpointEntry = (checkpointPath, file, url) => {
+  fs.appendFileSync(
+    checkpointPath,
+    `${JSON.stringify({ type: "uploaded", file, url })}\n`,
+  );
+};
+
 const uploadWebp = (cloudinary, filePath, publicId) =>
   new Promise((resolve, reject) => {
     const upload = cloudinary.uploader.upload_stream(
@@ -74,14 +123,16 @@ const uploadWebp = (cloudinary, filePath, publicId) =>
 
 const parseFlags = (argv) => {
   const dbIndex = argv.indexOf("--db");
+  const resumeIndex = argv.indexOf("--resume");
   return {
     apply: argv.includes("--apply"),
     db: dbIndex === -1 ? null : argv[dbIndex + 1] || null,
+    resume: resumeIndex === -1 ? null : argv[resumeIndex + 1] || null,
   };
 };
 
 const main = async () => {
-  const { apply, db } = parseFlags(process.argv.slice(2));
+  const { apply, db, resume } = parseFlags(process.argv.slice(2));
   if (!process.env.MONGO_URI) throw new Error("MONGO_URI belum diisi.");
 
   await mongoose.connect(process.env.MONGO_URI);
@@ -133,6 +184,7 @@ const main = async () => {
   }
 
   if (!apply) {
+    if (resume) throw new Error("--resume hanya dapat digunakan bersama --apply.");
     console.log("\nSimulasi selesai. Jalankan dengan --apply untuk upload dan update database.");
     await mongoose.disconnect();
     return;
@@ -150,28 +202,124 @@ const main = async () => {
   });
 
   fs.mkdirSync(REPORT_DIRECTORY, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupPath = path.join(REPORT_DIRECTORY, `image-url-backup-${stamp}.json`);
-  fs.writeFileSync(
-    backupPath,
-    JSON.stringify(plan.map(({ _id, original }) => ({ _id, image_url: original })), null, 2),
-  );
-  console.log(`\nBackup nilai lama disimpan di: ${backupPath}`);
+  let checkpointPath = resume ? path.resolve(resume) : null;
+  let checkpoint;
+  let stamp;
+  if (checkpointPath) {
+    checkpoint = readCheckpoint(checkpointPath);
+    const { metadata } = checkpoint;
+    if (
+      metadata.dbName !== dbName ||
+      metadata.cloudName !== process.env.CLOUDINARY_CLOUD_NAME ||
+      metadata.folder !== CLOUDINARY_FOLDER
+    ) {
+      throw new Error("Checkpoint dibuat untuk database atau konfigurasi Cloudinary yang berbeda.");
+    }
+    if (
+      typeof metadata.stamp !== "string" ||
+      typeof metadata.backupPath !== "string" ||
+      !Array.isArray(metadata.neededFiles) ||
+      !metadata.fingerprints ||
+      typeof metadata.fingerprints !== "object"
+    ) {
+      throw new Error("Metadata checkpoint tidak lengkap.");
+    }
+    const checkpointFiles = new Set(metadata.neededFiles);
+    for (const file of needed) {
+      const expected = metadata.fingerprints[file];
+      if (!checkpointFiles.has(file) || !expected) {
+        throw new Error(`File ${file} tidak tercatat di checkpoint. Jalankan migrasi baru.`);
+      }
+      const current = fs.statSync(path.join(IMAGE_DIRECTORY, file));
+      if (current.size !== expected.size || current.mtimeMs !== expected.mtimeMs) {
+        throw new Error(`File sumber berubah sejak checkpoint dibuat: ${file}`);
+      }
+    }
+    if (!fs.existsSync(metadata.backupPath)) {
+      throw new Error(`File backup checkpoint tidak ditemukan: ${metadata.backupPath}`);
+    }
+    stamp = metadata.stamp;
+    console.log(`\nMelanjutkan dari checkpoint: ${checkpointPath}`);
+    console.log(`Backup nilai lama: ${metadata.backupPath}`);
+    console.log(
+      `Upload sudah tersimpan: ${[...needed].filter((file) => checkpoint.uploaded.has(file)).length}/${needed.size}`,
+    );
+    console.log(
+      `Jika gagal lagi, lanjutkan dengan: npm run migrate:images:cloudinary -- --apply --db ${dbName} --resume "${checkpointPath}"`,
+    );
+  } else {
+    stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const backupPath = path.join(REPORT_DIRECTORY, `image-url-backup-${stamp}.json`);
+    fs.writeFileSync(
+      backupPath,
+      JSON.stringify(plan.map(({ _id, original }) => ({ _id, image_url: original })), null, 2),
+    );
+    const fingerprints = Object.fromEntries(
+      [...needed].map((file) => {
+        const { size, mtimeMs } = fs.statSync(path.join(IMAGE_DIRECTORY, file));
+        return [file, { size, mtimeMs }];
+      }),
+    );
+    const metadata = {
+      type: "metadata",
+      version: 1,
+      stamp,
+      dbName,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      folder: CLOUDINARY_FOLDER,
+      neededFiles: [...needed],
+      fingerprints,
+      backupPath,
+    };
+    checkpointPath = path.join(
+      REPORT_DIRECTORY,
+      `image-migration-checkpoint-${stamp}.jsonl`,
+    );
+    fs.writeFileSync(checkpointPath, `${JSON.stringify(metadata)}\n`);
+    checkpoint = { metadata, uploaded: new Map() };
+    console.log(`\nBackup nilai lama disimpan di: ${backupPath}`);
+    console.log(`Checkpoint progres upload: ${checkpointPath}`);
+    console.log(
+      `Jika gagal, lanjutkan dengan: npm run migrate:images:cloudinary -- --apply --db ${dbName} --resume "${checkpointPath}"`,
+    );
+  }
 
-  const urlByFile = new Map();
+  const urlByFile = checkpoint.uploaded;
   let done = 0;
   for (const file of needed) {
-    const result = await uploadWebp(
-      cloudinary,
-      path.join(IMAGE_DIRECTORY, file),
-      publicIdFor(file),
-    );
+    if (urlByFile.has(file)) {
+      done += 1;
+      continue;
+    }
+    let result;
+    try {
+      result = await uploadWebp(
+        cloudinary,
+        path.join(IMAGE_DIRECTORY, file),
+        publicIdFor(file),
+      );
+      if (!result || typeof result.secure_url !== "string") {
+        throw new Error("Cloudinary tidak mengembalikan secure_url.");
+      }
+    } catch (error) {
+      console.error(`\nUpload gagal untuk file: ${file}`);
+      console.error(`public_id: ${publicIdFor(file)}`);
+      console.error("Detail error:", {
+        name: error.name,
+        message: error.message,
+        http_code: error.http_code,
+        cloudinaryMessage: error.error?.message,
+      });
+      throw error;
+    }
     urlByFile.set(file, result.secure_url);
+    appendCheckpointEntry(checkpointPath, file, result.secure_url);
     done += 1;
     if (done % 10 === 0 || done === needed.size) console.log(`Upload ${done}/${needed.size}`);
   }
   const mapPath = path.join(REPORT_DIRECTORY, `image-map-${stamp}.json`);
-  fs.writeFileSync(mapPath, JSON.stringify(Object.fromEntries(urlByFile), null, 2));
+  const urlsForPlan = Object.fromEntries([...needed].map((file) => [file, urlByFile.get(file)]));
+  fs.writeFileSync(mapPath, JSON.stringify(urlsForPlan, null, 2));
 
   const operations = plan.map(({ _id, next }) => ({
     updateOne: {
@@ -194,6 +342,8 @@ const main = async () => {
   }
 
   console.log(`Peta file -> URL: ${mapPath}`);
+  fs.unlinkSync(checkpointPath);
+  console.log("Checkpoint selesai dan dihapus.");
   await mongoose.disconnect();
 };
 
@@ -205,4 +355,9 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createResolver, listImageFiles, publicIdFor };
+module.exports = {
+  createResolver,
+  listImageFiles,
+  publicIdFor,
+  parseCheckpointContents,
+};
