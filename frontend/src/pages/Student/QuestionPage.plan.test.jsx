@@ -6,6 +6,9 @@ import API from "../../api/axios";
 import QuestionPage from "./QuestionPage";
 
 vi.mock("../../components/Navbar", () => ({ default: () => <div aria-hidden="true" /> }));
+vi.mock("../../context/AuthContext", () => ({
+  useAuth: () => ({ isAuthenticated: true }),
+}));
 vi.mock("../../api/axios", () => ({
   default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }));
@@ -114,6 +117,7 @@ describe("QuestionPage — blokir paket", () => {
       if (path === "/subscription/me") {
         return Promise.resolve({ data: { data: { ...FREE, trial: { ...FREE.trial, available: false } } } });
       }
+      if (path === "/subscription/plans") return Promise.resolve({ data: { data: CATALOG } });
       if (path === "/subscription/plans") return Promise.resolve({ data: { data: CATALOG } });
       return Promise.reject(new Error(path));
     });

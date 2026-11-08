@@ -5,7 +5,7 @@ import Navbar from "../../components/Navbar";
 import Modal from "../../components/Modal";
 import API from "../../api/axios";
 import { fetchEntitlement, getPlanBlock } from "../../api/subscription";
-import QuestionImage from "../../components/QuestionImage";
+import QuestionImageGallery from "../../components/QuestionImageGallery";
 import TrialCallout from "../../components/TrialCallout";
 import PlanCatalog from "../../components/PlanCatalog";
 import useQuestionTimer, { TIMING_METHOD } from "../../hooks/useQuestionTimer";
@@ -1460,7 +1460,7 @@ const QuestionPage = () => {
             <div
               ref={questionNumberNavRef}
               aria-label="Navigasi nomor soal"
-              className="no-scrollbar flex min-w-0 flex-1 items-center justify-center gap-1.5 overflow-x-auto scroll-smooth px-1 py-0.5 sm:gap-2"
+              className="no-scrollbar flex min-w-0 flex-1 items-center justify-start gap-1.5 overflow-x-auto scroll-smooth px-1 py-0.5 sm:gap-2"
             >
               {Array.from(
                 {
@@ -1559,24 +1559,17 @@ const QuestionPage = () => {
                   {/* ====================================
                       IMAGE
                       ==================================== */}
-                  <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 sm:p-4">
-                    <div className="flex h-full w-full items-center justify-center gap-3">
-                      {question.images.map((imageUrl) => (
-                        <QuestionImage
-                          key={imageUrl}
-                          src={imageUrl}
-                          onFail={() =>
-                            trackAssessment("question_asset_failed", {
-                              question_id: question.id,
-                              asset_type: "image",
-                              failure_code: "load_error",
-                            })
-                          }
-                          alt="Ilustrasi Soal"
-                          className="h-full w-full rounded-xl object-contain"
-                        />
-                      ))}
-                    </div>
+                  <div className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-slate-100 bg-white">
+                    <QuestionImageGallery
+                      images={question.images}
+                      onFail={() =>
+                        trackAssessment("question_asset_failed", {
+                          question_id: question.id,
+                          asset_type: "image",
+                          failure_code: "load_error",
+                        })
+                      }
+                    />
                   </div>
                 </div>
 

@@ -8,7 +8,7 @@ import Navbar from "../../components/Navbar";
 
 import API from "../../api/axios";
 import { track } from "../../analytics/client";
-import QuestionImage from "../../components/QuestionImage";
+import QuestionImageGallery from "../../components/QuestionImageGallery";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -530,7 +530,7 @@ const QuestionReviewPage = () => {
             <div
               ref={questionNumberNavRef}
               aria-label="Navigasi nomor soal review"
-              className="no-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-smooth px-1 py-0.5 sm:gap-2"
+              className="no-scrollbar flex min-w-0 flex-1 items-center justify-start gap-1.5 overflow-x-auto scroll-smooth px-1 py-0.5 sm:gap-2"
             >
               {questionsToReview.map((q, idx) => {
                 const isCorrect = reviewData
@@ -595,22 +595,13 @@ const QuestionReviewPage = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-100 p-3 sm:p-4 flex min-h-0 items-center justify-center flex-1 overflow-hidden">
-                    <div className="flex h-full w-full items-center justify-center gap-3">
-                      {question.images.map((imageUrl) => (
-                        <QuestionImage
-                          key={imageUrl}
-                          src={imageUrl}
-                          alt="Ilustrasi Soal"
-                          className="h-full w-full object-contain rounded-xl"
-                        />
-                      ))}
-                    </div>
+                  <div className="bg-white rounded-2xl border border-slate-100 flex min-h-0 items-center justify-center flex-1">
+                    <QuestionImageGallery images={question.images} />
                   </div>
                 </div>
 
                 {/* KANAN: OPTION JAWABAN + PEMBAHASAN */}
-                <div className="flex flex-col justify-between gap-3 bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-6 overflow-y-auto">
+                <div className="flex flex-col justify-between gap-3 bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-6">
                   <div className="flex flex-col space-y-2.5 sm:space-y-3 justify-center flex-1">
                     {question.options.map((opt) => {
                       const isCorrectAnswer =
