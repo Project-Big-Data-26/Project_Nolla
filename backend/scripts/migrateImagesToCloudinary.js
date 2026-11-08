@@ -1,6 +1,7 @@
 // Mengonversi gambar soal lokal ke WebP sebelum upload dan menyimpan URL hasilnya ke MongoDB.
 // Simulasi (default): npm run migrate:images:cloudinary
 // Terapkan: npm run migrate:images:cloudinary -- --apply --db <nama_db>
+// Lanjutkan upload yang gagal: tambahkan --resume <file_checkpoint.jsonl>
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
@@ -54,6 +55,54 @@ const createResolver = (files) => {
 const publicIdFor = (relativePath) =>
   `${CLOUDINARY_FOLDER}/${relativePath.replace(/\.[^./]+$/, "")}`;
 
+const parseCheckpointContents = (contents) => {
+  const lastNewline = contents.lastIndexOf("\n");
+  if (lastNewline === -1) throw new Error("Checkpoint tidak memiliki metadata yang valid.");
+
+  const completeContents = contents.slice(0, lastNewline + 1);
+  const lines = completeContents.trimEnd().split(/\r?\n/);
+  const metadata = JSON.parse(lines.shift());
+  if (metadata.type !== "metadata" || metadata.version !== 1) {
+    throw new Error("Format checkpoint tidak didukung.");
+  }
+
+  const uploaded = new Map();
+  for (const line of lines) {
+    const entry = JSON.parse(line);
+    if (
+      entry.type !== "uploaded" ||
+      typeof entry.file !== "string" ||
+      typeof entry.url !== "string"
+    ) {
+      throw new Error("Entri upload di checkpoint tidak valid.");
+    }
+    uploaded.set(entry.file, entry.url);
+  }
+
+  return {
+    metadata,
+    uploaded,
+    completeByteLength: Buffer.byteLength(completeContents, "utf8"),
+    hasPartialLine: lastNewline !== contents.length - 1,
+  };
+};
+
+const readCheckpoint = (checkpointPath) => {
+  const contents = fs.readFileSync(checkpointPath, "utf8");
+  const checkpoint = parseCheckpointContents(contents);
+  if (checkpoint.hasPartialLine) {
+    fs.truncateSync(checkpointPath, checkpoint.completeByteLength);
+  }
+  return checkpoint;
+};
+
+const appendCheckpointEntry = (checkpointPath, file, url) => {
+  fs.appendFileSync(
+    checkpointPath,
+    `${JSON.stringify({ type: "uploaded", file, url })}\n`,
+  );
+};
+
 const uploadWebp = (cloudinary, filePath, publicId) =>
   new Promise((resolve, reject) => {
     const upload = cloudinary.uploader.upload_stream(
@@ -74,14 +123,16 @@ const uploadWebp = (cloudinary, filePath, publicId) =>
 
 const parseFlags = (argv) => {
   const dbIndex = argv.indexOf("--db");
+  const resumeIndex = argv.indexOf("--resume");
   return {
     apply: argv.includes("--apply"),
     db: dbIndex === -1 ? null : argv[dbIndex + 1] || null,
+    resume: resumeIndex === -1 ? null : argv[resumeIndex + 1] || null,
   };
 };
 
 const main = async () => {
-  const { apply, db } = parseFlags(process.argv.slice(2));
+  const { apply, db, resume } = parseFlags(process.argv.slice(2));
   if (!process.env.MONGO_URI) throw new Error("MONGO_URI belum diisi.");
 
   await mongoose.connect(process.env.MONGO_URI);
@@ -236,11 +287,31 @@ const main = async () => {
   const urlByFile = checkpoint.uploaded;
   let done = 0;
   for (const file of needed) {
-    const result = await uploadWebp(
-      cloudinary,
-      path.join(IMAGE_DIRECTORY, file),
-      publicIdFor(file),
-    );
+    if (urlByFile.has(file)) {
+      done += 1;
+      continue;
+    }
+    let result;
+    try {
+      result = await uploadWebp(
+        cloudinary,
+        path.join(IMAGE_DIRECTORY, file),
+        publicIdFor(file),
+      );
+      if (!result || typeof result.secure_url !== "string") {
+        throw new Error("Cloudinary tidak mengembalikan secure_url.");
+      }
+    } catch (error) {
+      console.error(`\nUpload gagal untuk file: ${file}`);
+      console.error(`public_id: ${publicIdFor(file)}`);
+      console.error("Detail error:", {
+        name: error.name,
+        message: error.message,
+        http_code: error.http_code,
+        cloudinaryMessage: error.error?.message,
+      });
+      throw error;
+    }
     urlByFile.set(file, result.secure_url);
     appendCheckpointEntry(checkpointPath, file, result.secure_url);
     done += 1;
