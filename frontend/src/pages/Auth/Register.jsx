@@ -14,6 +14,7 @@ import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
 import { API_BASE_URL } from "../../api/baseUrl";
+import { REGISTER_GUIDE_PENDING_KEY } from "../../constants/studentGuide";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -74,6 +75,7 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
+        sessionStorage.setItem(REGISTER_GUIDE_PENDING_KEY, "1");
         // Toast Notifikasi Sukses via Sonner
         toast.dismiss();
         toast.success(data.message);
@@ -83,6 +85,7 @@ const Register = () => {
           navigate("/verify", {
             state: {
               email: formData.email,
+              action: "register",
               resendAfterSeconds: data.data?.resendAfterSeconds ?? 0,
             },
           });

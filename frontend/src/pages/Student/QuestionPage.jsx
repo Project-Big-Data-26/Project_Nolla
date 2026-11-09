@@ -24,12 +24,20 @@ const inlineMarkdownComponents = {
   p: ({ children }) => <span>{children}</span>,
 };
 const markdownComponents = {
-  p: ({ children }) => <p className="my-1 first:mt-0 last:mb-0 sm:my-2">{children}</p>,
+  p: ({ children }) => (
+    <p className="my-1 first:mt-0 last:mb-0 sm:my-2">{children}</p>
+  ),
   h1: ({ children }) => <h1 className="my-2 text-lg font-bold">{children}</h1>,
-  h2: ({ children }) => <h2 className="my-2 text-base font-bold">{children}</h2>,
+  h2: ({ children }) => (
+    <h2 className="my-2 text-base font-bold">{children}</h2>
+  ),
   h3: ({ children }) => <h3 className="my-2 text-sm font-bold">{children}</h3>,
-  ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>,
-  ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>,
+  ul: ({ children }) => (
+    <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>
+  ),
   table: ({ children }) => (
     <div className="my-3 overflow-x-auto">
       <table className="w-full border-collapse text-left">{children}</table>
@@ -498,7 +506,8 @@ const QuestionPage = () => {
 
     const navigationRect = navigation.getBoundingClientRect();
     const buttonRect = activeButton.getBoundingClientRect();
-    const buttonLeft = buttonRect.left - navigationRect.left + navigation.scrollLeft;
+    const buttonLeft =
+      buttonRect.left - navigationRect.left + navigation.scrollLeft;
     const buttonRight = buttonLeft + buttonRect.width;
     let nextScrollLeft = navigation.scrollLeft;
 
@@ -553,7 +562,12 @@ const QuestionPage = () => {
     });
   };
 
-  const trackNavigation = (fromSequence, toSequence, method, fromUnanswered) => {
+  const trackNavigation = (
+    fromSequence,
+    toSequence,
+    method,
+    fromUnanswered,
+  ) => {
     if (fromSequence === toSequence) return;
     trackAssessment("question_navigated", {
       from_sequence: fromSequence,
@@ -814,7 +828,12 @@ const QuestionPage = () => {
   // PRETEST OPTION SELECT
   // ================================
   const handlePretestOptionSelect = (optionId) => {
-    trackSelection(session.question.id, session.sequence, selectedAnswer, optionId);
+    trackSelection(
+      session.question.id,
+      session.sequence,
+      selectedAnswer,
+      optionId,
+    );
     setSelectedAnswer(optionId);
 
     persistPretest(session.id, history, session.startedAt, {
@@ -832,7 +851,12 @@ const QuestionPage = () => {
       return;
     }
 
-    trackSelection(question.id, currentIndex + 1, answers[question.id] ?? null, optionId);
+    trackSelection(
+      question.id,
+      currentIndex + 1,
+      answers[question.id] ?? null,
+      optionId,
+    );
 
     const nextAnswers = {
       ...answers,
@@ -1288,7 +1312,12 @@ const QuestionPage = () => {
         const previousSequence = session.sequence - 1;
 
         if (history.some((item) => item.sequence === previousSequence)) {
-          trackNavigation(displaySequence, previousSequence, "previous", !selectedAnswer);
+          trackNavigation(
+            displaySequence,
+            previousSequence,
+            "previous",
+            !selectedAnswer,
+          );
           setViewedSequence(previousSequence);
         }
       }
@@ -1401,7 +1430,7 @@ const QuestionPage = () => {
                 : session.sequence <= 1
               : currentIndex === 0
           }
-        className="flex min-h-9 items-center justify-center rounded-2xl bg-primary/10 px-3 py-2 text-[11px] font-semibold text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-10 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-sm sm:font-bold"
+          className="flex min-h-9 items-center justify-center rounded-2xl bg-primary/10 px-3 py-2 text-[11px] font-semibold text-primary transition-all hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-10 sm:rounded-xl sm:px-5 sm:py-2.5 sm:text-sm sm:font-bold"
         >
           Sebelumnya
         </button>
@@ -1447,7 +1476,9 @@ const QuestionPage = () => {
               type="button"
               onClick={() => {
                 // Hanya intent keluar; bukan pembatalan atau dropout.
-                trackAssessment("assessment_exit_requested", { sequence: viewSequence });
+                trackAssessment("assessment_exit_requested", {
+                  sequence: viewSequence,
+                });
                 setExitDialog({ step: "menu" });
               }}
               aria-label="Keluar dari pengerjaan"
@@ -1494,7 +1525,9 @@ const QuestionPage = () => {
                       className={`relative flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-xs font-semibold transition-all sm:h-8 sm:w-8 ${
                         isCurrent
                           ? "bg-primary text-white"
-                          : "bg-primary/10 text-primary hover:bg-primary/20"
+                          : hasAnswered
+                            ? "bg-primary/30 text-primary hover:bg-primary/40"
+                            : "bg-primary/10 text-primary hover:bg-primary/20"
                       } disabled:cursor-not-allowed disabled:opacity-40`}
                     >
                       {sequence}
@@ -1534,7 +1567,10 @@ const QuestionPage = () => {
           {/* ==========================================
               QUESTION CONTENT
               ========================================== */}
-          <div ref={questionContentRef} className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-3 md:pb-0">
+          <div
+            ref={questionContentRef}
+            className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-3 md:pb-0"
+          >
             {hasImage ? (
               <div className="grid h-full grid-cols-1 items-stretch gap-3 sm:gap-6 md:grid-cols-2">
                 {/* ======================================
@@ -1638,11 +1674,11 @@ const QuestionPage = () => {
                   : "Kuis ini tetap aktif dan bisa dilanjutkan nanti. Pilihan jawaban yang belum disubmit hanya tersimpan di tab browser ini."}
               </p>
 
-              <div className="flex flex-col gap-2 sm:flex-row-reverse">
+              <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
                   onClick={() => setExitDialog(null)}
-                  className="rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white hover:bg-primary-hover sm:px-4 sm:py-2.5 sm:text-sm"
+                  className="w-full rounded-xl bg-primary px-4 py-2.5 text-center text-xs font-bold text-white transition-colors hover:bg-primary-hover sm:text-sm"
                 >
                   Lanjut mengerjakan
                 </button>
@@ -1650,21 +1686,21 @@ const QuestionPage = () => {
                 <button
                   type="button"
                   onClick={handleExitLater}
-                  className="rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 sm:px-4 sm:py-2.5 sm:text-sm"
+                  className="w-full rounded-xl bg-primary/10 px-4 py-2.5 text-center text-xs font-bold text-primary transition-colors hover:bg-primary/20 sm:text-sm"
                 >
                   Keluar, lanjutkan nanti
                 </button>
-              </div>
 
-              {isPretest && (
-                <button
-                  type="button"
-                  onClick={() => setExitDialog({ step: "confirm-discard" })}
-                  className="w-full text-center text-[11px] font-bold text-red-600 hover:underline sm:text-xs"
-                >
-                  Batalkan pretest
-                </button>
-              )}
+                {isPretest && (
+                  <button
+                    type="button"
+                    onClick={() => setExitDialog({ step: "confirm-discard" })}
+                    className="w-full rounded-xl bg-red-100 px-4 py-2.5 text-center text-xs font-bold text-red-600 transition-colors hover:bg-red-200 sm:text-sm"
+                  >
+                    Batalkan pretest
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -1683,25 +1719,25 @@ const QuestionPage = () => {
                 </p>
               )}
 
-              <div className="flex flex-col gap-2 sm:flex-row-reverse">
-                <button
-                  type="button"
-                  onClick={handleDiscardPretest}
-                  disabled={exitDialog.step === "discarding"}
-                  className="rounded-xl bg-red-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-2.5 sm:text-sm"
-                >
-                  {exitDialog.step === "discarding"
-                    ? "Membatalkan..."
-                    : "Ya, batalkan pretest"}
-                </button>
-
+              <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
                   onClick={() => setExitDialog({ step: "menu" })}
                   disabled={exitDialog.step === "discarding"}
-                  className="rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-60 sm:px-4 sm:py-2.5 sm:text-sm"
+                  className="w-full rounded-xl bg-primary px-4 py-2.5 text-center text-xs font-bold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
                 >
                   Kembali
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDiscardPretest}
+                  disabled={exitDialog.step === "discarding"}
+                  className="w-full rounded-xl bg-red-100 px-4 py-2.5 text-center text-xs font-bold text-red-600 transition-colors hover:bg-red-200 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
+                >
+                  {exitDialog.step === "discarding"
+                    ? "Membatalkan..."
+                    : "Batalkan pretest"}
                 </button>
               </div>
             </div>

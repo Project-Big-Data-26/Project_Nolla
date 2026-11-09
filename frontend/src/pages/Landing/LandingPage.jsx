@@ -1523,6 +1523,14 @@ const LandingPage = () => {
                       Privacy
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      to="/pengaduan"
+                      className="transition-colors hover:text-[#ff8a1f]"
+                    >
+                      Bantuan &amp; Pengaduan
+                    </Link>
+                  </li>
                 </ul>
               </div>
 

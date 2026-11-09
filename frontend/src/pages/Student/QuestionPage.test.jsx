@@ -408,7 +408,7 @@ describe("QuestionPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Keluar dari pengerjaan" }));
     fireEvent.click(screen.getByRole("button", { name: "Batalkan pretest" }));
     expect(screen.getByText("Batalkan pretest ini?")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Ya, batalkan pretest" }));
+    fireEvent.click(screen.getByRole("button", { name: "Batalkan pretest" }));
 
     expect(await screen.findByText("Halaman topik")).toBeInTheDocument();
     expect(API.delete).toHaveBeenCalledWith("/pretest/pretest-9/discard");
@@ -423,7 +423,7 @@ describe("QuestionPage", () => {
     startActivePretest();
     fireEvent.click(await screen.findByRole("button", { name: "Keluar dari pengerjaan" }));
     fireEvent.click(screen.getByRole("button", { name: "Batalkan pretest" }));
-    fireEvent.click(screen.getByRole("button", { name: "Ya, batalkan pretest" }));
+    fireEvent.click(screen.getByRole("button", { name: "Batalkan pretest" }));
 
     expect(
       await screen.findByText("Pretest yang sudah selesai tidak dapat dibatalkan."),

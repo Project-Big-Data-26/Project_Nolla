@@ -21,6 +21,7 @@ const ChapterCard = ({
   selectedGrade,
   handleSubtopicAction,
   onLockedClick,
+  guideTour = false,
 }) => {
   const chapterKey = chapter._id || chapter.id;
   const isExpanded =
@@ -64,6 +65,7 @@ const ChapterCard = ({
   return (
     <article
       id={`chapter-card-${chapterKey}`}
+      data-tour={guideTour ? "demo-chapter-card" : undefined}
       className={`bg-white border rounded-2xl sm:rounded-3xl transition-all duration-300 shadow-xs overflow-hidden ${
         isExpanded
           ? "border-primary/40 ring-1 ring-primary/10 shadow-sm"
@@ -120,6 +122,7 @@ const ChapterCard = ({
             ) : !isPretestCompleted ? (
               <button
                 onClick={() => setPretestConfirmChapter(chapter)}
+                data-tour={guideTour ? "demo-pretest-button" : undefined}
                 className="min-h-9 sm:min-h-10 bg-primary hover:bg-primary-dark text-white text-[11px] font-semibold sm:text-xs sm:font-bold px-3 sm:px-5 py-1.5 sm:py-2 rounded-2xl sm:rounded-full shadow-xs flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer hover:shadow-sm"
               >
                 <Play className="hidden w-3.5 h-3.5 fill-white sm:block" />
@@ -128,6 +131,7 @@ const ChapterCard = ({
             ) : (
               <button
                 onClick={() => toggleChapter(chapter, isExpanded)}
+                data-tour={guideTour ? "demo-subbab-toggle" : undefined}
                 className={`min-h-9 sm:min-h-10 px-3 sm:px-5 py-1.5 sm:py-2 rounded-2xl sm:rounded-full text-[11px] font-semibold sm:text-xs sm:font-semibold transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-2xs ${
                   isExpanded
                     ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15"
@@ -190,12 +194,13 @@ const ChapterCard = ({
                 Tidak ada subbab di BAB ini untuk {selectedGrade}.
               </div>
             ) : (
-              displaySubbab.map((subbab) => (
+              displaySubbab.map((subbab, index) => (
                 <SubbabItem
                   key={subbab._id || subbab.id}
                   subbab={subbab}
                   chapter={chapter}
                   handleSubtopicAction={handleSubtopicAction}
+                  guideTourTarget={guideTour && index === 0 ? "demo-subbab-action" : undefined}
                 />
               ))
             )}

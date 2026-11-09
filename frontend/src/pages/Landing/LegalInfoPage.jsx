@@ -109,18 +109,31 @@ const legalDocuments = {
 const LegalInfoPage = ({ documentType = "terms" }) => {
   const document = legalDocuments[documentType] || legalDocuments.terms;
   const Icon = document.icon;
-  const otherPath = documentType === "terms" ? "/privacy-policy" : "/terms-and-conditions";
-  const otherLabel = documentType === "terms" ? "Privacy Policy" : "Terms and Conditions";
+  const otherPath =
+    documentType === "terms" ? "/privacy-policy" : "/terms-and-conditions";
+  const otherLabel =
+    documentType === "terms" ? "Privacy Policy" : "Terms and Conditions";
 
   return (
     <div className="min-h-screen bg-[#f7f9fc] font-['Poppins',sans-serif] text-[#1b1f3b]">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
-          <Link to="/" className="inline-flex items-center gap-2 transition-opacity hover:opacity-80">
-            <img src={nollaMain} alt="" aria-hidden="true" className="h-8 w-auto object-contain" />
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 transition-opacity hover:opacity-80"
+          >
+            <img
+              src={nollaMain}
+              alt=""
+              aria-hidden="true"
+              className="h-8 w-auto object-contain"
+            />
             <span className="font-heading text-lg font-semibold">NOLLA</span>
           </Link>
-          <Link to="/" className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 sm:text-sm">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 sm:text-sm"
+          >
             <ArrowLeft aria-hidden="true" className="h-4 w-4" />
             Kembali ke beranda
           </Link>
@@ -132,26 +145,47 @@ const LegalInfoPage = ({ documentType = "terms" }) => {
           <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
             <Icon aria-hidden="true" className="h-5 w-5" />
           </div>
-          <p className="mb-2 text-[11px] font-bold tracking-[0.16em] text-blue-600">{document.eyebrow}</p>
-          <h1 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">{document.title}</h1>
-          <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{document.description}</p>
-          <p className="mt-4 text-xs text-slate-500">Terakhir diperbarui: 3 November 2026</p>
+          <p className="mb-2 text-[11px] font-bold tracking-[0.16em] text-blue-600">
+            {document.eyebrow}
+          </p>
+          <h1 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">
+            {document.title}
+          </h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
+            {document.description}
+          </p>
+          <p className="mt-4 text-xs text-slate-500">
+            Terakhir diperbarui: 3 November 2026
+          </p>
         </div>
 
         <div className="space-y-4">
           {document.sections.map((section) => (
-            <section key={section.title} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-              <h2 className="mb-3 text-base font-semibold text-slate-900 sm:text-lg">{section.title}</h2>
+            <section
+              key={section.title}
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
+            >
+              <h2 className="mb-3 text-base font-semibold text-slate-900 sm:text-lg">
+                {section.title}
+              </h2>
               <div className="space-y-3 text-[13px] leading-7 text-slate-600 sm:text-sm">
-                {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                {section.paragraphs.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
               </div>
             </section>
           ))}
         </div>
 
         <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">Baca juga informasi NOLLA lainnya.</p>
-          <Link to={otherPath} aria-label={`Buka ${otherLabel}`} className="rounded-xl bg-blue-600 px-4 py-2.5 text-center text-xs font-semibold text-white transition-colors hover:bg-blue-700 sm:text-sm">
+          <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">
+            Baca juga informasi NOLLA lainnya.
+          </p>
+          <Link
+            to={otherPath}
+            aria-label={`Buka ${otherLabel}`}
+            className="rounded-xl bg-blue-600 px-4 py-2.5 text-center text-xs font-semibold text-white transition-colors hover:bg-blue-700 sm:text-sm"
+          >
             {otherLabel}
           </Link>
         </div>

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Navbar from "../../../components/Navbar";
@@ -12,13 +18,60 @@ import TrialCallout from "../../../components/TrialCallout";
 import crownIcon from "../../../assets/crown-icon.webp";
 import API from "../../../api/axios";
 import { track } from "../../../analytics/client";
+import { useStudentGuide } from "../../../context/StudentGuideContext";
 
+function GuideDemoChapter({ stage }) {
+  const demoSubbab = {
+    id: "guide-demo-subbab",
+    _id: "guide-demo-subbab",
+    display_order: 1,
+    name: "Penjumlahan bilangan kecil",
+    description: "Contoh materi latihan pada bab ini.",
+    classReference: "Kelas 1",
+    status: "not_started",
+  };
+  const chapter = {
+    id: "guide-demo-chapter",
+    _id: "guide-demo-chapter",
+    display_order: 1,
+    name: "Penjumlahan sampai dengan 10",
+    description: "Contoh bab untuk melihat alur belajar dan subbab.",
+    classRange: "Kelas 1",
+    has_pretest: stage !== "pretest",
+    total_subbab: 3,
+    started_subbab: 0,
+    progress: 0,
+    subbab: [demoSubbab],
+    filteredSubbab: [demoSubbab],
+  };
+  const expandedChapters =
+    stage === "subbab" ? new Set([chapter._id]) : new Set();
+
+  return (
+    <div className="mb-4 sm:mb-5">
+      <ChapterCard
+        chapter={chapter}
+        isSearching={false}
+        expandedChapters={expandedChapters}
+        toggleChapter={() => {}}
+        setPretestConfirmChapter={() => {}}
+        handleViewPretestResult={() => {}}
+        pretestLoading={false}
+        selectedGrade="Semua Kelas"
+        handleSubtopicAction={() => {}}
+        guideTour
+      />
+    </div>
+  );
+}
 const toSlug = (value, prefix) => {
   const slug = String(value || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
-  return /^[a-z]/.test(slug) ? slug.slice(0, 48) : `${prefix}_${slug}`.slice(0, 48);
+  return /^[a-z]/.test(slug)
+    ? slug.slice(0, 48)
+    : `${prefix}_${slug}`.slice(0, 48);
 };
 
 const queryLengthBucket = (length) =>
@@ -154,6 +207,7 @@ const smoothScrollToElement = (element, offsetMargin = 16, duration = 800) => {
 };
 
 const Topics = () => {
+  const { isDemoMode, demoChapterStage } = useStudentGuide();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [returnTopicState] = useState(readTopicReturnState);
@@ -288,7 +342,10 @@ const Topics = () => {
     };
   }, [classes, classesLoaded, selectedGrade, gradeChoice, planVersion]);
 
-  const reloadPlan = useCallback(() => setPlanVersion((value) => value + 1), []);
+  const reloadPlan = useCallback(
+    () => setPlanVersion((value) => value + 1),
+    [],
+  );
   const handleTrialActivated = useCallback(
     (nextEntitlement) => {
       setEntitlement(nextEntitlement);
@@ -486,7 +543,8 @@ const Topics = () => {
       loadedBabRequest.revision !== pending.revision ||
       loadedBabRequest.grade !== selectedGrade ||
       loadedBabRequest.requestId !== babRequestIdRef.current
-    ) return;
+    )
+      return;
     track("topic_filter_changed", {
       properties: {
         filter_name: "kelas",
@@ -495,7 +553,13 @@ const Topics = () => {
       },
     });
     pendingGradeChangeRef.current = null;
-  }, [selectedGrade, gradeChoice.revision, loadedBabRequest, isLoading, filteredChapters.length]);
+  }, [
+    selectedGrade,
+    gradeChoice.revision,
+    loadedBabRequest,
+    isLoading,
+    filteredChapters.length,
+  ]);
 
   const showPretestResult = async (chapter, pretestId) => {
     const response = await API.get(
@@ -576,9 +640,13 @@ const Topics = () => {
     <div className="flex min-h-screen bg-neutral-bg">
       <Navbar activePage="Topik" />
       <div className="min-w-0 flex-1">
-        <main className="mx-auto max-w-6xl px-4 py-5 pb-24 sm:px-8 sm:py-8 lg:px-10 md:pb-8">
+        <main
+          data-guide-ready="true"
+          className="mx-auto max-w-6xl px-4 py-5 pb-24 sm:px-8 sm:py-8 lg:px-10 md:pb-8"
+        >
           <TopHeader />
           <TopicSearchBar
+            tourPrefix="topics"
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             selectedGrade={selectedGrade}
@@ -596,6 +664,8 @@ const Topics = () => {
           )}
 
           <PlanBanner entitlement={entitlement} onExpired={reloadPlan} />
+
+          {isDemoMode && <GuideDemoChapter stage={demoChapterStage} />}
 
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-4 text-center text-xs text-slate-500 sm:rounded-2xl sm:px-5 sm:py-8 sm:text-sm">
@@ -673,22 +743,38 @@ const Topics = () => {
                     height="32"
                     className="h-8 w-8 shrink-0 object-contain"
                   />
-                  <h3 className="text-lg font-bold text-slate-900">Bab terkunci</h3>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    Bab terkunci
+                  </h3>
                 </div>
                 <p className="text-sm leading-relaxed text-slate-500">
-                  {lockedChapter.name} hanya tersedia dengan Premium. Paket Premium membuka semua bab dan memberi akses kuis tanpa batas.
+                  {lockedChapter.name} hanya tersedia dengan Premium. Paket
+                  Premium membuka semua bab dan memberi akses kuis tanpa batas.
                 </p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5">
-                <p className="mb-2 text-sm font-semibold text-slate-800">Dengan Premium:</p>
+                <p className="mb-2 text-sm font-semibold text-slate-800">
+                  Dengan Premium:
+                </p>
                 <ul className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-                  <li><span className="mr-2 text-primary">✓</span>Semua bab dan subbab terbuka</li>
-                  <li><span className="mr-2 text-primary">✓</span>Kuis tanpa batas</li>
+                  <li>
+                    <span className="mr-2 text-primary">✓</span>Semua bab dan
+                    subbab terbuka
+                  </li>
+                  <li>
+                    <span className="mr-2 text-primary">✓</span>Kuis tanpa batas
+                  </li>
                 </ul>
               </div>
             </>
           )}
-          <div className={isTrialConfirm ? "" : "mt-5 grid w-full grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"}>
+          <div
+            className={
+              isTrialConfirm
+                ? ""
+                : "mt-5 grid w-full grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
+            }
+          >
             {!isTrialConfirm && (
               <button
                 type="button"

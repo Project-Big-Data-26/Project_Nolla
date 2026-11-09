@@ -4,14 +4,19 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 import AppRoutes from "./routes/AppRoutes";
 import RouteTracker from "./analytics/RouteTracker";
+import StudentGuideController from "./components/StudentGuideController";
+import { StudentGuideProvider } from "./context/StudentGuideProvider";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <RouteTracker />
-        <AppRoutes />
-        <Toaster position="top-center" richColors closeButton />
+        <StudentGuideProvider>
+          <RouteTracker />
+          <AppRoutes />
+          <StudentGuideController />
+          <Toaster position="top-center" richColors closeButton />
+        </StudentGuideProvider>
       </BrowserRouter>
     </AuthProvider>
   );

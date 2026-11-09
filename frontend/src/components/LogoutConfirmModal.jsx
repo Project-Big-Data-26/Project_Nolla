@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { AlertTriangle, Loader2, X } from "lucide-react";
+import { Loader2, LogOut, X } from "lucide-react";
 
 export default function LogoutConfirmModal({
   isOpen,
@@ -35,8 +35,8 @@ export default function LogoutConfirmModal({
         className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6"
       >
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600">
-            <AlertTriangle className="h-5 w-5" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600">
+            <LogOut className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1 pt-0.5">
             <h2
@@ -76,7 +76,7 @@ export default function LogoutConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             {isLoading ? "Keluar..." : "Ya, Keluar"}

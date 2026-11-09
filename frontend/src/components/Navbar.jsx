@@ -120,6 +120,15 @@ const Navbar = ({ activePage = "Dashboard" }) => {
               <NavLink
                 key={index}
                 to={item.path}
+                data-tour={
+                  item.path === "/topik"
+                    ? "topics-home"
+                    : item.path === "/hasil-pembelajaran"
+                      ? "learning-results"
+                      : item.path === "/profile"
+                        ? "profile-nav"
+                      : undefined
+                }
                 className={({ isActive }) =>
                   `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors cursor-pointer
                   md:flex-none md:flex-row md:justify-start md:gap-3 md:px-4 md:py-3 ${
