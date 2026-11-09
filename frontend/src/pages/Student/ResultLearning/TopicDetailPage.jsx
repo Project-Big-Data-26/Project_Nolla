@@ -73,7 +73,10 @@ function LearningSummaryHeader({ summary }) {
             src="/images/math-study-header.webp"
             alt=""
             aria-hidden="true"
-            loading="lazy"
+            width="1402"
+            height="1122"
+            loading="eager"
+            fetchPriority="high"
             className="pointer-events-none absolute -right-2 top-1/2 z-0 h-24 w-auto max-w-none -translate-y-1/2 object-contain sm:right-16 sm:h-36 md:right-20 md:h-40"
           />
         </div>
