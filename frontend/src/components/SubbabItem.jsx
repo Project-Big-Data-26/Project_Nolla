@@ -2,7 +2,7 @@ import React from "react";
 import { ChevronRight, CheckCircle2, AlertTriangle, Lock } from "lucide-react";
 import { remainingQuizSessions } from "../api/subscription";
 
-const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
+const SubbabItem = ({ subbab, chapter, handleSubtopicAction, guideTourTarget }) => {
   const remainingQuiz = remainingQuizSessions(subbab);
   const renderStatusAndAction = (status) => {
     switch (status) {
@@ -132,6 +132,7 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction }) => {
       <div className="flex w-full shrink-0 items-center sm:w-auto sm:self-center">
         <button
           onClick={() => handleSubtopicAction(subbab, chapter)}
+          data-tour={guideTourTarget}
           className={`flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-xs transition-all cursor-pointer sm:w-auto ${buttonClass}`}
         >
           <span>{buttonText}</span>

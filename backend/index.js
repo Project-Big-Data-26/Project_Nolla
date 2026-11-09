@@ -5,12 +5,19 @@ const cors = require("cors");
 require("dotenv").config();
 
 // Saklar & harga Premium dari env: konfigurasi salah menghentikan server sebelum melayani request.
-const { initPlanCatalog, isPremiumFeatureEnabled } = require("./config/premiumPlans");
+const {
+  initPlanCatalog,
+  isPremiumFeatureEnabled,
+} = require("./config/premiumPlans");
 try {
   if (!isPremiumFeatureEnabled()) {
-    console.warn("⚠️ Fitur paket nonaktif (PREMIUM_FEATURE_ENABLED=false): semua bab terbuka, kuis tanpa batas.");
+    console.warn(
+      "⚠️ Fitur paket nonaktif (PREMIUM_FEATURE_ENABLED=false): semua bab terbuka, kuis tanpa batas.",
+    );
   } else if (initPlanCatalog().length === 0) {
-    console.warn("⚠️ Harga Premium belum dikonfigurasi (PREMIUM_*_PRICE kosong); katalog paket kosong.");
+    console.warn(
+      "⚠️ Harga Premium belum dikonfigurasi (PREMIUM_*_PRICE kosong); katalog paket kosong.",
+    );
   }
 } catch (error) {
   console.error(`❌ Konfigurasi harga Premium tidak valid:\n${error.message}`);
@@ -39,6 +46,7 @@ const quizRoutes = require("./routes/quizRoutes");
 const learningResultsRoutes = require("./routes/learningResultsRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const complaintRoutes = require("./routes/complaintRoutes");
 const { getQuestionImage } = require("./controllers/imageController");
 const { requestContext } = require("./middleware/requestContext");
 const { supportsTransactions } = require("./utils/transaction");
@@ -60,10 +68,13 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/learning-results", learningResultsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/subscription", subscriptionRoutes);
+app.use("/api/complaints", complaintRoutes);
 // Pintu cek soal: hanya ada di staging; environment lain menjawab 404.
 if (appEnv === "staging") {
   app.use("/api/staging", require("./routes/staging/soalCheckRoutes"));
-  console.warn("⚠️ APP_ENV=staging: pintu cek soal /api/staging aktif tanpa login.");
+  console.warn(
+    "⚠️ APP_ENV=staging: pintu cek soal /api/staging aktif tanpa login.",
+  );
 }
 
 // --- SWAGGER SETUP ---
@@ -121,7 +132,10 @@ const startServer = async () => {
         );
       }
     } catch (error) {
-      console.warn("Gagal memeriksa dukungan transaksi MongoDB:", error.message);
+      console.warn(
+        "Gagal memeriksa dukungan transaksi MongoDB:",
+        error.message,
+      );
     }
 
     app.listen(PORT, () => {

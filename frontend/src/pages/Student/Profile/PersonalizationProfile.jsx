@@ -234,7 +234,7 @@ export default function PersonalizationProfile() {
         {/* Area Konten: padding dan batas lebar sejajar persis dengan halaman Topik */}
         <main className="mt-4 flex-1 max-w-6xl px-4 sm:mt-10 sm:px-8 lg:px-10 mx-auto w-full pb-24 md:pb-8">
           {/* CARD 1: PERSONAL INFO (Foto Profil menyatu rapi di dalam card, tanpa header biru yang bentrok) */}
-          <SectionCard padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
+          <SectionCard data-tour="profile-information" padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
             {/* Bagian Atas Card: Foto Profil, Label Info & Tombol Edit */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-5 pb-4 sm:pb-6 border-b border-neutral-border">
               <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
@@ -264,6 +264,7 @@ export default function PersonalizationProfile() {
                 to="/profile/edit"
                 className="inline-flex min-h-9 items-center gap-2 rounded-2xl bg-primary px-3 py-2 text-[11px] font-semibold text-white shadow-xs transition hover:bg-primary-hover cursor-pointer shrink-0 sm:min-h-10 sm:rounded-xl sm:px-4.5 sm:py-2.5 sm:text-sm"
                 id="btn-edit-profile"
+                data-tour="profile-edit"
               >
                 <Pencil className="h-3.5 w-3.5" />
                 <span>Edit Profil</span>
@@ -351,7 +352,7 @@ export default function PersonalizationProfile() {
             )}
           </SectionCard>
 
-          <SectionCard as="section" aria-labelledby="account-package-title" padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
+          <SectionCard data-tour="profile-package" as="section" aria-labelledby="account-package-title" padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
             <div className="flex flex-col gap-4 border-b border-neutral-border pb-4 sm:flex-row sm:items-center sm:justify-between sm:pb-5">
               <div className="flex items-center gap-3">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${hasPremiumAccess ? "bg-blue-50 text-primary" : "bg-slate-100 text-slate-600"}`}>
@@ -363,7 +364,7 @@ export default function PersonalizationProfile() {
                 </div>
               </div>
               {!isSubscriptionLoading && !subscriptionError && subscription?.feature_enabled !== false && (
-                <Link to="/paket" className="inline-flex min-h-9 items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-hover sm:min-h-10 sm:text-sm">
+                <Link data-tour="profile-package-action" to="/paket" className="inline-flex min-h-9 items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-hover sm:min-h-10 sm:text-sm">
                   {hasPremiumAccess ? "Lihat paket" : "Pilih paket Premium"}
                 </Link>
               )}
@@ -415,7 +416,7 @@ export default function PersonalizationProfile() {
           </SectionCard>
 
           {/* CARD 2: SETTING (Tombol Ganti Password) */}
-          <SectionCard padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
+          <SectionCard data-tour="profile-settings" padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Setting
@@ -428,6 +429,7 @@ export default function PersonalizationProfile() {
                 to="/profile/ganti-password"
                 className="flex items-center justify-between p-3 rounded-lg bg-white border border-slate-100 hover:border-primary/40 transition group cursor-pointer shadow-2xs"
                 id="btn-change-password"
+                data-tour="profile-change-password"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 border border-amber-200 text-amber-600">
@@ -447,7 +449,7 @@ export default function PersonalizationProfile() {
             </div>
           </SectionCard>
 
-          <SectionCard padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
+          <SectionCard data-tour="profile-account" padding="p-3.5 sm:p-8" className="mb-3 sm:mb-5">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Akun
@@ -460,11 +462,12 @@ export default function PersonalizationProfile() {
                 type="button"
                 onClick={() => setIsLogoutConfirmOpen(true)}
                 disabled={isLoggingOut}
-                className="flex w-full items-center justify-between rounded-lg border border-slate-100 bg-white p-3 text-left shadow-2xs transition group cursor-pointer hover:border-red-200 disabled:cursor-wait disabled:opacity-60"
+                className="flex w-full items-center justify-between rounded-lg border border-slate-100 bg-white p-3 text-left shadow-2xs transition group cursor-pointer hover:border-amber-200 disabled:cursor-wait disabled:opacity-60"
                 id="btn-profile-logout"
+                data-tour="profile-logout"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-600">
                     {isLoggingOut ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
@@ -472,7 +475,7 @@ export default function PersonalizationProfile() {
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-neutral-text transition-colors group-hover:text-red-600">
+                    <p className="text-sm font-semibold text-neutral-text transition-colors group-hover:text-amber-600">
                       {isLoggingOut ? "Keluar..." : "Keluar"}
                     </p>
                     <p className="text-xs text-neutral-muted">
@@ -480,7 +483,7 @@ export default function PersonalizationProfile() {
                     </p>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-red-600" />
+                <ChevronRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-amber-600" />
               </button>
             </div>
           </SectionCard>

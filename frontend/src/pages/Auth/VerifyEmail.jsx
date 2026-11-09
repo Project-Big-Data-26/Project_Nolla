@@ -6,6 +6,10 @@ import AuthCard from "../../components/AuthCard";
 import AuthBrandPanel from "../../components/AuthBrandPanel";
 import { useAuth } from "../../context/AuthContext";
 import { API_BASE_URL } from "../../api/baseUrl";
+import {
+  REGISTER_GUIDE_PENDING_KEY,
+  STUDENT_GUIDE_PENDING_KEY,
+} from "../../constants/studentGuide";
 
 const OTP_EMAIL_KEY = "otpVerificationEmail";
 const OTP_ACTION_KEY = "otpVerificationAction";
@@ -240,6 +244,10 @@ const VerifyEmail = () => {
           const verifiedUser = result.data.user;
           login(verifiedUser, result.data.accessToken);
           localStorage.setItem("refreshToken", result.data.refreshToken);
+          if (sessionStorage.getItem(REGISTER_GUIDE_PENDING_KEY) === "1") {
+            sessionStorage.setItem(STUDENT_GUIDE_PENDING_KEY, "1");
+            sessionStorage.removeItem(REGISTER_GUIDE_PENDING_KEY);
+          }
           sessionStorage.removeItem(OTP_EMAIL_KEY);
           sessionStorage.removeItem(OTP_ACTION_KEY);
           const isProfileComplete = verifiedUser?.isProfileComplete;

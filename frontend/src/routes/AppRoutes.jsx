@@ -26,6 +26,7 @@ import TopikDetail from "../pages/Student/ResultLearning/TopicDetailPage";
 import PersonalizationProfile from "../pages/Student/Profile/PersonalizationProfile";
 import EditProfile from "../pages/Student/Profile/EditProfile";
 import ChangePassword from "../pages/Student/Profile/ChangePassword";
+import ComplaintPage from "../pages/Student/ComplaintPage";
 
 import QuestionPage from "../pages/Student/QuestionPage";
 import QuestionReviewPage from "../pages/Student/QuestionReviewPage";
@@ -58,6 +59,7 @@ const AppRoutes = () => {
       <Route path="/nolla" element={<Navigate to="/" replace />} />
       <Route path="/terms-and-conditions" element={<LegalInfoPage documentType="terms" />} />
       <Route path="/privacy-policy" element={<LegalInfoPage documentType="privacy" />} />
+      <Route path="/pengaduan" element={<ComplaintPage />} />
 
       {/* ========================================
           AUTH ROUTES
