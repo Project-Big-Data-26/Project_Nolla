@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
-import { STUDENT_GUIDE_PENDING_KEY } from "../../constants/studentGuide";
+import { studentGuideEnabledKey } from "../../constants/studentGuide";
 
 export default function GoogleAuthCallback() {
   const location = useLocation();
@@ -33,7 +33,8 @@ export default function GoogleAuthCallback() {
         localStorage.setItem("refreshToken", refreshToken);
         login(user, accessToken);
         if (!user.isProfileComplete) {
-          sessionStorage.setItem(STUDENT_GUIDE_PENDING_KEY, "1");
+          const userId = user.id || user._id;
+          if (userId) localStorage.setItem(studentGuideEnabledKey(userId), "1");
         }
         navigate(user.isProfileComplete ? "/topik" : "/personalization", {
           replace: true,

@@ -8,7 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 import { API_BASE_URL } from "../../api/baseUrl";
 import {
   REGISTER_GUIDE_PENDING_KEY,
-  STUDENT_GUIDE_PENDING_KEY,
+  studentGuideEnabledKey,
 } from "../../constants/studentGuide";
 
 const OTP_EMAIL_KEY = "otpVerificationEmail";
@@ -245,7 +245,8 @@ const VerifyEmail = () => {
           login(verifiedUser, result.data.accessToken);
           localStorage.setItem("refreshToken", result.data.refreshToken);
           if (sessionStorage.getItem(REGISTER_GUIDE_PENDING_KEY) === "1") {
-            sessionStorage.setItem(STUDENT_GUIDE_PENDING_KEY, "1");
+            const userId = verifiedUser?.id || verifiedUser?._id;
+            if (userId) localStorage.setItem(studentGuideEnabledKey(userId), "1");
             sessionStorage.removeItem(REGISTER_GUIDE_PENDING_KEY);
           }
           sessionStorage.removeItem(OTP_EMAIL_KEY);

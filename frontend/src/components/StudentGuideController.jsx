@@ -2,20 +2,24 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { EVENTS, Joyride } from "react-joyride";
 import { useStudentGuide } from "../context/StudentGuideContext";
-import { STUDENT_GUIDE_PENDING_KEY } from "../constants/studentGuide";
+import { useAuth } from "../context/AuthContext";
+import {
+  studentGuideCompletedKey,
+  studentGuideEnabledKey,
+} from "../constants/studentGuide";
 
 const waitForGuideTarget = (selector) =>
   new Promise((resolve) => {
     let observer;
-    const finish = () => {
+    const finish = (found) => {
       window.clearTimeout(timeout);
       observer?.disconnect();
-      resolve();
+      resolve(found);
     };
     const checkTarget = () => {
-      if (document.querySelector(selector)) finish();
+      if (document.querySelector(selector)) finish(true);
     };
-    const timeout = window.setTimeout(finish, 5000);
+    const timeout = window.setTimeout(() => finish(false), 5000);
 
     observer = new MutationObserver(checkTarget);
     observer.observe(document.body, { childList: true, subtree: true });
@@ -33,13 +37,20 @@ const navigateAndWaitForTarget = (navigate, path, selector, currentPath) => {
 export default function StudentGuideController() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [run, setRun] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(
     () => window.innerWidth <= 640,
   );
-  const startedThisPageLoad = useRef(false);
+  const activeTourRef = useRef(null);
   const currentPath = useRef(location.pathname);
   const { setDemoChapterStage, setIsDemoMode } = useStudentGuide();
+  const userId = String(user?.id || user?._id || "");
+  const pageId = {
+    "/topik": "topics",
+    "/hasil-pembelajaran": "results",
+    "/profile": "profile",
+  }[location.pathname];
 
   useEffect(() => {
     const updateViewport = () => setIsMobileViewport(window.innerWidth <= 640);
@@ -66,14 +77,16 @@ export default function StudentGuideController() {
   );
 
   const enterResultsDemo = useCallback(
-    (selector) =>
-      navigateAndWaitForTarget(
+    (selector) => {
+      setIsDemoMode(true);
+      return navigateAndWaitForTarget(
         navigate,
         "/hasil-pembelajaran",
         selector,
         currentPath,
-      ),
-    [navigate],
+      );
+    },
+    [navigate, setIsDemoMode],
   );
 
   const steps = useMemo(
@@ -226,64 +239,76 @@ export default function StudentGuideController() {
     [enterTopicsDemo, enterResultsDemo, navigate],
   );
 
-  // Mulai sekali setelah pengguna menyelesaikan registrasi dan verifikasi email.
+  const stepsByPage = useMemo(
+    () => ({
+      topics: steps.slice(0, 7),
+      results: steps.slice(7, 11),
+      profile: steps.slice(11),
+    }),
+    [steps],
+  );
+
+  // Setiap halaman memiliki tur terpisah yang hanya dijalankan sekali per akun.
   useEffect(() => {
     if (
-      location.pathname !== "/topik" ||
-      startedThisPageLoad.current ||
-      sessionStorage.getItem(STUDENT_GUIDE_PENDING_KEY) !== "1"
+      !pageId ||
+      !userId ||
+      localStorage.getItem(studentGuideEnabledKey(userId)) !== "1" ||
+      localStorage.getItem(studentGuideCompletedKey(userId, pageId)) === "1"
     ) {
       return undefined;
     }
 
     let cancelled = false;
-    let startTimer;
-    let timeoutTimer;
-    const observer = new MutationObserver(() => startWhenReady());
+    const startTour = async () => {
+      const initialTarget = {
+        topics: '[data-tour="demo-chapter-card"]',
+        results: '[data-tour="learning-summary"]',
+        profile: '[data-tour="profile-information"]',
+      }[pageId];
 
-    const startWhenReady = () => {
-      if (
-        startedThisPageLoad.current ||
-        !document.querySelector('[data-guide-ready="true"]')
-      ) {
+      if (pageId === "topics") {
+        setDemoChapterStage("pretest");
+        setIsDemoMode(true);
+      } else if (pageId === "results") {
+        setIsDemoMode(true);
+      }
+
+      const targetFound = await waitForGuideTarget(initialTarget);
+      if (cancelled) return;
+      if (!targetFound) {
+        if (pageId !== "profile") setIsDemoMode(false);
         return;
       }
 
-      observer.disconnect();
-      setDemoChapterStage("pretest");
-      setIsDemoMode(true);
-      waitForGuideTarget('[data-tour="demo-chapter-card"]').then(() => {
-        if (cancelled) return;
-        startTimer = window.setTimeout(() => {
-          startedThisPageLoad.current = true;
-          sessionStorage.removeItem(STUDENT_GUIDE_PENDING_KEY);
-          setRun(true);
-        }, 250);
-      });
-      window.clearTimeout(timeoutTimer);
+      activeTourRef.current = { pageId, userId };
+      setRun(true);
     };
 
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["data-guide-ready"],
-      childList: true,
-      subtree: true,
-    });
-    startWhenReady();
-    timeoutTimer = window.setTimeout(() => observer.disconnect(), 30000);
+    void startTour();
 
     return () => {
       cancelled = true;
-      observer.disconnect();
-      window.clearTimeout(startTimer);
-      window.clearTimeout(timeoutTimer);
-      if (!startedThisPageLoad.current) setIsDemoMode(false);
+      if (activeTourRef.current?.pageId === pageId) {
+        activeTourRef.current = null;
+        setRun(false);
+        setIsDemoMode(false);
+      }
+      if (pageId !== "profile") setIsDemoMode(false);
     };
-  }, [location.pathname, setDemoChapterStage, setIsDemoMode]);
+  }, [pageId, userId, setDemoChapterStage, setIsDemoMode]);
 
   const handleTourEvent = useCallback(
     (event) => {
       if (event.type === EVENTS.TOUR_END) {
+        const activeTour = activeTourRef.current;
+        if (activeTour) {
+          localStorage.setItem(
+            studentGuideCompletedKey(activeTour.userId, activeTour.pageId),
+            "1",
+          );
+          activeTourRef.current = null;
+        }
         setRun(false);
         setIsDemoMode(false);
         setDemoChapterStage("pretest");
@@ -294,8 +319,9 @@ export default function StudentGuideController() {
 
   return (
     <Joyride
+      key={pageId || "inactive"}
       run={run}
-      steps={steps}
+      steps={stepsByPage[pageId] || []}
       continuous
       scrollToFirstStep
       onEvent={handleTourEvent}
