@@ -508,14 +508,26 @@ const LandingPage = () => {
             )}
           </div>
 
-          {/* Mobile Menu Toggle Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-            aria-label="Buka navigasi menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Aksi yang terlihat langsung di header pada layar kecil */}
+          <div className="flex items-center gap-2 lg:hidden">
+            {!isAuthenticated && (
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg border border-[#ff8a1f] px-3 py-2 text-xs font-bold text-[#e87512] transition-colors hover:bg-[#fff7ed] sm:px-3.5 sm:text-sm"
+              >
+                Masuk
+              </Link>
+            )}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="rounded-xl p-2 text-slate-700 transition-colors hover:bg-slate-100 cursor-pointer"
+              aria-label={mobileMenuOpen ? "Tutup navigasi menu" : "Buka navigasi menu"}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </nav>
       {/* -------------------- MOBILE DRAWER SIDEBAR & BACKDROP -------------------- */}

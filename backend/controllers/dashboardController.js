@@ -209,6 +209,7 @@ const getBab = async (req, res) => {
     const startedSubbabIds = new Set();
     const quizzedSubbabIds = new Set();
     const sessionCountBySubbabId = new Map();
+    const activeQuizSubbabIds = new Set();
     const difficultyBySubbabId = new Map();
 
     if (unlockedSubbabIds.length > 0) {
@@ -230,6 +231,7 @@ const getBab = async (req, res) => {
       for (const session of quizSessions) {
         const subbabId = session.subbab_id.toString();
         startedSubbabIds.add(subbabId);
+        if (!session.completed_at) activeQuizSubbabIds.add(subbabId);
         sessionCountBySubbabId.set(
           subbabId,
           (sessionCountBySubbabId.get(subbabId) ?? 0) + 1,
@@ -331,6 +333,7 @@ const getBab = async (req, res) => {
             // Semua sesi (termasuk yang sedang berjalan) dihitung, sama dengan guard start kuis.
             quiz_sessions_used: sessionCountBySubbabId.get(subbabId) ?? 0,
             quiz_sessions_limit: quizSessionLimit,
+            quiz_active: activeQuizSubbabIds.has(subbabId),
             progress: quizzedSubbabIds.has(subbabId)
               ? getSubbabProgress(difficulty?.current_cognitive_score ?? 0)
               : 0,

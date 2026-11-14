@@ -84,12 +84,12 @@ describe("SubbabItem adaptive quiz actions", () => {
     const handleStart = vi.fn();
     render(
       <SubbabItem
-        subbab={{ ...baseSubbab, status: "in_progress", quiz_sessions_used: 4, quiz_sessions_limit: 3 }}
+        subbab={{ ...baseSubbab, status: "in_progress", quiz_sessions_used: 4, quiz_sessions_limit: 3, quiz_active: true }}
         chapter={{ _id: "bab-1", name: "Peluang" }}
         handleSubtopicAction={handleStart}
       />,
     );
-    expect(screen.getByText("Kuota kuis paket Free untuk subbab ini habis")).toBeInTheDocument();
+    expect(screen.getByText("Sesi aktif dapat dilanjutkan")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Mulai" }));
     expect(handleStart).toHaveBeenCalled();
   });

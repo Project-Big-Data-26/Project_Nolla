@@ -2,8 +2,18 @@ import React from "react";
 import { ChevronRight, CheckCircle2, AlertTriangle, Lock } from "lucide-react";
 import { remainingQuizSessions } from "../api/subscription";
 
-const SubbabItem = ({ subbab, chapter, handleSubtopicAction, guideTourTarget }) => {
+const SubbabItem = ({
+  subbab,
+  chapter,
+  handleSubtopicAction,
+  onQuizQuotaReached,
+  guideTourTarget,
+}) => {
   const remainingQuiz = remainingQuizSessions(subbab);
+  const hasActiveQuiz =
+    subbab.quiz_active ?? (subbab.status === "in_progress");
+  const quotaExhausted =
+    !chapter?.locked && remainingQuiz === 0 && !hasActiveQuiz;
   const renderStatusAndAction = (status) => {
     switch (status) {
       case "completed":
@@ -58,9 +68,13 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction, guideTourTarget }) 
   const { badge, buttonText, buttonClass } = renderStatusAndAction(
     subbab.status,
   );
+  const actionLabel = quotaExhausted ? "Lihat Paket" : buttonText;
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-3 shadow-2xs transition-all hover:border-slate-300 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:p-5">
+    <div
+      id={`subbab-card-${subbab._id || subbab.id}`}
+      className="flex flex-col gap-2.5 rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-3 shadow-2xs transition-all hover:border-slate-300 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:p-5"
+    >
       <div className="flex min-w-0 flex-col gap-2.5 sm:flex-1">
         <div className="flex flex-wrap items-center gap-1.5 sm:hidden">
           <span className="text-[11px] font-medium text-slate-400">
@@ -111,7 +125,9 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction, guideTourTarget }) 
                 remainingQuiz === 0 ? "text-amber-700" : "text-slate-500"
               }`}
             >
-              {remainingQuiz === 0
+              {remainingQuiz === 0 && hasActiveQuiz
+                ? "Sesi aktif dapat dilanjutkan"
+                : remainingQuiz === 0
                 ? "Kuota kuis paket Free untuk subbab ini habis"
                 : `Sisa kuis: ${remainingQuiz} dari ${subbab.quiz_sessions_limit}`}
             </p>
@@ -131,12 +147,21 @@ const SubbabItem = ({ subbab, chapter, handleSubtopicAction, guideTourTarget }) 
 
       <div className="flex w-full shrink-0 items-center sm:w-auto sm:self-center">
         <button
-          onClick={() => handleSubtopicAction(subbab, chapter)}
+          onClick={() =>
+            quotaExhausted
+              ? onQuizQuotaReached?.(subbab, chapter)
+              : handleSubtopicAction(subbab, chapter)
+          }
           data-tour={guideTourTarget}
-          className={`flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-xs transition-all cursor-pointer sm:w-auto ${buttonClass}`}
+          className={`flex w-full items-center justify-center gap-1.5 px-4 py-2 text-xs transition-all cursor-pointer sm:w-auto ${
+            quotaExhausted
+              ? "rounded-full border border-slate-300 bg-white font-bold text-slate-700 shadow-xs hover:border-slate-400 hover:bg-slate-50"
+              : `rounded-xl ${buttonClass}`
+          }`}
         >
-          <span>{buttonText}</span>
-          <ChevronRight className="h-3.5 w-3.5" />
+          {quotaExhausted && <Lock className="h-3.5 w-3.5" />}
+          <span>{actionLabel}</span>
+          {!quotaExhausted && <ChevronRight className="h-3.5 w-3.5" />}
         </button>
       </div>
     </div>

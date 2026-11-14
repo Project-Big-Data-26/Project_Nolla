@@ -47,6 +47,7 @@ const learningResultsRoutes = require("./routes/learningResultsRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
+const assessmentFeedbackRoutes = require("./routes/assessmentFeedbackRoutes");
 const { getQuestionImage } = require("./controllers/imageController");
 const { requestContext } = require("./middleware/requestContext");
 const { supportsTransactions } = require("./utils/transaction");
@@ -69,6 +70,7 @@ app.use("/api/learning-results", learningResultsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/complaints", complaintRoutes);
+app.use("/api/assessment-feedback", assessmentFeedbackRoutes);
 // Pintu cek soal: hanya ada di staging; environment lain menjawab 404.
 if (appEnv === "staging") {
   app.use("/api/staging", require("./routes/staging/soalCheckRoutes"));
