@@ -13,6 +13,7 @@ import TopicSearchBar from "../../../components/SearchBar";
 import ChapterCard from "../../../components/ChapterCard";
 import TopicModals from "../../../components/TopicModals";
 import Modal from "../../../components/Modal";
+import AssessmentFeedbackModal from "../../../components/AssessmentFeedbackModal";
 import PlanBanner from "../../../components/PlanBanner";
 import TrialCallout from "../../../components/TrialCallout";
 import crownIcon from "../../../assets/crown-icon.webp";
@@ -79,14 +80,57 @@ const queryLengthBucket = (length) =>
 
 const ALL_GRADES = "Semua Kelas";
 const TOPIC_RETURN_STATE_KEY = "topics:return-state";
+const TOPIC_FEEDBACK_TARGET_KEY = "topics:assessment-feedback-target";
+
+const readAssessmentFeedbackTarget = () => {
+  try {
+    const stored = sessionStorage.getItem(TOPIC_FEEDBACK_TARGET_KEY);
+    const target = stored ? JSON.parse(stored) : null;
+    if (
+      !target ||
+      !["quiz", "pretest"].includes(target.assessmentType) ||
+      !target.attemptId
+    ) {
+      return null;
+    }
+    return target;
+  } catch {
+    return null;
+  }
+};
+
+const getFeedbackPromptDate = () => {
+  const now = new Date();
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+};
+
+const getFeedbackPromptUserId = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    return user?.id || user?._id || "unknown";
+  } catch {
+    return "unknown";
+  }
+};
 
 const readTopicReturnState = () => {
   try {
     const stored = sessionStorage.getItem(TOPIC_RETURN_STATE_KEY);
-    sessionStorage.removeItem(TOPIC_RETURN_STATE_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch {
     return {};
+  }
+};
+
+const persistTopicReturnState = (state) => {
+  try {
+    sessionStorage.setItem(TOPIC_RETURN_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // Navigasi belajar tetap berjalan jika penyimpanan browser tidak tersedia.
   }
 };
 
@@ -211,6 +255,19 @@ const Topics = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [returnTopicState] = useState(readTopicReturnState);
+  const [lastWorkedBabId, setLastWorkedBabId] = useState(() =>
+    returnTopicState.babId ? String(returnTopicState.babId) : null,
+  );
+  const [lastWorkedSubbabId, setLastWorkedSubbabId] = useState(() =>
+    returnTopicState.subbabId ? String(returnTopicState.subbabId) : null,
+  );
+  const [assessmentFeedbackTarget, setAssessmentFeedbackTarget] = useState(
+    readAssessmentFeedbackTarget,
+  );
+  const [showAssessmentFeedback, setShowAssessmentFeedback] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [pretestResultReady, setPretestResultReady] = useState(false);
+  const feedbackPromptHandledRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState(
     () => returnTopicState.searchQuery || "",
   );
@@ -244,24 +301,34 @@ const Topics = () => {
   // Dinaikkan setelah status paket berubah agar kunci & kuota dimuat ulang.
   const [planVersion, setPlanVersion] = useState(0);
   const [lockedChapter, setLockedChapter] = useState(null);
+  const [quotaSubbab, setQuotaSubbab] = useState(null);
   // Konfirmasi trial menggantikan isi modal paket (satu modal, dua tampilan).
   const [isTrialConfirm, setIsTrialConfirm] = useState(false);
   const closeLockedModal = () => {
     setLockedChapter(null);
+    setQuotaSubbab(null);
     setIsTrialConfirm(false);
   };
   const openLockedChapter = (chapter) => {
     setLockedChapter(chapter);
+    setQuotaSubbab(null);
+    setIsTrialConfirm(false);
+  };
+  const openQuizQuotaModal = (subbab, chapter) => {
+    setLockedChapter(chapter);
+    setQuotaSubbab(subbab);
     setIsTrialConfirm(false);
   };
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [expandedChapters, setExpandedChapters] = useState(new Set());
+  const [expandedChapters, setExpandedChapters] = useState(
+    () => new Set(lastWorkedBabId ? [lastWorkedBabId] : []),
+  );
   const [collapsedSearchChapters, setCollapsedSearchChapters] = useState(
     new Set(),
   );
   const [priorityChapterId, setPriorityChapterId] = useState(() =>
-    searchParams.get("babId"),
+    searchParams.get("babId") || lastWorkedBabId,
   );
   const [activePretestResult, setActivePretestResult] = useState(null);
   const [pretestConfirmChapter, setPretestConfirmChapter] = useState(null);
@@ -272,6 +339,62 @@ const Topics = () => {
   const pretestResultId = searchParams.get("pretestResultId");
   const resultBabId = searchParams.get("babId");
   const resultChapterName = searchParams.get("chapterName");
+
+  useEffect(() => {
+    sessionStorage.removeItem(TOPIC_FEEDBACK_TARGET_KEY);
+  }, []);
+
+  useEffect(() => {
+    persistTopicReturnState({
+      searchQuery,
+      selectedGrade,
+      babId: lastWorkedBabId,
+      subbabId: lastWorkedSubbabId,
+    });
+  }, [searchQuery, selectedGrade, lastWorkedBabId, lastWorkedSubbabId]);
+
+  useEffect(() => {
+    if (!lastWorkedBabId || isLoading) return undefined;
+    const targetId = lastWorkedSubbabId
+      ? `subbab-card-${lastWorkedSubbabId}`
+      : `chapter-card-${lastWorkedBabId}`;
+    const timer = window.setTimeout(() => {
+      smoothScrollToElement(
+        document.getElementById(targetId) ||
+          document.getElementById(`chapter-card-${lastWorkedBabId}`),
+      );
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [lastWorkedBabId, lastWorkedSubbabId, isLoading, chaptersData]);
+
+  useEffect(() => {
+    if (!assessmentFeedbackTarget || activePretestResult) return;
+    if (
+      assessmentFeedbackTarget.assessmentType === "pretest" &&
+      !pretestResultReady
+    ) {
+      return;
+    }
+    // React StrictMode menjalankan effect dua kali saat development. Pastikan
+    // pemeriksaan batas harian dan pembukaan modal diproses sekali per mount.
+    if (feedbackPromptHandledRef.current) return;
+    feedbackPromptHandledRef.current = true;
+
+    const promptKey = `assessment-feedback:last-prompt:${getFeedbackPromptUserId()}`;
+    const today = getFeedbackPromptDate();
+    try {
+      if (localStorage.getItem(promptKey) === today) {
+        setAssessmentFeedbackTarget(null);
+        return;
+      }
+      localStorage.setItem(promptKey, today);
+    } catch {
+      // Tetap tampilkan masukan jika penyimpanan browser tidak tersedia.
+    }
+
+    setShowAssessmentFeedback(true);
+  }, [assessmentFeedbackTarget, activePretestResult, pretestResultReady]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -350,6 +473,7 @@ const Topics = () => {
     (nextEntitlement) => {
       setEntitlement(nextEntitlement);
       setLockedChapter(null);
+      setQuotaSubbab(null);
       setIsTrialConfirm(false);
       reloadPlan();
     },
@@ -571,6 +695,7 @@ const Topics = () => {
       chapter: chapter,
       result: normalizePretestResult(response.data.data),
     });
+    setPretestResultReady(true);
     setPriorityChapterId(String(chapter._id || chapter.id));
   };
 
@@ -579,10 +704,14 @@ const Topics = () => {
     track("topic_selected", {
       properties: { bab_id: String(chapterId), location: "pretest_start" },
     });
-    sessionStorage.setItem(
-      TOPIC_RETURN_STATE_KEY,
-      JSON.stringify({ searchQuery, selectedGrade }),
-    );
+    setLastWorkedBabId(String(chapterId));
+    setLastWorkedSubbabId(null);
+    persistTopicReturnState({
+      searchQuery,
+      selectedGrade,
+      babId: String(chapterId),
+      subbabId: null,
+    });
     setPretestConfirmChapter(null);
     navigate(
       `/quiz?mode=pretest&babId=${encodeURIComponent(chapterId)}&chapterName=${encodeURIComponent(chapter.name || "Pretest")}`,
@@ -608,6 +737,23 @@ const Topics = () => {
     }
   };
 
+  const handlePretestResultClose = () => {
+    const chapter = activePretestResult?.chapter;
+    const chapterId = String(chapter?._id || chapter?.id || "");
+
+    if (chapterId) {
+      setPriorityChapterId(chapterId);
+      setExpandedChapters((previous) => new Set(previous).add(chapterId));
+      window.setTimeout(() => {
+        smoothScrollToElement(
+          document.getElementById(`chapter-card-${chapterId}`),
+        );
+      }, 80);
+    }
+
+    setActivePretestResult(null);
+  };
+
   const handleSubtopicAction = (subtopic, chapter) => {
     if (subtopic.status === "needs_prerequisite") {
       setPrerequisiteModal({
@@ -627,10 +773,16 @@ const Topics = () => {
         location: "subtopic_quiz",
       },
     });
-    sessionStorage.setItem(
-      TOPIC_RETURN_STATE_KEY,
-      JSON.stringify({ searchQuery, selectedGrade }),
-    );
+    const babId = String(chapter._id || chapter.id);
+    const targetSubbabId = String(subbabId);
+    setLastWorkedBabId(babId);
+    setLastWorkedSubbabId(targetSubbabId);
+    persistTopicReturnState({
+      searchQuery,
+      selectedGrade,
+      babId,
+      subbabId: targetSubbabId,
+    });
     navigate(
       `/quiz?mode=quiz&subbabId=${encodeURIComponent(subbabId)}&topicName=${encodeURIComponent(subtopic.name || "Kuis")}`,
     );
@@ -664,6 +816,12 @@ const Topics = () => {
           )}
 
           <PlanBanner entitlement={entitlement} onExpired={reloadPlan} />
+
+          {feedbackSubmitted && (
+            <p role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 sm:mb-5">
+              Terima kasih, masukanmu sudah terkirim.
+            </p>
+          )}
 
           {isDemoMode && <GuideDemoChapter stage={demoChapterStage} />}
 
@@ -705,6 +863,7 @@ const Topics = () => {
                   pretestLoading={pretestLoadingId === chapter._id}
                   selectedGrade={selectedGrade}
                   handleSubtopicAction={handleSubtopicAction}
+                  onQuizQuotaReached={openQuizQuotaModal}
                   onLockedClick={openLockedChapter}
                 />
               ))}
@@ -719,12 +878,28 @@ const Topics = () => {
         executeCompletePretest={executeCompletePretest}
         activePretestResult={activePretestResult}
         setActivePretestResult={setActivePretestResult}
+        onPretestResultClose={handlePretestResultClose}
         prerequisiteModal={prerequisiteModal}
         setPrerequisiteModal={setPrerequisiteModal}
         setSearchQuery={setSearchQuery}
         setBypassedChapterPrerequisites={setBypassedChapterPrerequisites}
         setExpandedChapters={setExpandedChapters}
       />
+
+      {showAssessmentFeedback && assessmentFeedbackTarget && (
+        <AssessmentFeedbackModal
+          target={assessmentFeedbackTarget}
+          onClose={() => {
+            setShowAssessmentFeedback(false);
+            setAssessmentFeedbackTarget(null);
+          }}
+          onSubmitted={() => {
+            setShowAssessmentFeedback(false);
+            setAssessmentFeedbackTarget(null);
+            setFeedbackSubmitted(true);
+          }}
+        />
+      )}
 
       {lockedChapter && (
         <Modal
@@ -744,12 +919,13 @@ const Topics = () => {
                     className="h-8 w-8 shrink-0 object-contain"
                   />
                   <h3 className="text-lg font-bold text-slate-900">
-                    Bab terkunci
+                    {quotaSubbab ? "Kuota kuis habis" : "Bab terkunci"}
                   </h3>
                 </div>
                 <p className="text-sm leading-relaxed text-slate-500">
-                  {lockedChapter.name} hanya tersedia dengan Premium. Paket
-                  Premium membuka semua bab dan memberi akses kuis tanpa batas.
+                  {quotaSubbab
+                    ? `Kuota kuis paket Free untuk ${quotaSubbab.name} sudah habis. Pilih paket Premium untuk melanjutkan kuis tanpa batas.`
+                    : `${lockedChapter.name} hanya tersedia dengan Premium. Paket Premium membuka semua bab dan memberi akses kuis tanpa batas.`}
                 </p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5">

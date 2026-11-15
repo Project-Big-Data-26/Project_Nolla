@@ -253,6 +253,10 @@ router.get("/classes", authMiddleware, getClassesByToken);
  *                               nullable: true
  *                               description: 3 untuk paket free, null (tanpa batas) untuk premium
  *                               example: 3
+ *                             quiz_active:
+ *                               type: boolean
+ *                               description: Menandakan ada sesi kuis belum selesai yang dapat dilanjutkan
+ *                               example: false
  *                             progress:
  *                               type: integer
  *                               description: Progress subbab berdasarkan cognitive score; score 600 = 0% dan score 1600 = 100%

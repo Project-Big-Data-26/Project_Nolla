@@ -161,6 +161,25 @@ const readPretestReview = (sessionId) => {
   }
 };
 
+const TOPIC_FEEDBACK_TARGET_KEY = "topics:assessment-feedback-target";
+
+const rememberFeedbackTarget = (reviewData, reviewMode) => {
+  if (!reviewData?.sessionId) return;
+
+  try {
+    sessionStorage.setItem(
+      TOPIC_FEEDBACK_TARGET_KEY,
+      JSON.stringify({
+        assessmentType: reviewMode,
+        attemptId: String(reviewData.sessionId),
+        topicName: String(reviewData.name || "Latihan"),
+      }),
+    );
+  } catch {
+    // Navigasi ke halaman topik tetap berjalan jika penyimpanan browser penuh.
+  }
+};
+
 const formatResponseTime = (value) => {
   if (
     value === null ||
@@ -417,6 +436,7 @@ const QuestionReviewPage = () => {
           setShowQuizResult(true);
           return;
         } else {
+          rememberFeedbackTarget(reviewData, reviewMode);
           const query = new URLSearchParams({
             pretestResultId: reviewData.sessionId,
             babId: reviewData.babId || "",
@@ -507,7 +527,10 @@ const QuestionReviewPage = () => {
 
               <button
                 type="button"
-                onClick={() => navigate("/topik")}
+                onClick={() => {
+                  rememberFeedbackTarget(reviewData, reviewMode);
+                  navigate("/topik");
+                }}
                 className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-hover"
               >
                 Kembali ke Topik

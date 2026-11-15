@@ -20,6 +20,7 @@ const ChapterCard = ({
   pretestLoading,
   selectedGrade,
   handleSubtopicAction,
+  onQuizQuotaReached,
   onLockedClick,
   guideTour = false,
 }) => {
@@ -200,6 +201,7 @@ const ChapterCard = ({
                   subbab={subbab}
                   chapter={chapter}
                   handleSubtopicAction={handleSubtopicAction}
+                  onQuizQuotaReached={onQuizQuotaReached}
                   guideTourTarget={guideTour && index === 0 ? "demo-subbab-action" : undefined}
                 />
               ))

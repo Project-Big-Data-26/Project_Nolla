@@ -14,12 +14,21 @@ const TopicModals = ({
   executeCompletePretest,
   activePretestResult,
   setActivePretestResult,
+  onPretestResultClose,
   prerequisiteModal,
   setPrerequisiteModal,
   setSearchQuery,
   setBypassedChapterPrerequisites,
   setExpandedChapters,
 }) => {
+  const closePretestResult = () => {
+    if (onPretestResultClose) {
+      onPretestResultClose();
+      return;
+    }
+    setActivePretestResult(null);
+  };
+
   return (
     <>
       {/* MODAL 1: KONFIRMASI MULAI PRETEST */}
@@ -79,7 +88,7 @@ const TopicModals = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/50 backdrop-blur-xs animate-in fade-in sm:p-4">
           <div className="relative max-h-[calc(100dvh-1rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:rounded-3xl sm:p-6">
             <button
-              onClick={() => setActivePretestResult(null)}
+              onClick={closePretestResult}
               className="absolute right-3 top-3 rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer sm:right-4 sm:top-4"
             >
               <X className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -273,7 +282,7 @@ const TopicModals = ({
             )}
 
             <button
-              onClick={() => setActivePretestResult(null)}
+              onClick={closePretestResult}
               className="min-h-9 w-full rounded-2xl bg-primary py-2 text-[11px] font-semibold text-white transition-colors hover:bg-primary-hover cursor-pointer sm:min-h-10 sm:rounded-xl sm:py-2.5 sm:text-xs sm:font-bold"
             >
               Tutup Ringkasan
