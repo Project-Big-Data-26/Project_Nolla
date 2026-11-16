@@ -12,11 +12,7 @@ const redirectToPlacement = (req, res) => {
       !PLACEMENT_ID_PATTERN.test(placementId) ||
       !Object.prototype.hasOwnProperty.call(placements, placementId)
     ) {
-      return res.status(404).json({
-        statusCode: 404,
-        success: false,
-        message: "Placement poster tidak ditemukan.",
-      });
+      return res.redirect(302, "/");
     }
 
     const query = new URLSearchParams({

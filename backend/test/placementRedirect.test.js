@@ -50,12 +50,12 @@ test("redirects each registered school code to its unique long UTM URL", () => {
   });
 });
 
-test("does not redirect unknown or malformed placement identifiers", () => {
+test("sends unknown or malformed placement identifiers to the home page without attribution", () => {
   for (const placement of ["smpn_99_bandung", "https://evil.example", "../admin"]) {
     const res = response();
     redirectToPlacement({ params: { placement } }, res);
-    assert.equal(res.statusCode, 404);
-    assert.equal(res.location, undefined);
+    assert.equal(res.statusCode, 302);
+    assert.equal(res.location, "/");
   }
 });
 
@@ -84,4 +84,22 @@ test("serves the short link through the mounted /go/:placement route", async (t)
   assert.equal(statusCode, 302);
   assert.match(location, /^\/\?utm_source=school_visit&/);
   assert.match(location, /placement_id=smpn_01_bandung/);
+
+  const unknownResult = await new Promise((resolve, reject) => {
+    http
+      .get(
+        {
+          hostname: "127.0.0.1",
+          port: server.address().port,
+          path: "/go/smpn_99_bandung",
+        },
+        (res) => {
+          res.resume();
+          resolve({ statusCode: res.statusCode, location: res.headers.location });
+        },
+      )
+      .on("error", reject);
+  });
+  assert.equal(unknownResult.statusCode, 302);
+  assert.equal(unknownResult.location, "/");
 });

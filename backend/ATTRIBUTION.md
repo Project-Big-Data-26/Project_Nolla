@@ -38,8 +38,10 @@ ATTRIBUTION_PLACEMENTS_JSON={"smpn_01_bandung":"SMPN 1 Bandung","smpn_02_bandung
 
 Untuk poster, tautan pendek `/go/<placement_id>` mengalihkan (HTTP 302) ke URL
 panjang dengan UTM di atas. Backend hanya mengalihkan kode yang terdaftar;
-placement tak dikenal menghasilkan 404. Nginx frontend meneruskan `/go/` ke
-backend. Tautan UTM panjang tetap didukung langsung.
+placement tak dikenal atau typo dialihkan ke beranda domain tanpa parameter UTM
+atau atribusi sekolah. Kode yang tidak valid tidak ditebak agar laporan sekolah
+tidak salah. Nginx frontend meneruskan `/go/` ke backend. Tautan UTM panjang
+tetap didukung langsung.
 
 `placement_id` menunjukkan lokasi poster yang tautannya dipakai, bukan lokasi
 pengunjung. Kode placement disimpan bersama first-touch dan nama sekolah
@@ -113,8 +115,9 @@ sebelum mengaktifkannya, khususnya untuk pengguna anak.
 - [ ] Rebuild/deploy frontend agar aturan Nginx `/go/` yang baru aktif, lalu
       pastikan konfigurasi Nginx mengarahkan `/go/` ke backend.
 - [ ] Uji `/go/smpn_01_bandung`: harus mendapat 302 ke URL UTM dengan kode
-      placement tersebut. Uji kode yang tidak didaftarkan: harus 404. Pastikan
-      URL UTM panjang tetap langsung membuka halaman tujuan.
+      placement tersebut. Uji kode yang tidak didaftarkan atau typo: harus
+      mendapat 302 ke beranda tanpa parameter UTM atau atribusi sekolah.
+      Pastikan URL UTM panjang tetap langsung membuka halaman tujuan.
 - [ ] Buka tautan ber-UTM sebagai pengunjung anonim. Navigasi beberapa halaman
       lalu coba UTM lain; record harus tetap memuat source/medium/content/
       placement first-touch pertama. Kunjungan tanpa UTM harus berstatus direct
