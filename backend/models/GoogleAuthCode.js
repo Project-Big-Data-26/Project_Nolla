@@ -8,6 +8,7 @@ const googleAuthCodeSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    isNewRegistration: { type: Boolean, default: false },
     expiresAt: { type: Date, required: true },
   },
   { timestamps: true },

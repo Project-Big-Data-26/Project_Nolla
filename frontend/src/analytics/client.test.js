@@ -110,6 +110,76 @@ describe("analytics client", () => {
     expect(getLearningSessionId()).not.toBe(first);
   });
 
+  it("mencatat kunjungan anonim dengan ID first-touch yang tetap pada navigasi berikutnya", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/?utm_source=instagram&utm_medium=story&utm_content=poster",
+    );
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: {
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+      }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { getAttributionHeaders, initializeAttribution } = await loadClient();
+
+    const firstVisitId = await initializeAttribution();
+    expect(firstVisitId).toMatch(/^vst_[0-9a-f]{48}$/);
+    expect(getAttributionHeaders()["X-Attribution-Visit-Id"]).toBe(firstVisitId);
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({
+      visit_id: firstVisitId,
+      utm_source: "instagram",
+      utm_medium: "story",
+      utm_content: "poster",
+    });
+
+    window.history.replaceState({}, "", "/?utm_source=tiktok&utm_medium=post");
+    const reloadedClient = await loadClient();
+    await reloadedClient.initializeAttribution();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).utm_source).toBe("instagram");
+  });
+
+  it("membuat ID first-touch baru setelah masa retensi habis", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/?utm_source=instagram&utm_medium=feed",
+    );
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: {
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+      }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    const firstClient = await loadClient();
+    const firstVisitId = await firstClient.initializeAttribution();
+
+    vi.setSystemTime(Date.now() + 366 * 24 * 60 * 60 * 1000);
+    window.history.replaceState(
+      {},
+      "",
+      "/?utm_source=tiktok&utm_medium=post",
+    );
+    const nextVisitId = await firstClient.initializeAttribution();
+
+    expect(nextVisitId).not.toBe(firstVisitId);
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({
+      visit_id: nextVisitId,
+      utm_source: "tiktok",
+      utm_medium: "post",
+    });
+  });
+
   it("resetAnalytics mengosongkan antrean dan sesi (logout/ganti akun)", async () => {
     localStorage.setItem("accessToken", "token-1");
     const { track, resetAnalytics, getLearningSessionId } = await loadClient();

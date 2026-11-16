@@ -12,6 +12,7 @@ const {
   contextFromRequest,
   recordServerEvents,
 } = require("../services/analyticsService");
+const { recordRegistrationAttribution } = require("../services/attributionService");
 const {
   sendOtp,
   getOtpResendStatus: getOtpResendStatusFromService,
@@ -144,6 +145,12 @@ const register = async (req, res) => {
       isVerified: false,
       isProfileComplete: false,
     });
+
+    try {
+      await recordRegistrationAttribution(req.attributionVisitId, user._id);
+    } catch (error) {
+      console.warn("Attribution registration could not be linked:", error.message);
+    }
 
     await recordServerEvents(contextFromRequest(req, user), [
       {
@@ -1209,6 +1216,7 @@ const handleGoogleCallback = async (req, res, next) => {
         isVerified: true,
         isProfileComplete: false,
       });
+      req.isNewRegistration = true;
 
       await recordServerEvents(contextFromRequest(req, user), [
         {
@@ -1243,6 +1251,7 @@ const googleCallback = async (req, res) => {
     await GoogleAuthCode.create({
       codeHash: hashRefreshToken(code),
       userId: req.user._id,
+      isNewRegistration: Boolean(req.isNewRegistration),
       expiresAt: new Date(Date.now() + GOOGLE_AUTH_CODE_TTL_MS),
     });
 
@@ -1292,6 +1301,14 @@ const exchangeGoogleAuthCode = async (req, res) => {
         status: "error",
         message: "User tidak ditemukan",
       });
+    }
+
+    if (authCode.isNewRegistration) {
+      try {
+        await recordRegistrationAttribution(req.attributionVisitId, user._id);
+      } catch (error) {
+        console.warn("Google registration attribution could not be linked:", error.message);
+      }
     }
 
     const accessToken = generateAccessToken(user);
