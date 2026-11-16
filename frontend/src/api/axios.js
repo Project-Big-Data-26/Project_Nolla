@@ -1,6 +1,11 @@
 import axios from "axios";
 import { API_BASE_URL } from "./baseUrl";
-import { getCorrelationHeaders, trackApiError } from "../analytics/client";
+import {
+  getAttributionHeaders,
+  getCorrelationHeaders,
+  initializeAttribution,
+  trackApiError,
+} from "../analytics/client";
 
 // Base URL backend dibaca dari environment variable VITE_API_BASE_URL
 // (lihat .env / .env.example). Fallback ke localhost:5000/api kalau
@@ -25,7 +30,13 @@ const clearAuthSession = () => {
   window.dispatchEvent(new Event("auth:expired"));
 };
 
-API.interceptors.request.use((config) => {
+API.interceptors.request.use(async (config) => {
+  try {
+    await initializeAttribution();
+  } catch (error) {
+    console.warn("Kunjungan belum tercatat sebelum permintaan API:", error.message);
+  }
+  Object.assign(config.headers, getAttributionHeaders());
   const accessToken =
     localStorage.getItem("accessToken") || localStorage.getItem("token");
 

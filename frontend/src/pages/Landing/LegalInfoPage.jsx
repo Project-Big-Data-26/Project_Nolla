@@ -68,36 +68,42 @@ const legalDocuments = {
         title: "1. Data yang diproses",
         paragraphs: [
           "Untuk menjalankan akun dan layanan belajar, NOLLA memproses nama, alamat email, jenjang belajar, dan pilihan avatar. Jika pengguna masuk dengan Google, informasi akun yang diperlukan untuk autentikasi juga diproses.",
-          "NOLLA juga memproses aktivitas belajar seperti topik yang dibuka, jawaban, skor, dan durasi pengerjaan. Saat pengguna yang sudah masuk memakai aplikasi, data teknis aktivitas seperti nama peristiwa, waktu, serta ID sesi dan halaman dapat dicatat untuk mengoperasikan dan meningkatkan layanan.",
+          "NOLLA juga memproses aktivitas belajar seperti topik yang dibuka, jawaban, skor, dan durasi pengerjaan. Saat analytics diaktifkan, sumber tautan promosi (termasuk kategori kampanye dan materi), waktu kunjungan, serta ID kunjungan acak dapat dicatat sejak sebelum login dan dihubungkan dengan ID analytics pseudonim setelah pendaftaran. Kategori direct berarti URL tidak memuat UTM dan browser tidak mengirim referrer; bila referrer ada tetapi tidak ada UTM, sumber dicatat sebagai unknown.",
         ],
       },
       {
-        title: "2. Tujuan penggunaan data",
+        title: "2. Tautan promosi dan placement sekolah",
+        paragraphs: [
+          "Saat analytics diaktifkan, parameter UTM yang tervalidasi digunakan untuk memahami sumber kunjungan pertama. Kode placement_id menunjukkan lokasi poster yang tautannya digunakan; kode ini tidak menunjukkan bahwa pengunjung berada di sekolah tersebut. Atribusi tidak memperkirakan wilayah pengunjung dari alamat IP. Pemetaan kode ke nama sekolah dikelola melalui konfigurasi proyek.",
+        ],
+      },
+      {
+        title: "3. Tujuan penggunaan data",
         paragraphs: [
           "Data digunakan untuk membuat dan mengamankan akun, menampilkan materi dan hasil belajar, menyimpan progres, membantu personalisasi latihan, menangani kendala, serta memahami kinerja layanan. Data pribadi tidak dijual.",
         ],
       },
       {
-        title: "3. Penyimpanan dan pengungkapan",
+        title: "4. Penyimpanan dan pengungkapan",
         paragraphs: [
           "Data disimpan pada sistem yang digunakan untuk menjalankan NOLLA. Akses dibatasi sesuai kebutuhan operasional. Data hanya dibagikan kepada penyedia yang diperlukan untuk menjalankan layanan atau apabila diwajibkan oleh hukum.",
           "NOLLA menerapkan langkah perlindungan yang wajar untuk menjaga data dari akses atau penggunaan tanpa izin. Tidak ada sistem elektronik yang dapat dijamin bebas sepenuhnya dari risiko keamanan.",
         ],
       },
       {
-        title: "4. Masa penyimpanan dan hak pengguna",
+        title: "5. Masa penyimpanan dan hak pengguna",
         paragraphs: [
-          "Data disimpan selama diperlukan untuk menyediakan layanan, mengelola akun, memenuhi kewajiban hukum, dan menangani keamanan. Pengguna dapat meminta akses, koreksi, atau penghapusan data dengan menghubungi NOLLA. Permintaan akan ditangani sesuai ketentuan yang berlaku.",
+          "Masa simpan analytics direncanakan 365 hari secara default dan dapat diubah melalui konfigurasi deployment; data rinci dihapus otomatis melalui TTL MongoDB. Masa simpan yang berlaku harus diselaraskan dengan kebijakan yang disepakati. Data lain disimpan selama diperlukan untuk menyediakan layanan, mengelola akun, memenuhi kewajiban hukum, dan menangani keamanan. Pengguna dapat meminta akses, koreksi, atau penghapusan data dengan menghubungi NOLLA.",
         ],
       },
       {
-        title: "5. Pengguna anak dan pendampingan",
+        title: "6. Pengguna anak dan pendampingan",
         paragraphs: [
           "NOLLA ditujukan untuk kegiatan belajar siswa. Orang tua atau wali dianjurkan mendampingi anak saat membuat akun dan menggunakan layanan, serta membantu menyampaikan permintaan terkait data pribadi anak.",
         ],
       },
       {
-        title: "6. Perubahan dan kontak",
+        title: "7. Perubahan dan kontak",
         paragraphs: [
           "Kebijakan ini dapat diperbarui mengikuti perubahan layanan atau kewajiban yang berlaku. Tanggal pembaruan terakhir ditampilkan di bawah. Untuk pertanyaan atau permintaan terkait data pribadi, hubungi NOLLA melalui kontak yang tercantum pada halaman ini.",
         ],

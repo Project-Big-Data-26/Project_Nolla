@@ -13,18 +13,28 @@ const parsePositiveInt = (value) => {
   return Number.isInteger(number) && number > 0 ? number : null;
 };
 
-const getConfig = () => ({
-  enabled: process.env.ANALYTICS_ENABLED === "true",
-  environment:
-    process.env.ANALYTICS_ENVIRONMENT || process.env.NODE_ENV || "development",
-  appVersion: process.env.APP_VERSION || null,
-  noticeVersion: process.env.ANALYTICS_NOTICE_VERSION || null,
-  retentionDays: parsePositiveInt(process.env.ANALYTICS_RETENTION_DAYS),
-  internalEmailDomains: (process.env.ANALYTICS_INTERNAL_EMAIL_DOMAINS || "")
-    .split(",")
-    .map((domain) => domain.trim().toLowerCase())
-    .filter(Boolean),
-});
+const getConfig = () => {
+  const configuredRetention = process.env.ANALYTICS_RETENTION_DAYS;
+  const retentionDays =
+    configuredRetention === undefined || configuredRetention.trim() === ""
+      ? 365
+      : parsePositiveInt(configuredRetention);
+  if (!retentionDays || retentionDays < 365) {
+    throw new Error("ANALYTICS_RETENTION_DAYS harus minimal 365 hari");
+  }
+  return {
+    enabled: process.env.ANALYTICS_ENABLED === "true",
+    environment:
+      process.env.ANALYTICS_ENVIRONMENT || process.env.NODE_ENV || "development",
+    appVersion: process.env.APP_VERSION || null,
+    noticeVersion: process.env.ANALYTICS_NOTICE_VERSION || null,
+    retentionDays,
+    internalEmailDomains: (process.env.ANALYTICS_INTERNAL_EMAIL_DOMAINS || "")
+      .split(",")
+      .map((domain) => domain.trim().toLowerCase())
+      .filter(Boolean),
+  };
+};
 
 const getCohort = (email, config) => {
   const domain = String(email || "").toLowerCase().split("@")[1];

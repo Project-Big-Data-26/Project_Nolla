@@ -4,8 +4,10 @@ import { API_BASE_URL } from "../api/baseUrl";
 
 const QUEUE_KEY = "nolla.analytics.queue";
 const SESSION_KEY = "nolla.analytics.session";
+const ATTRIBUTION_KEY = "nolla.analytics.first-touch";
 const DISABLED_KEY = "nolla.analytics.disabled";
 const SESSION_IDLE_MS = 30 * 60 * 1000;
+const ATTRIBUTION_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;
 const MAX_QUEUE = 200;
 const MAX_EVENT_AGE_MS = 6 * 24 * 60 * 60 * 1000;
 const BATCH_SIZE = 50;
@@ -49,8 +51,11 @@ const writeJson = (storage, key, value) => {
 
 const pageInstanceId = createClientId("pg");
 let memoryQueue = null;
+let memoryAttribution = null;
 let flushTimer = null;
 let inflight = false;
+let attributionInflight = null;
+let attributionConfirmed = false;
 
 const isDisabled = () => {
   try {
@@ -79,6 +84,96 @@ export const getCorrelationHeaders = () => ({
   "X-Learning-Session-Id": getLearningSessionId(),
   "X-Page-Instance-Id": pageInstanceId,
 });
+
+const loadFirstTouch = () => {
+  const now = Date.now();
+  if (
+    memoryAttribution &&
+    Date.parse(memoryAttribution.expires_at) > now
+  ) {
+    return memoryAttribution.payload;
+  }
+  if (memoryAttribution) {
+    attributionConfirmed = false;
+    memoryAttribution = null;
+  }
+  const stored = readJson(localStorage, ATTRIBUTION_KEY, null);
+  if (
+    stored?.payload?.visit_id &&
+    /^vst_[0-9a-f]{48}$/.test(stored.payload.visit_id) &&
+    Date.parse(stored.expires_at) > now
+  ) {
+    memoryAttribution = stored;
+    return stored.payload;
+  }
+  if (stored) {
+    attributionConfirmed = false;
+    try {
+      localStorage.removeItem(ATTRIBUTION_KEY);
+    } catch {
+      // Storage yang diblokir tetap menggunakan ID sementara di memori.
+    }
+  }
+
+  const params = new URLSearchParams(
+    typeof window === "undefined" ? "" : window.location.search,
+  );
+  const payload = {
+    visit_id: `vst_${randomHex(24)}`,
+    has_referrer: Boolean(typeof document !== "undefined" && document.referrer),
+  };
+  for (const key of [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "placement_id",
+  ]) {
+    const value = params.get(key);
+    if (value !== null) payload[key] = value;
+  }
+  memoryAttribution = {
+    payload,
+    expires_at: new Date(now + ATTRIBUTION_RETENTION_MS).toISOString(),
+  };
+  writeJson(localStorage, ATTRIBUTION_KEY, memoryAttribution);
+  return payload;
+};
+
+export const getAttributionHeaders = () => ({
+  "X-Attribution-Visit-Id": loadFirstTouch().visit_id,
+});
+
+export const initializeAttribution = async () => {
+  const firstTouch = loadFirstTouch();
+  if (attributionConfirmed) return firstTouch.visit_id;
+  if (attributionInflight) return attributionInflight;
+  attributionInflight = fetch(`${API_BASE_URL}/analytics/attribution/visit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(firstTouch),
+  }).then(async (response) => {
+    if (!response.ok) {
+      throw new Error(`Attribution request failed with status ${response.status}`);
+    }
+    const result = await response.json();
+    const serverExpiry = Date.parse(result?.data?.expires_at);
+    if (Number.isFinite(serverExpiry)) {
+      memoryAttribution = {
+        ...memoryAttribution,
+        expires_at: new Date(serverExpiry).toISOString(),
+      };
+      writeJson(localStorage, ATTRIBUTION_KEY, memoryAttribution);
+    }
+    attributionConfirmed = true;
+    return firstTouch.visit_id;
+  });
+  try {
+    return await attributionInflight;
+  } finally {
+    attributionInflight = null;
+  }
+};
 
 const loadQueue = () => {
   if (memoryQueue) return memoryQueue;

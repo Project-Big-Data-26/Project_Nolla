@@ -15,6 +15,10 @@ import AuthBrandPanel from "../../components/AuthBrandPanel";
 import GoogleAuthButton from "../../components/GoogleAuthButton";
 import { API_BASE_URL } from "../../api/baseUrl";
 import { REGISTER_GUIDE_PENDING_KEY } from "../../constants/studentGuide";
+import {
+  getAttributionHeaders,
+  initializeAttribution,
+} from "../../analytics/client";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -64,10 +68,16 @@ const Register = () => {
     };
 
     try {
+      try {
+        await initializeAttribution();
+      } catch (error) {
+        console.warn("Kunjungan belum tercatat sebelum pendaftaran:", error.message);
+      }
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...getAttributionHeaders(),
         },
         body: JSON.stringify(payloadData),
       });
@@ -141,7 +151,12 @@ const Register = () => {
           <div className="mt-4">
             <GoogleAuthButton
               label="Daftar dengan Google"
-              onClick={() => {
+              onClick={async () => {
+                try {
+                  await initializeAttribution();
+                } catch (error) {
+                  console.warn("Kunjungan belum tercatat sebelum Google OAuth:", error.message);
+                }
                 window.location.href = `${API_BASE_URL}/auth/google`;
               }}
             />

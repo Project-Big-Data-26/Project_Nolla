@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { VISIT_ID_PATTERN } = require("../services/attributionSchema");
 
 const CLIENT_ID_PATTERN = /^[A-Za-z0-9_-]{8,64}$/;
 
@@ -15,6 +16,11 @@ const requestContext = (req, res, next) => {
     readClientId(req, "X-Request-Id") ?? `req_${crypto.randomUUID()}`;
   req.learningSessionId = readClientId(req, "X-Learning-Session-Id");
   req.pageInstanceId = readClientId(req, "X-Page-Instance-Id");
+  const visitId = req.get("X-Attribution-Visit-Id");
+  req.attributionVisitId =
+    typeof visitId === "string" && VISIT_ID_PATTERN.test(visitId)
+      ? visitId
+      : null;
   res.set("X-Request-Id", req.requestId);
   next();
 };

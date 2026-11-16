@@ -34,6 +34,7 @@ const {
   recordServerEvents,
   toId,
 } = require("../services/analyticsService");
+const { recordConversion } = require("../services/attributionService");
 
 const DEFAULT_RATING = 1000;
 const QUESTION_RATINGS = { easy: 600, medium: 1000, hard: 1400 };
@@ -429,6 +430,12 @@ const startQuiz = async (req, res) => {
       started_at: new Date(),
     });
 
+    try {
+      await recordConversion(req.attributionVisitId, "quiz_started");
+    } catch (error) {
+      console.warn("Quiz-start attribution could not be recorded:", error.message);
+    }
+
     await recordServerEvents(contextFromRequest(req), [
       {
         name: "assessment_started",
@@ -553,6 +560,14 @@ const submitQuiz = async (req, res) => {
           dbSession,
         ),
     );
+
+    if (!alreadySubmitted) {
+        try {
+          await recordConversion(req.attributionVisitId, "quiz_completed");
+        } catch (error) {
+          console.warn("Quiz-completion attribution could not be recorded:", error.message);
+        }
+    }
 
     return res.status(200).json({
       statusCode: 200,
