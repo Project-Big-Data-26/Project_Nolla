@@ -43,13 +43,15 @@ atau atribusi sekolah. Kode yang tidak valid tidak ditebak agar laporan sekolah
 tidak salah. Nginx frontend meneruskan `/go/` ke backend. Tautan UTM panjang
 tetap didukung langsung.
 
-Pada deployment saat ini, `production/compose.yaml` memasang konfigurasi Nginx
-terpisah dari konfigurasi frontend biasa. Gunakan [production/nginx.conf](../production/nginx.conf)
-sebagai sumber konfigurasi production; file ini meneruskan `/go/` ke service
-backend pada port internal `5832`. Setelah konfigurasi deployment diarahkan ke
-file tersebut, rebuild/recreate frontend production agar Nginx memuatnya.
-Jangan mount `frontend/nginx.conf` untuk production tanpa menyesuaikan upstream:
-file itu menggunakan port backend `5000`.
+Untuk production, gunakan [deploy/production/compose.yaml](../deploy/production/compose.yaml)
+dari repository dan [production/nginx.conf](../production/nginx.conf), yang
+meneruskan `/go/` ke service backend pada port internal `5832`. File rahasia
+tetap berada di `/opt/project_assessment/production/.env` pada server, bukan
+di repository. Dari checkout repository di `/opt/project_assessment/source`,
+jalankan `docker compose -f deploy/production/compose.yaml ...`; jangan gunakan
+Compose lama di `/opt/project_assessment/production/compose.yaml`. Jangan mount
+`frontend/nginx.conf` untuk production tanpa menyesuaikan upstream: file itu
+menggunakan port backend `5000`.
 
 `placement_id` menunjukkan lokasi poster yang tautannya dipakai, bukan lokasi
 pengunjung. Kode placement disimpan bersama first-touch dan nama sekolah

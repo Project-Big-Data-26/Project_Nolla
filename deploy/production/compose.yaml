@@ -1,0 +1,41 @@
+name: project-nolla-production
+
+services:
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    image: project-nolla-backend:production
+    container_name: nolla-production-backend
+    command: ["npm", "start"]
+    env_file:
+      - ../../../production/.env
+    environment:
+      NODE_ENV: production
+      PORT: "5832"
+    restart: unless-stopped
+    networks:
+      - nolla-internal
+
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_ENABLE_STAGING_CHECK: "false"
+    image: project-nolla-frontend:production
+    container_name: nolla-production-frontend
+    ports:
+      - "127.0.0.1:18012:80"
+    volumes:
+      - ../../production/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - nolla-internal
+
+networks:
+  nolla-internal:
+    driver: bridge
